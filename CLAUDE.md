@@ -157,8 +157,10 @@ Exact versions are pinned in `docs/02_TECH_STACK.md` §2 once installed; update 
 **Tooling on this machine (2026-10-18):** .NET SDK 9.0.305 (runtimes 8.0.8 and 9.0.9) at `C:\Program Files\dotnet`;
 Python 3.11 (install Pillow/numpy if missing); Git Bash and PowerShell. **Godot 4.7.2 .NET** is installed at
 `C:\Users\matth\Desktop\Apps\Godot_v4.7.2-stable_mono_win64\`: use `Godot_v4.7.2-stable_mono_win64_console.exe` for
-command-line runs (it prints to the terminal and returns exit codes). Export templates are **not** installed locally
-(1.1 GB); CI exports the Windows build. (An old standard Godot 4.4 also sits in `Desktop\Apps`; don't use it.)
+command-line runs (it prints to the terminal and returns exit codes). The Windows export templates are installed in
+`%APPDATA%\Godot\export_templates.7.2.stable.mono` (from the official release, SHA-512 checked). **After every
+update run `tools/build_local.sh`**: it exports to `build/TheLedger.exe` (same path each time; the owner pins it to the
+taskbar), and refuses while the game is running. Godot's C# export needs `game/TheLedger.sln` (game + sim). (An old standard Godot 4.4 also sits in `Desktop\Apps`; don't use it.)
 
 ```
 GODOT="/c/Users/matth/Desktop/Apps/Godot_v4.7.2-stable_mono_win64/Godot_v4.7.2-stable_mono_win64_console.exe"
