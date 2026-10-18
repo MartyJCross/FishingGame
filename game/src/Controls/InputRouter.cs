@@ -1,0 +1,152 @@
+using Godot;
+using TheLedger.Boot;
+using TheLedger.Sim.Core;
+using TheLedger.Sim.Input;
+
+namespace TheLedger.Controls;
+
+/// <summary>
+/// Turns mouse, keyboard and gamepad state into one InputFrame per sim tick for one local player
+/// (docs/03_FISHING_MECHANICS.md §2). Whichever device was used last drives the rod.
+/// </summary>
+public partial class InputRouter : Node
+{
+    public enum Device { MouseKeyboard, Gamepad }
+
+    /// <summary>Which local player this router feeds (co-op ready: CLAUDE.md rule 15).</summary>
+    public int PlayerIndex { get; set; }
+
+    public Device ActiveDevice { get; private set; } = Device.MouseKeyboard;
+
+    /// <summary>Where the angler's shoulder is on screen (world px), set by the view each frame.</summary>
+    public Vector2 ShoulderPx { get; set; }
+
+    /// <summary>When false, the mouse doesn't move the rod (e.g. while dragging a tuning slider).</summary>
+    public bool MouseRodEnabled { get; set; } = true;
+
+    /// <summary>Right-button / steady crank speed, handle turns per second (Ctrl+wheel or Z/C).</summary>
+    public float SteadyCrankRate { get; private set; } = 1.5f;
+
+    /// <summary>Max crank rate for a fully pulled right trigger, turns/s.</summary>
+    public float TriggerCrankMax = 3.0f;
+
+    /// <summary>One wheel notch = this many handle turns.</summary>
+    public float TurnsPerWheelNotch = 1f / 8f;
+
+    /// <summary>Line hold ramps to full over this long when held with a digital button (feathering).</summary>
+    public float HoldRampSeconds = 0.25f;
+
+    private float _rodTarget = 0.6f;
+    private float _reach = 0.5f;
+    private float _lineHold;
+    private float _pendingWheelTurns;
+    private int _pendingDragDelta;
+
+    public override void _UnhandledInput(InputEvent e)
+    {
+        if (e is InputEventMouseMotion mm)
+        {
+            if (mm.Relative.LengthSquared() > 1f) ActiveDevice = Device.MouseKeyboard;
+        }
+        else if (e is InputEventMouseButton mb && mb.Pressed)
+        {
+            ActiveDevice = Device.MouseKeyboard;
+            int notch = mb.ButtonIndex switch
+            {
+                MouseButton.WheelUp => 1,
+                MouseButton.WheelDown => -1,
+                _ => 0,
+            };
+            if (notch != 0)
+            {
+                if (mb.ShiftPressed) _pendingDragDelta += notch;
+                else if (mb.CtrlPressed) SteadyCrankRate = Mathf.Clamp(SteadyCrankRate + 0.25f * notch, 0.25f, 4f);
+                // Wheel up = crank forward (retrieve). Wheel down never back-reels: anti-reverse.
+                else if (notch > 0) _pendingWheelTurns += TurnsPerWheelNotch;
+            }
+        }
+        else if (e is InputEventJoypadMotion jm && Mathf.Abs(jm.AxisValue) > 0.3f)
+        {
+            ActiveDevice = Device.Gamepad;
+        }
+        else if (e is InputEventJoypadButton { Pressed: true })
+        {
+            ActiveDevice = Device.Gamepad;
+        }
+
+        if (e.IsActionPressed(InputActions.DragTighter)) _pendingDragDelta++;
+        if (e.IsActionPressed(InputActions.DragLooser)) _pendingDragDelta--;
+        if (e.IsActionPressed(InputActions.CrankSpeedUp)) SteadyCrankRate = Mathf.Min(4f, SteadyCrankRate + 0.25f);
+        if (e.IsActionPressed(InputActions.CrankSpeedDown)) SteadyCrankRate = Mathf.Max(0.25f, SteadyCrankRate - 0.25f);
+    }
+
+    /// <summary>Builds this tick's frame. Call once per sim tick.</summary>
+    public InputFrame BuildFrame(float dt, Vector2 mouseWorldPx)
+    {
+        var f = new InputFrame();
+
+        // Rod direction.
+        Vector2 stick = Input.GetVector(InputActions.RodLeft, InputActions.RodRight, InputActions.RodUp, InputActions.RodDown);
+        if (ActiveDevice == Device.Gamepad && stick.Length() > 0.3f)
+        {
+            _rodTarget = Mathf.Atan2(-stick.Y, stick.X);
+            _reach = Mathf.Clamp((stick.Length() - 0.3f) / 0.7f, 0f, 1f);
+        }
+        else if (ActiveDevice == Device.MouseKeyboard && MouseRodEnabled)
+        {
+            Vector2 d = mouseWorldPx - ShoulderPx;
+            if (d.LengthSquared() > 25f) _rodTarget = Mathf.Atan2(-d.Y, d.X);
+            float reachInput = Input.GetActionStrength(InputActions.ReachUp) - Input.GetActionStrength(InputActions.ReachDown);
+            _reach = Mathf.Clamp(_reach + reachInput * dt * 1.5f, 0f, 1f);
+        }
+        f.RodTargetAngle = _rodTarget;
+        f.RodReach = _reach;
+
+        // Line hold: analog on the trigger, ramped on the mouse button.
+        float holdStrength = Input.GetActionStrength(InputActions.LineHold);
+        if (ActiveDevice == Device.Gamepad) _lineHold = holdStrength;
+        else _lineHold = holdStrength > 0.5f ? Mathf.Min(1f, _lineHold + dt / HoldRampSeconds) : 0f;
+        f.LineHold = _lineHold;
+
+        // Crank: trigger (analog), right button (steady), or wheel turns spread over a few ticks.
+        float crank = ActiveDevice == Device.Gamepad
+            ? Input.GetActionStrength(InputActions.Crank) * TriggerCrankMax
+            : (Input.IsActionPressed(InputActions.Crank) ? SteadyCrankRate : 0f);
+        if (_pendingWheelTurns > 0f)
+        {
+            float maxTurnsThisTick = 6f * dt; // a fast-spun wheel cranks up to 6 turns/s
+            float take = Mathf.Min(_pendingWheelTurns, maxTurnsThisTick);
+            _pendingWheelTurns -= take;
+            crank += take / dt;
+        }
+        f.CrankRate = crank;
+
+        f.DragDelta = (sbyte)Math.Clamp(_pendingDragDelta, -8, 8);
+        _pendingDragDelta = 0;
+
+        f.Move = Input.GetActionStrength(InputActions.MoveRight) - Input.GetActionStrength(InputActions.MoveLeft);
+
+        var b = InputButtons.None;
+        if (Input.IsActionPressed(InputActions.Bail)) b |= InputButtons.Bail;
+        if (Input.IsActionPressed(InputActions.Land)) b |= InputButtons.Land;
+        if (Input.IsActionPressed(InputActions.RigMenu)) b |= InputButtons.RigMenu;
+        f.Buttons = b;
+        return f;
+    }
+
+    /// <summary>Text for the debug overlay: connected controllers and their raw axes.</summary>
+    public static string DescribeJoypads()
+    {
+        var pads = Input.GetConnectedJoypads();
+        if (pads.Count == 0) return "Controller: none connected";
+        var sb = new System.Text.StringBuilder();
+        foreach (int id in pads)
+        {
+            sb.Append($"Controller {id}: {Input.GetJoyName(id)}\n");
+            sb.Append($"  L ({Input.GetJoyAxis(id, JoyAxis.LeftX),5:0.00},{Input.GetJoyAxis(id, JoyAxis.LeftY),5:0.00})");
+            sb.Append($"  R ({Input.GetJoyAxis(id, JoyAxis.RightX),5:0.00},{Input.GetJoyAxis(id, JoyAxis.RightY),5:0.00})");
+            sb.Append($"  LT {Input.GetJoyAxis(id, JoyAxis.TriggerLeft):0.00}  RT {Input.GetJoyAxis(id, JoyAxis.TriggerRight):0.00}\n");
+        }
+        return sb.ToString();
+    }
+}

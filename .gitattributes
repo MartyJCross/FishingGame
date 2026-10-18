@@ -1,0 +1,8 @@
+* text=auto
+*.cs text eol=crlf
+*.rec binary
+*.png binary
+*.ogg binary
+*.wav binary
+*.ttf binary
+*.otf binary

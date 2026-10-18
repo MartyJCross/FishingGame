@@ -20,3 +20,6 @@ asset-downloads/
 *.png.tmp
 bench.json
 screenshots/
+
+# Claude Code local state (agent worktrees)
+.claude/
