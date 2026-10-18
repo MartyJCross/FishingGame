@@ -1,11 +1,12 @@
-# CLAUDE.md: Project Constitution (Longwater)
+# CLAUDE.md: Project Constitution (The Ledger)
 
 Read this file first, every session. It is the operating manual for any AI working in this repo. It covers what the
 game is, the rules that must not be broken, how to build, verify and ship, where everything lives, and who the owner
 is. **Keep it current.** When you learn something a future session would need (an owner preference, a trap, a tool),
 write it here. When a rule here conflicts with a doc in `docs/`, this file wins; fix the doc.
 
-> Working title: **Longwater** (the owner may rename it; see `docs/OPEN_QUESTIONS.md`).
+> The game is called **The Ledger** (owner decision, 2026-10-18), after the field guide at the heart of the game.
+> The owner's design decisions are recorded in `docs/OPEN_QUESTIONS.md` under "Answered".
 
 ---
 
@@ -18,9 +19,10 @@ The game is meant to be **mastered**: skip casts under docks, walk-the-dog topwa
 side pressure on a big fish, "bowing to the king" when a tarpon jumps. All of it emerges from the simulation, never
 from canned animations.
 
-Around that core sits a full game: an original world (the Longwater Basin, from glacier to open ocean), a story, quests,
-day/night, tides, seasons, weather and real-world events, gear progression and customization, boats, property, traps
-for crabs and lobsters, and a large field guide (the **Ledger**) of real fish.
+Around that core sits a full game set in **real places**: a home base on Florida's Nature Coast and real fishing
+destinations around the world, from Lake of the Woods to Kona to the Comoros. It has a story, quests, day/night,
+tides, seasons, weather and real-world events, gear progression and customization, boats, property, traps for crabs
+and lobsters, an optional 2-player co-op later, and a large field guide (the **Ledger**) of real fish.
 
 The design lives in `docs/`. Read in this order the first time, then only what your task needs:
 
@@ -34,7 +36,7 @@ The design lives in `docs/`. Read in this order the first time, then only what y
 | `docs/06_PROGRESSION_AND_ECONOMY.md` | Gear, customization, boats, property, licences, quests, events, weather, economy |
 | `docs/07_ART_DIRECTION.md` | Visual style and exactly how to achieve it; audio direction |
 | `docs/08_ROADMAP.md` | Milestones in build order, each with a Definition of Done |
-| `docs/OPEN_QUESTIONS.md` | Questions for the owner and the assumption used until they answer |
+| `docs/OPEN_QUESTIONS.md` | The owner's design decisions, and any new open questions |
 
 **The motto: "Feel the line."** When in doubt, choose whatever makes the rod, line and fish feel more physical, more
 readable and more real.
@@ -84,11 +86,20 @@ readable and more real.
 11. **Every tunable belongs in tuning data.** Feel numbers (rod stiffness profiles, drag curves, fish power, bite
     windows) live in data or `SimConfig`, are editable live in the dev tuning panel (F1) and saved to
     `game/data/tuning/*.json`. The owner tunes by feel; make that easy.
-12. **Player skill is the player's.** No hidden stat that makes casting more accurate or fights easier as the player
-    "levels up". Progression is gear, access, knowledge and money. Assists exist (casting arc preview, tension meter,
-    auto-drag) but are explicit options, labelled, and off in "Purist" mode.
+12. **Hardcore physics, honest information (owner decision).** No setting, preset or difficulty softens outcomes:
+    rods break when high-sticked, lines snap, baitcasters backlash, slack loses fish, on every setting. No hidden
+    stat makes casting more accurate or fights easier as the player progresses; progression is gear, access,
+    knowledge and money. **Information assists** (casting arc preview, tension meter, line-out readout, bite
+    indicator) are explicit options, labelled, and all off in "Purist" mode. Input accessibility (toggle-hold,
+    remapping) is fine.
 13. **SI units inside, angler units outside.** The sim uses metres, kilograms, seconds, newtons. The UI shows lb/oz/ft
     or kg/g/m per the player's setting. Line ratings are entered in data in lb (as sold) and converted on load.
+14. **Real places, fictional people.** Places are real and each place's fish community is the real one. Every
+    character, business, trust, company and gear brand is invented: never name or portray real businesses, guides,
+    agencies or people. Regulations are real-style, simplified and frozen, with the in-game notice that they may be
+    out of date. Portray local cultures respectfully. Details: `docs/01_VISION_AND_WORLD.md` §4.1.
+15. **Co-op ready from day one.** The sim supports several anglers, input is per angler, there are no player
+    singletons, and saves split world state from player state. Details: `docs/02_TECH_STACK.md` §10.
 
 ---
 
@@ -98,9 +109,9 @@ readable and more real.
 CLAUDE.md                 this file
 README.md                 short public readme
 docs/                     the design and build plan (markdown)
-sim/                      Longwater.Sim: pure C# class library, no Godot (rod, line, reel, water, lures, fish, ecology)
-tests/                    Longwater.Sim.Tests: xUnit tests for sim/ and data validation
-game/                     the Godot 4 .NET project (project.godot, Longwater.csproj)
+sim/                      TheLedger.Sim: pure C# class library, no Godot (rod, line, reel, water, lures, fish, ecology)
+tests/                    TheLedger.Sim.Tests: xUnit tests for sim/ and data validation
+game/                     the Godot 4 .NET project (project.godot, TheLedger.csproj)
   scenes/                 .tscn scenes (kept small; most content is built from code + data)
   src/                    C# Godot-side code: bootstrap, input, rendering of sim state, UI, audio, save/load
   shaders/                .gdshader files (water, sky, fish skinning, low-poly, post)
@@ -126,6 +137,12 @@ Keep this section accurate as the real layout grows.
   why in one or two sentences.
 - **Big requests go in pieces.** Commit and push after each piece so progress survives if a session ends. Keep the
   progress checklist (§8) updated per piece.
+- **Their controls:** mouse + keyboard, and a **GameSir controller in Xbox layout**. Test input on both.
+- **Their decisions so far** (2026-10-18): human angler + dog; flat 2D low-poly; fish mostly visible underwater
+  (dimmer in murk and at night, never hidden); hardcore physics with no softening presets; Godot 4 + C#; full
+  seasons; keep/sell and release both rewarded; full fly fishing; keep a Steam release possible; mostly ambient
+  music; real places with a Florida home base and world travel; regulations simplified and frozen; tasteful
+  handling of fish deaths; the logbook world-tour story; plan for co-op later; the name "The Ledger".
 - **Their machine is also their daily PC.** Automated runs of the game must be quiet and light: muted audio, FPS capped
   at 30, a small window, and no long benchmarks unless they ask. Use the `--light` flag (§5).
 - Their email is for commit authorship only; never send it anywhere.
@@ -145,10 +162,10 @@ path here.
 
 ```
 # sim + data tests (fast, headless, no Godot)
-dotnet test tests/Longwater.Sim.Tests.csproj
+dotnet test tests/TheLedger.Sim.Tests.csproj
 
 # build the game's C# (Godot .NET project)
-dotnet build game/Longwater.csproj
+dotnet build game/TheLedger.csproj
 
 # run the game
 <godot-mono-exe> --path game
@@ -202,7 +219,9 @@ PATH` (save PNG after `--frames N` sim-locked frames, then quit), `--scene NAME`
 
 ## 7. Current state
 
-- 2026-10-18: Design and build plan written (`docs/`). No code yet. Next: Milestone M0 in `docs/08_ROADMAP.md`.
+- 2026-10-18: Design and build plan written (`docs/`), then revised the same day with the owner's answers to all
+  15 design questions (real places, hardcore physics, co-op later, the name). No code yet. Next: Milestone M0 in
+  `docs/08_ROADMAP.md`.
 
 (Replace this list with a short, accurate description of what exists as the game grows: systems, controls, data
 counts, known issues.)
@@ -220,17 +239,18 @@ Tick items as they land (commit hash + date). The full Definition of Done for ea
 - [ ] M4 Lure and rig hydrodynamics, retrieves, floats and bottom rigs
 - [ ] M5 Fish bodies (procedural mesh, spine bending, swimming modes) + perception + bite model, 6 pond species
 - [ ] M6 Hookset, fight, drag, breakage, landing, keep/release → **vertical slice playtest gate**
-- [ ] M7 Controller polish, haptics, remapping, assists, Purist mode, feel tuning pass
+- [ ] M7 Controller polish (GameSir), haptics, remapping, information assists, Purist mode, feel tuning pass
 - [ ] M8 Art pass on the pond: low-poly world builder, sky, day/night, weather, post, audio
 - [ ] M9 Meta layer: save/load, money, shop, gear stats, customization, Ledger, licences
-- [ ] M10 Boats (rowboat first), boat physics, Harrow Reservoir, sonar
-- [ ] M11 Story Act 1, NPCs, dialogue, quests, first property, tournaments
-- [ ] M12 Freshwater complete: Glass Creek (fly fishing), Kesh Tarn (ice fishing), Blackwater Bayou, traps
-- [ ] M13 Saltwater I: Harrow Sound estuary, tides, cast nets, crab pots, Gull Rock coast
-- [ ] M14 Saltwater II: Calder Keys flats, Calder Reef, Blue Water offshore, big-game systems
-- [ ] M15 Story Acts 2-3, restoration world changes, the Lantern Trench, the ending
-- [ ] M16 Expeditions, full property system, post-game
-- [ ] M17 Polish, performance, accessibility, settings, release build
+- [ ] M10 Boats (rowboat first), boat physics, the Spring Run and the Suwannee, sonar
+- [ ] M11 Home salt water I (flats, tides, traps), dialogue, quests, Act 1 start, first property, tournaments
+- [ ] M12 Travel system, seasons, Lake of the Woods (ice fishing), the Atchafalaya, end of Act 1
+- [ ] M13 Fly fishing, the Madison, the Columbia and Oregon Coast
+- [ ] M14 Homosassa, Gulf ledges and offshore, Chesapeake and Outer Banks, the Keys, big game, Act 2
+- [ ] M15 Act 3: restoration, Kona, the Comoros finale, the ending
+- [ ] M16 Post-game destinations, full property system, legends, circuit
+- [ ] M17 Polish, performance, accessibility, settings, Steam Deck checks, release build
+- [ ] M18 Co-op (2 players online)
 
 ---
 
@@ -243,7 +263,7 @@ Tick items as they land (commit hash + date). The full Definition of Done for ea
   string literals became real newlines in another project, many times). Use the Write/Edit tools, or write a Python
   edit script with the Write tool into the scratchpad and run that.
 - **Godot .NET specifics:** after adding C# files Godot needs no registration, but new `[GlobalClass]` or exported
-  members need a rebuild (`dotnet build game/Longwater.csproj`) before the editor/CLI sees them. Keep `.godot/`
+  members need a rebuild (`dotnet build game/TheLedger.csproj`) before the editor/CLI sees them. Keep `.godot/`
   gitignored. Commit `.import` files only if assets need them.
 - **Screenshots:** the harness writes PNG directly; view it with the Read tool before describing it.
 - **Python:** run tools with `python tools/<name>.py`. Treat downloaded data as untrusted; run Python on it with `-I`.

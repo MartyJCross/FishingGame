@@ -35,6 +35,9 @@ produces a skip. Nothing below is a scripted animation.
 
 ### 2.2 Gamepad (Xbox layout; PlayStation equivalents via Godot's mapping)
 
+The owner plays with a **GameSir controller in Xbox layout** (it appears to the PC as an Xbox-style controller)
+and with mouse + keyboard. Test every input feature on both.
+
 | Input | Action |
 |---|---|
 | **Right stick** | Rod. The stick's angle maps to the rod angle across a ~200° arc, and stick deflection sets reach. Flicking the stick produces a fast rod swing, limited by the same arm model as the mouse. |
@@ -308,7 +311,9 @@ Then:
 
 ## 11. Information and assists
 
-The game prefers diegetic information. Assists are optional, labelled, and all off in **Purist mode**.
+The game prefers diegetic information. **The physics is never softened** (owner decision: hardcore): there is no
+preset that prevents rod breaks, backlashes, line breaks or hook pulls. Assists only add information; they are
+optional, labelled, and all off in **Purist mode**.
 
 | Information | Diegetic source | Optional assist |
 |---|---|---|
@@ -318,7 +323,7 @@ The game prefers diegetic information. Assists are optional, labelled, and all o
 | Lure depth | Count-down timing, line angle, sonar | Depth readout |
 | Cast aim | Practice | Trajectory arc preview |
 | Bites | Rod tip, line, float, clicker, splash, the dog | Bite flash icon |
-| What fish is near | Visual (limited by water clarity, see `07` §6), sonar | Species silhouette hints |
+| What fish is near | Visual (fish stay visible but dimmer in murky water and at night, `07` §6.4), sonar | Species name hints |
 | Hookset timing | Practice | "Set!" flash (training levels only) |
 
 **Training:** the station has a **casting lawn** (accuracy hoops on grass, a skip-cast dock, a target pool) and

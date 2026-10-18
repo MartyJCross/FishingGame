@@ -73,7 +73,7 @@ flattens, storms darken and cool, fog lifts the blacks).
 
 Example starting points (tune by eye; these are a direction, not law):
 
-| Key | Millbrook golden hour | Calder Keys day | Blackwater night |
+| Key | Station Pond golden hour | Florida Keys day | Atchafalaya night |
 |---|---|---|---|
 | skyTop | `#3B4F7A` | `#2E8BD8` | `#0B1020` |
 | skyHorizon | `#F6B06A` | `#BFE9F7` | `#1C2440` |
@@ -144,6 +144,9 @@ Shared by family, overridden per species:
 
 ### 5.5 Out of water
 
+**Fish deaths and injuries are shown tastefully (owner decision):** gaffs and sharks taking hooked fish happen,
+with at most a little blood on a gaffed fish; there are no cleaning or filleting scenes.
+
 When landed: a brighter, wetter sheen, drips (particles), the flop physics (`04` §9.4), gills working. **Mahi-mahi's
 colours fade after landing** (a real and haunting detail); salmon and trout keep theirs.
 
@@ -178,8 +181,11 @@ mornings it's a mirror; in wind it breaks up.
   spot data (`04` §7.5): clear mountain water is blue-green and transparent, the bayou is tea-brown with ~1 m
   visibility, the reef turquoise, blue water cobalt fading to black by ~200 m.
 - Objects underwater are tinted by **transmittance** over their depth and z distance (red fades first, real), and
-  fogged toward the water colour beyond the visibility distance. **This visibility is the same number fish use for
-  vision** (`05` §3.1).
+  fogged toward the water colour with distance. Fish perception uses the water's real visibility (`05` §3.1).
+- **For the player, fish are mostly visible (owner decision).** Murky water, depth and night dim and fog fish, but
+  never below a readable silhouette: a minimum contrast floor (tunable, default about 35%) keeps fish near the lure
+  visible. Sonar and polarized glasses still matter: sonar shows fish outside the frame and in deep water, and
+  glasses cut surface glare and sharpen fish in shallow water so species can be identified.
 - **Turbidity** after rain or near a muddy bottom: more scattering colour, shorter visibility.
 - The underside of the surface: a bright, rippled band (total internal reflection look).
 
@@ -203,7 +209,7 @@ sheet of water.
 ## 7. Sky, time of day and weather
 
 - **Sky shader:** gradient from the palette, sun disc with halo, moon with its real phase, stars (twinkle, Milky Way
-  band on clear moonless nights), aurora (Kaldfjord) and meteor streaks (event).
+  band on clear moonless nights), aurora (Northern Norway) and meteor streaks (event).
 - **Time of day:** palettes interpolate continuously; low-poly re-shading follows the light direction; long rim light
   at golden hour; lanterns and boat lights glow at night (a few `PointLight2D`s at most, or a custom radial light
   term in the shared shaders, whichever is cheaper on the iGPU).

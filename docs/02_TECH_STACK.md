@@ -6,8 +6,8 @@
 |---|---|---|
 | Engine | **Godot 4.x, .NET build** (latest stable, ≥ 4.5) | Mature 2D renderer with custom shaders, 2D lights, particles, a full UI toolkit, input mapping with first-class gamepads and rumble, audio buses, and one-click Windows export. Fully text-based project files, so an AI can edit everything without the editor GUI. MIT licence, no royalties. |
 | Language | **C# (.NET 8+; this machine has the .NET 9 SDK)** everywhere | The sim needs tight numeric loops (rope + rod XPBD with substeps, a heightfield, dozens of fish spines) that GDScript is too slow for. C# is fast, strongly typed, and the sim can be a plain library tested with `dotnet test`. One language for the whole project. No GDScript. |
-| Sim | **Own library `Longwater.Sim`** (pure C#, no Godot) | The physics is the product. Godot's rigid-body physics is not used for rod, line, water, lures or fish. The sim is deterministic, fixed-step and unit-tested, the same split that worked well in the owner's other project. |
-| Tests | **xUnit** (`tests/Longwater.Sim.Tests`) + input-recording replays + a headless smoke run | Fast, headless, CI-friendly. |
+| Sim | **Own library `TheLedger.Sim`** (pure C#, no Godot) | The physics is the product. Godot's rigid-body physics is not used for rod, line, water, lures or fish. The sim is deterministic, fixed-step and unit-tested, the same split that worked well in the owner's other project. |
+| Tests | **xUnit** (`tests/TheLedger.Sim.Tests`) + input-recording replays + a headless smoke run | Fast, headless, CI-friendly. |
 | Content | **JSON** in `game/data/`, schemas described in these docs, validated by tests | Diff-friendly, AI-friendly, moddable. |
 | Art | **Procedural low-poly 2D** generated from data at load time + shaders | No artist needed. Fish, terrain, plants, boats, sky and props are generated from parameters. See `07_ART_DIRECTION.md`. |
 | Audio | Godot audio buses + **CC0 recordings** + **procedural synthesis** for the reel, drag and line | Tactile sounds must respond continuously to sim values (spool speed, slip speed, tension). |
@@ -75,7 +75,8 @@ Renderer:         mobile | gl_compatibility (decided in M8)
 
 ### 3.1 The sim boundary
 
-- `Longwater.Sim` exposes a `World` with `Step(in InputFrame input)` and read-only state accessors
+- `TheLedger.Sim` exposes a `World` with `Step(ReadOnlySpan<InputFrame> inputs)` (one InputFrame per angler, see §10) and
+  read-only state accessors
   (`World.Rod.Nodes`, `World.Line.Nodes`, `World.Water.Heights`, `World.Fish[i].Spine`, etc.).
 - **InputFrame** is the only way input reaches the sim: rod target (angle, reach), rod angular velocity hint (for
   controller flicks), line-hold pressure (0..1), crank rate (turns/s, signed), drag delta, bail toggle, hookset is not a
@@ -128,7 +129,7 @@ Renderer:         mobile | gl_compatibility (decided in M8)
 
 ```
 sim/
-  Longwater.Sim.csproj
+  TheLedger.Sim.csproj
   Core/        SimConfig, SimRng, Vec2 (own struct, readonly, inline math), Units, RingBuffer, SimEvents
   Water/       WaterSurface (1D heightfield), AmbientWaves, Current (flow field), Splash particles, Tides
   Tackle/      Rod (XPBD chain), Line (variable-length rope), Spool/Reel, Drag, Terminal (hooks, sinkers,
@@ -139,11 +140,11 @@ sim/
   Ecology/     Species registry (loaded data), Populations, Habitat cells, Activity curves, Weather inputs
   World/       World, Spot (bathymetry, structure, snags), Step orchestration, Snapshot, Replay
 tests/
-  Longwater.Sim.Tests.csproj
+  TheLedger.Sim.Tests.csproj
   Rod/, Line/, Reel/, Water/, Lure/, Fish/, Ecology/, Data/ (schema validation of game/data), Replays/
   replays/     *.rec input recordings used by tests (binary, small)
 game/
-  project.godot, Longwater.csproj (references ../sim)
+  project.godot, TheLedger.csproj (references ../sim)
   src/
     Boot/      Main, CommandLine (harness args), Settings, Version
     Input/     InputRouter, mouse/gamepad mapping, rumble
@@ -192,15 +193,15 @@ tools/
 
 1. `windows-latest`; checkout.
 2. `actions/setup-dotnet` with the pinned SDK.
-3. `dotnet test tests/Longwater.Sim.Tests.csproj -c Release` (fail the job on any failure).
+3. `dotnet test tests/TheLedger.Sim.Tests.csproj -c Release` (fail the job on any failure).
 4. Download the pinned **Godot .NET** editor and **export templates** (cache them by version). A maintained action
    such as `chickensoft-games/setup-godot` can do this; verify it supports the pinned version before relying on it,
    otherwise download from the official GitHub release URLs.
-5. `dotnet build game/Longwater.csproj -c Release -warnaserror`.
+5. `dotnet build game/TheLedger.csproj -c Release -warnaserror`.
 6. Headless smoke: `godot --headless --path game -- --smoke 20`.
-7. Export: `godot --headless --path game --export-release "Windows Desktop" ../build/Longwater.exe` (an
+7. Export: `godot --headless --path game --export-release "Windows Desktop" ../build/TheLedger.exe` (an
    `export_presets.cfg` with a "Windows Desktop" preset is committed).
-8. Upload `build/` as artifact `Longwater-windows-x64`.
+8. Upload `build/` as artifact `TheLedger-windows-x64`.
 
 ## 7. Performance budget (owner's laptop: Ryzen 7 4800H, integrated Radeon)
 
@@ -238,3 +239,23 @@ Rules:
 - Settings (`user://settings.json`): units, assists, Purist mode, input bindings, mouse sensitivity and mode,
   controller vibration strength, audio buses, quality preset, individual effect toggles, FPS cap, window mode,
   day length, colour-blind safe line/HUD colours.
+
+## 10. Co-op readiness (owner decision: plan for 2-player co-op later)
+
+Co-op itself is milestone M18, but these rules apply **from M0**, because retrofitting them is very expensive:
+
+1. **The sim supports N anglers.** `World` holds a list of `Angler`s, each with its own hands, rod, line, reel,
+   terminal rig and hooked fish. Nothing in the sim assumes a single player (no static "the player", no global rod).
+2. **Input is per angler.** `World.Step` takes one `InputFrame` per angler; recordings store all of them.
+3. **No player singletons in the game layer.** Camera, HUD, audio listener and input routing take a player index.
+   Local split-screen is not a goal, but nothing should prevent it.
+4. **World state and player state are separate** in saves: the world (spots, populations, restoration, clock, weather)
+   versus each player (inventory, money, Ledger progress, licences, quests).
+5. **Ownership is explicit.** Every hooked fish, boat and trap has an owner (angler index). This becomes network
+   authority later.
+6. **Planned network model (for M18, not before):** the host owns the world (fish population, water, weather, clock);
+   each client simulates **its own tackle locally** for zero-latency feel and streams it; when a client hooks a fish,
+   **authority over that fish passes to that client** for the fight, then returns. Exact floating-point determinism
+   across machines is not assumed. Transport (Steam networking or Godot's ENet) is chosen in M18.
+7. **Tests:** from M2 on, at least one sim test runs two anglers in one world.
+

@@ -1,28 +1,33 @@
-# Open Questions for the Owner
+# Owner Decisions and Open Questions
 
-The plan was written with an assumption for each question. **Opus: build on the assumption until the owner
-answers, then update this file (move the question to "Answered" with the date and answer) and the affected docs.**
+**Opus:** when a new design question comes up that only the owner can answer, add it under "Open" with the
+assumption you'll build on until they answer. When they answer, move it to "Answered" with the date, and update the
+affected docs.
 
 ## Open
 
-| # | Question | Assumption used until answered | What changes if different |
+(none)
+
+## Answered (2026-10-18)
+
+| # | Question | Owner's answer | Where it's applied |
 |---|---|---|---|
-| Q1 | **Who is the player?** A human angler (customizable), or an animal like the cat in *Cat Goes Fishing*? | A stylized faceless human angler plus a companion dog, Skiff | Angler model and IK, story voice, marketing |
-| Q2 | **What does "low-poly" mean to you in a 2D game?** (a) flat 2D shapes built from shaded triangles, or (b) real 3D low-poly models shown from the side (2.5D) | (a) Flat-shaded 2D triangle art | The rendering layer only (the sim stays 2D). 2.5D costs more GPU on the laptop and needs 3D lighting work |
-| Q3 | **Engine:** OK with Godot 4 + C#? | Yes | An engine change after M0 is very expensive |
-| Q4 | **How harsh should realism be by default?** Rods that break from high-sticking, lines that snap, baitcaster bird's nests, hooks pulled by slack, fines from the warden | Realistic by default, with assists and a "Relaxed" preset (no rod breaks, fewer backlashes, warnings before line breaks) | Default settings and tuning |
-| Q5 | **Seasons?** A full year with spawning, ice fishing and runs (each season 7 game days) | Yes, seasons are in | Without seasons, runs, ice fishing and spawning become scheduled events |
-| Q6 | **Keeping and killing fish:** selling fish, gaffs and coolers are realistic. Some players prefer catch-and-release only | Both: selling is allowed and realistic, release earns reputation | Economy design |
-| Q7 | **Can the player see every fish underwater** (like *Cat Goes Fishing*), or only as far as the water's real visibility (so murky water and night hide fish, and sonar and polarized glasses matter)? | Realistic visibility, with an assist toggle that shows faint silhouettes | Big effect on the feel of murky water, night and sonar |
-| Q8 | **Platform and release:** personal project, or a Steam release one day? Windows only? Steam Deck? | Windows first, built so Steam and Steam Deck are possible later | Asset licences (commercial-safe), controller-first UI, store build |
-| Q9 | **Controllers:** Xbox only, or also PlayStation (DualSense trigger effects)? | Xbox layout first; PlayStation buttons through Godot's mapping; no adaptive triggers | Haptics design |
-| Q10 | **Music:** CC0/royalty-free tracks, ambient-only, or commissioned later? | Mostly ambient sound with a few sparse CC0 music cues | Audio plan |
-| Q11 | **World:** a fictional basin with real fish (as planned), or real-world places (e.g. "Florida Keys", "Lake Erie")? | Fictional world, real fish, real-world-style regulations | Story, map, naming |
-| Q12 | **Multiplayer or co-op** ever? | No, single player | Architecture (the sim is deterministic, which would help later) |
-| Q13 | **Name:** "Longwater" is a working title | Longwater | Branding only |
-| Q14 | **Gore and realism around fish deaths:** gaffs, cleaning fish, sharks biting hooked fish | Shown tastefully, no blood beyond a little on a gaffed fish; no cleaning scenes | Art and tone |
-| Q15 | **How much fly fishing?** It's the hardest system to build well | A full fly-fishing system (false casts, roll casts, mending, fly tying) in M12 | Scope of M12 |
-
-## Answered
-
-(none yet)
+| Q1 | Who is the player? | A stylized faceless **human angler** with a companion dog, Skiff | `01` §3, `07` §8 |
+| Q2 | What does "low-poly" mean in 2D? | **Flat 2D shapes built from shaded triangles** (not 3D models) | `07` §4 |
+| Q3 | Engine? | **Godot 4 + C#** | `02` |
+| Q4 | How harsh should realism be? | **Hardcore only.** No preset softens the physics: rods break, lines snap, baitcasters backlash, slack loses fish. Information assists (meters, arc preview) can still be toggled | CLAUDE.md rule 12, `03` §11, `08` M7 |
+| Q5 | Seasons? | **Full seasons**, 7 game days each by default, with spawning, runs, hatches and ice fishing | `06` §9 |
+| Q6 | Keep and sell fish, or release only? | **Both**: selling earns money; releasing, tagging and surveys earn reputation | `06` §1, §11 |
+| Q7 | Can the player see every fish underwater? | **Mostly visible**: fish are dimmer and foggier in murky water, deep water and at night, but never fully hidden. Fish perception still uses real visibility | `07` §6.4, `03` §11 |
+| Q8 | Personal project or release? | **Keep a Steam release possible**: Windows first, commercial-safe assets, controller-first UI, Steam Deck checks in M17 | CLAUDE.md rule 10, `08` M17 |
+| Q9 | Which controllers? | The owner uses a **GameSir controller (Xbox layout)** plus mouse and keyboard. Treat it as an Xbox-layout controller; test everything on both | `03` §2.2, `08` |
+| Q10 | Music? | **Mostly ambient**, with a few sparse CC0 cues and a subtle fight layer | `07` §12 |
+| Q11 | Fictional world or real places? | **Real-world places** | `01` §4, `05` §7 |
+| Q11a | How is the real world structured? | **A home base plus world travel** | `01` §4, `06` §2 |
+| Q11b | Where is home? | **Florida's Gulf Coast** (the Nature Coast, Cedar Key to Homosassa) | `01` §4.2 |
+| Q11c | How closely do regulations follow real places? | **Real-style, simplified and frozen**, with an in-game notice that they may be out of date | `06` §8, CLAUDE.md rule 14 |
+| Q11d | What happens to the story? | **The logbook world tour**: a fictional Florida field station; Wren's pages lead to real waters worldwide; home restoration; the coelacanth finale in the Comoros | `01` §6 |
+| Q12 | Multiplayer? | **Plan for co-op later**: single player first, built so 2-player online co-op can be added (M18) | `02` §10, CLAUDE.md rule 15, `08` M18 |
+| Q13 | Name? | **The Ledger** | Everywhere |
+| Q14 | How are fish deaths shown? | **Tasteful**: gaffs, sharks taking hooked fish, a little blood on a gaffed fish; no cleaning or filleting scenes | `07` |
+| Q15 | How deep is fly fishing? | **The full system**: false casts, roll casts, shooting line, mending, stripping, fly tying | `03` §4.4, `08` M13 |

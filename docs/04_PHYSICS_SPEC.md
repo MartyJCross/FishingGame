@@ -316,7 +316,8 @@ renderer.
   above bottom, d = depth; the classic 1/7 power law), and turbulence noise.
 - **Tidal:** `u_tide(t)` strongest mid-tide, zero at slack, direction flips on the flood/ebb; amplified in channels
   and passes.
-- **Ocean:** the Calder Current's slow surface drift, weedline convergences.
+- **Ocean:** slow ocean currents (for example the Gulf Stream's edge off the Keys), weedline convergences,
+  and Saltstraumen's huge tidal current in Norway.
 Lures, baits, lines, floats, bait scent, drifting boats and fish all feel the current.
 
 ### 7.4 Tides
