@@ -24,7 +24,7 @@
   "PopAcceleration": 12.0,
   "LandReach": 4.0,
   "LandStamina": 0.4,
-  "SwingInKg": 0.35,
+  "SwingInKg": 0.5,
   "StartHour": 8.0,
   "TimeScale": 24.0,
   "RetieMaxLineOut": 2.5,

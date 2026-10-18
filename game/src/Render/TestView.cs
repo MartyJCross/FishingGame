@@ -351,7 +351,15 @@ public partial class TestView : Node2D
 
         float alpha = Driver.Alpha;
         bool fishOn = false;
-        foreach (var f in Driver.World.Fish) if (f.State == FishState.Hooked) { fishOn = true; break; }
+        foreach (var f in Driver.World.Fish)
+        {
+            if (f.State != FishState.Hooked) continue;
+            fishOn = true;
+            // A soft pulsing ring round the fish you're fighting, so it's never lost among the others.
+            var c = SimSpace.ToPx(f.HeadX, f.HeadY);
+            float r = (f.LengthM * 0.7f + 0.15f) * SimSpace.PixelsPerMetre * (1f + 0.12f * MathF.Sin(t * 6f));
+            DrawArc(c, r, 0f, Mathf.Tau, 32, new Color(1f, 0.85f, 0.45f, 0.75f), 3f);
+        }
         foreach (var a in Driver.World.Anglers)
         {
             Vec2 feetV = Vec2.Lerp(a.PrevPosition, a.Position, alpha);

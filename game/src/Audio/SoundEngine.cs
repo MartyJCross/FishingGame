@@ -42,6 +42,7 @@ public partial class SoundEngine : Node
     private bool _lastBail;
     private float _crankClickCarry;
     private float _nextCritter = 2f;
+    private float _warnT;
 
     public override void _Ready()
     {
@@ -154,6 +155,18 @@ public partial class SoundEngine : Node
                 _crankClickCarry -= 1f;
                 Add(Kind.Click, 0.008f, 0.12f + 0.04f * Rnd(), 3000f + 800f * Rnd(), 2500f, -0.3f);
             }
+        }
+
+        // Warnings while fighting: a fast tick while the hook is tearing out, a low creak as the line nears its limit.
+        _warnT -= (float)delta;
+        if (_warnT <= 0f)
+        {
+            var wl = Driver.World.Anglers[0].Rig.Line;
+            float lim = wl.Spec.BreakingForceN * wl.Spec.KnotFactor;
+            bool tearing = false;
+            foreach (var f in Driver.World.Fish) if (f.State == TheLedger.Sim.Fish.FishState.Hooked && f.LureAngler == 0) { tearing = f.HookTearing; break; }
+            if (tearing) { Add(Kind.Click, 0.05f, 0.5f, 2600f, 2200f, 0.2f, 0.6f); _warnT = 0.18f; }
+            else if (wl.BreakLoad > 0.75f * lim) { Add(Kind.Croak, 0.12f, 0.25f, 70f, 55f, 0.1f, 0.2f); _warnT = 0.3f; }
         }
 
         // Critters: birds by day, crickets and frogs at night.

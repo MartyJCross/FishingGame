@@ -166,6 +166,21 @@ public partial class SimDriver : Node
         GD.Print($"{Info.Name}: {World.Fish.Count} fish of {stock.Stock.Count} species");
     }
 
+    /// <summary>Test scenes: a 2 kg bass already hooked 8 m out (for screenshots of the fight panel).</summary>
+    public void DebugHookBass()
+    {
+        var sp = Species.FirstOrDefault(s => s.Id == "florida_bass");
+        if (sp == null) return;
+        float lenCm = MathF.Pow(2000f / sp.Size.LengthWeight.A, 1f / sp.Size.LengthWeight.B);
+        var fish = new TheLedger.Sim.Fish.Fish(999, sp, lenCm * 0.01f, new Vec2(8f, -1.5f), true, 99);
+        World.AddFish(fish);
+        var a = World.Anglers[0];
+        var tip = a.Rig.Rod.TipPos;
+        var to = fish.Mouth - tip;
+        a.Rig.Line.Reset(tip, to.Normalized(), to.Length);
+        fish.SetHooked(0, a.Rig.Line.Terminal);
+    }
+
     /// <summary>Every species in the game data (for the guide and checklists).</summary>
     public IReadOnlyList<TheLedger.Sim.Fish.SpeciesSpec> Species { get; private set; } = Array.Empty<TheLedger.Sim.Fish.SpeciesSpec>();
 

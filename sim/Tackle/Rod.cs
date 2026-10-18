@@ -107,7 +107,7 @@ public sealed class Rod
     /// solver's heavy line nodes make brief tension spikes real line wouldn't).</summary>
     public float BreakLoadRatio { get; private set; }
 
-    public void TrackBreakLoad(float dt) => BreakLoadRatio += (PeakLoadRatio - BreakLoadRatio) * MathF.Min(1f, dt / 0.04f);
+    public void TrackBreakLoad(float dt) => BreakLoadRatio += (PeakLoadRatio - BreakLoadRatio) * MathF.Min(1f, dt / 0.3f);
 
     public Vec2 Node(int i) => new(X[i], Y[i]);
     public Vec2 TipPos => new(X[Tip], Y[Tip]);

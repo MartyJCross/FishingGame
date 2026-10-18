@@ -115,7 +115,7 @@ public sealed class SimConfig
     public float LandStamina = 0.4f;
 
     [Tunable("Fight", 0f, 2f, Help = "Fish lighter than this can be swung in without a net, kg")]
-    public float SwingInKg = 0.35f;
+    public float SwingInKg = 0.5f;
 
     [Tunable("World", 0f, 24f, Help = "Hour of day when a session starts")]
     public float StartHour = 8f;

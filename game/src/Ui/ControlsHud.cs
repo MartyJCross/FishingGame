@@ -58,12 +58,9 @@ public partial class ControlsHud : Control
         var a = Driver.World.Anglers[0];
         var line = a.Rig.Line;
         int fishKey = 0;
-        foreach (var f in Driver.World.Fish)
-            if (f.State == TheLedger.Sim.Fish.FishState.Hooked && f.LureAngler == 0)
-            {
-                fishKey = HashCode.Combine((int)(f.StaminaA * 50f), (int)(f.HeadX * 10f), (int)(f.HeadY * 10f));
-                break;
-            }
+        if (HookedFish() is { } f)
+            fishKey = HashCode.Combine((int)(f.StaminaA * 50f), (int)(f.HeadX * 10f), (int)(f.HeadY * 10f), f.Move, f.HookTearing, f.HookSlipping,
+                                       (int)(f.HookHold * 40f), f.Airborne ? (int)(Time.GetTicksMsec() / 150) : f.HookTearing ? (int)(Time.GetTicksMsec() / 150) : 0);
         int key = HashCode.Combine((int)(line.TipTension * 4f), r.DragClick, (int)(line.LineOut * 10f), r.BailOpen, r.DragSlipping,
                                    HashCode.Combine(held, (int)(_dragPop * 20f), (int)(_bailPop * 20f), fishKey, (int)(r.Loose * 50f), r.BrakeClick,
                                                     (int)GetViewportRect().Size.Y));
@@ -71,6 +68,12 @@ public partial class ControlsHud : Control
     }
 
     private int _drawnKey;
+
+    private TheLedger.Sim.Fish.Fish? HookedFish()
+    {
+        foreach (var f in Driver.World.Fish) if (f.State == TheLedger.Sim.Fish.FishState.Hooked && f.LureAngler == 0) return f;
+        return null;
+    }
 
     public override void _Draw()
     {
@@ -94,8 +97,13 @@ public partial class ControlsHud : Control
         DrawRect(bar, BarBack);
         var col = frac < 0.5f ? new Color(0.45f, 0.85f, 0.5f) : frac < 0.8f ? new Color(1f, 0.75f, 0.3f) : new Color(1f, 0.3f, 0.25f);
         DrawRect(new Rect2(bar.Position, new Vector2(bar.Size.X * frac, bar.Size.Y)), col);
+        // Markers: where the drag lets line go (white), and with a fish on, where its hook starts tearing (red).
+        void Marker(float f, Color c) { float mx = bar.Position.X + bar.Size.X * Math.Clamp(f, 0f, 1f); DrawRect(new Rect2(mx - 1.5f, bar.Position.Y - 4f, 3f, bar.Size.Y + 8f), c); }
+        Marker(r.DragForce / MathF.Max(limit, 1e-3f), Colors.White);
+        var onFish = HookedFish();
+        if (onFish != null) Marker(onFish.HookTearN / MathF.Max(limit, 1e-3f), new Color(1f, 0.3f, 0.25f));
         if (r.DragSlipping)
-            DrawString(font, new Vector2(bar.End.X - 52f, y + 15f), "DRAG", HorizontalAlignment.Left, -1, 14, Colors.White);
+            DrawString(font, new Vector2(bar.Position.X + 6f, y + 15f), "DRAG", HorizontalAlignment.Left, -1, 14, Colors.Black);
         y += 30f;
 
         // Drag setting and line out.
@@ -118,23 +126,53 @@ public partial class ControlsHud : Control
         }
         y += 28f;
 
-        // Fish on: how far out it is and how much fight it has left, so you can see when F will work.
-        TheLedger.Sim.Fish.Fish? hooked = null;
-        foreach (var f in Driver.World.Fish) if (f.State == TheLedger.Sim.Fish.FishState.Hooked && f.LureAngler == 0) { hooked = f; break; }
-        if (hooked != null)
+        // Fish on: what it's doing and what to do about it, how much fight it has left, how well the hook is holding,
+        // and whether it's in reach of the net.
+        if (onFish is { } fish)
         {
             var wd = Driver.World;
-            float dist = MathF.Abs(hooked.HeadX - a.Position.X);
-            float depth = wd.Water.Height(hooked.HeadX, wd.Time) - hooked.HeadY;
-            bool reach = (dist < wd.Config.LandReach || (hooked.Mouth - a.Rig.Rod.TipPos).Length < 1.6f) && depth < 0.6f;
-            bool tired = hooked.StaminaA < wd.Config.LandStamina || hooked.MassKg < wd.Config.SwingInKg;
-            var fishBox = new Rect2(box.Position.X, box.Position.Y - 40f, w0, 34f);
+            float dist = MathF.Abs(fish.HeadX - a.Position.X);
+            float depth = wd.Water.Height(fish.HeadX, wd.Time) - fish.HeadY;
+            bool reach = (dist < wd.Config.LandReach || (fish.Mouth - a.Rig.Rod.TipPos).Length < 1.6f) && depth < 0.6f;
+            bool tired = fish.StaminaA < wd.Config.LandStamina || fish.MassKg < wd.Config.SwingInKg;
+            bool flash = (Time.GetTicksMsec() / 150) % 2 == 0;
+            var red = new Color(1f, 0.32f, 0.27f);
+            var amber = new Color(1f, 0.75f, 0.3f);
+            var green = new Color(0.5f, 0.9f, 0.55f);
+            (string say, Color c) = fish.HookTearing ? ("HOOK TEARING!  Loosen the drag (Q) or stop reeling", flash ? red : Colors.White)
+                : line.TipTension < 0.5f && !fish.Airborne ? ("SLACK LINE  Reel to keep it tight", amber)
+                : fish.Airborne ? ("IT JUMPED!  Keep reeling, keep it tight", amber)
+                : reach && tired ? ("BEATEN  Press F to land it", green)
+                : fish.Move switch
+                {
+                    TheLedger.Sim.Fish.FightMove.Run => ("RUNNING  Let it take line, don't reel", Lit),
+                    TheLedger.Sim.Fish.FightMove.Dive => ("DIVING  Rod up, hold on", Lit),
+                    TheLedger.Sim.Fish.FightMove.Shake => ("SHAKING ITS HEAD  Keep the line tight", Lit),
+                    TheLedger.Sim.Fish.FightMove.Circle => ("CIRCLING  Reel in now", green),
+                    TheLedger.Sim.Fish.FightMove.Sulk => ("RESTING  Reel in now!", green),
+                    _ => ("IT'S GOING TO JUMP  Keep it tight", amber),
+                };
+            var fishBox = new Rect2(box.Position.X, box.Position.Y - 106f, w0, 98f);
             DrawRect(fishBox, Panel);
-            string state = reach ? (tired ? "in reach and beaten: press F" : "in reach: F to try, it's still lively") : $"{dist - wd.Config.LandReach:0.0} m too far to net";
-            DrawString(font, new Vector2(x, fishBox.Position.Y + 23f), $"FISH  {state}", HorizontalAlignment.Left, -1, 16, reach ? Lit : Dim);
-            var eb = new Rect2(fishBox.End.X - pad - 110f, fishBox.Position.Y + 12f, 110f, 10f);
-            DrawRect(eb, BarBack);
-            DrawRect(new Rect2(eb.Position, new Vector2(eb.Size.X * Math.Clamp(hooked.StaminaA, 0f, 1f), eb.Size.Y)), new Color(0.9f, 0.55f, 0.3f));
+            float fy = fishBox.Position.Y + 8f;
+            DrawString(font, new Vector2(x, fy + 20f), say, HorizontalAlignment.Left, -1, 21, c);
+            fy += 34f;
+            // Energy and hook bars.
+            void Meter(float mx, string label, float v, Color fill, string note, Color noteCol)
+            {
+                DrawString(font, new Vector2(mx, fy + 13f), label, HorizontalAlignment.Left, -1, 14, Dim);
+                var mb = new Rect2(mx + 58f, fy + 3f, 110f, 11f);
+                DrawRect(mb, BarBack);
+                DrawRect(new Rect2(mb.Position, new Vector2(mb.Size.X * Math.Clamp(v, 0f, 1f), mb.Size.Y)), fill);
+                DrawString(font, new Vector2(mb.End.X + 6f, fy + 13f), note, HorizontalAlignment.Left, -1, 13, noteCol);
+            }
+            Meter(x, "ENERGY", fish.StaminaA, new Color(0.9f, 0.55f, 0.3f), tired ? "beaten" : "", green);
+            string hookNote = fish.HookTearing ? "TEARING" : fish.HookSlipping ? "slipping" : "secure";
+            Color hookCol = fish.HookTearing ? (flash ? red : Colors.White) : fish.HookSlipping ? amber : green;
+            Meter(x + 240f, "HOOK", fish.HookHold, fish.HookHold > 0.5f ? green : fish.HookHold > 0.25f ? amber : red, hookNote, hookCol);
+            fy += 24f;
+            string state = reach ? (tired ? "In reach of the net" : "In reach: F to try, but it's still lively") : $"{MathF.Max(0.1f, dist - wd.Config.LandReach):0.0} m too far out to net";
+            DrawString(font, new Vector2(x, fy + 16f), state, HorizontalAlignment.Left, -1, 15, reach ? Lit : Dim);
         }
 
         // Key chips, two rows; a chip lights while its key is held.

@@ -37,6 +37,7 @@ public class LandingTests
     [InlineData("channel_catfish", 1.5f, 1.05f)]
     [InlineData("florida_bass", 2.0f, 0.5f)]  // rod held low
     [InlineData("bluegill", 0.2f, 1.6f)]      // rod straight up
+    [InlineData("black_crappie", 0.4f, 1.05f)]
     public void ReelItInAndLandIt(string speciesId, float kg, float rodAngle)
     {
         RodAngle = rodAngle;
@@ -60,7 +61,7 @@ public class LandingTests
         bool landed = false, lost = false;
         int fails = 0, jumps = 0;
         float closest = 99f, closestDepth = 0f, staminaThen = 0f;
-        string lostHow = "";
+        string lostHow = "", reasons = "";
         int t;
         for (t = 0; t < 120 * 240 && !landed && !lost; t++)
         {
@@ -70,21 +71,22 @@ public class LandingTests
             frames[0] = new InputFrame
             {
                 RodTargetAngle = RodAngle, RodReach = 0.5f, CrankRate = 1.5f, // RMB held: steady reel
-                Buttons = dist < 4f && t % 60 == 0 ? InputButtons.Land : InputButtons.None,
+                // Press F when the HUD says "in reach" (as the player would).
+                Buttons = (dist < c.LandReach || (fish.Mouth - a.Rig.Rod.TipPos).Length < 1.6f) && depth < 0.6f && t % 60 == 0 ? InputButtons.Land : InputButtons.None,
             };
             world.Step(frames);
             while (world.Events.TryPop(out var e))
             {
                 if (e.Type == SimEventType.FishLanded) landed = true;
-                if (e.Type == SimEventType.LandFailed) fails++;
+                if (e.Type == SimEventType.LandFailed) { fails++; reasons += $"{e.Value:0}@{fish.StaminaA:0.00} "; }
                 if (e.Type == SimEventType.FishJumped) jumps++;
                 if (e.Type is SimEventType.LineBroke or SimEventType.RodBroke or SimEventType.HookPulled) { lost = true; lostHow = e.Type.ToString(); }
             }
         }
-        _out.WriteLine($"{speciesId} {fish.MassKg:0.00} kg: landed {landed} after {t / 120f:0} s, lost {lostHow}, F refused {fails}x, {jumps} jumps; " +
+        _out.WriteLine($"{speciesId} {fish.MassKg:0.00} kg: landed {landed} after {t / 120f:0} s, lost {lostHow}, F refused {fails}x ({reasons}), {jumps} jumps; " +
                        $"closest {closest:0.00} m from the angler at depth {closestDepth:0.00} m, stamina then {staminaThen:0.00}; " +
                        $"now at x {fish.HeadX:0.00}, depth {world.Water.Height(fish.HeadX, world.Time) - fish.HeadY:0.00}, line out {a.Rig.Line.LineOut:0.0} m");
-        Assert.True(landed);
+        Assert.True(landed, $"lost it: {lostHow}");
         Assert.True(fails <= 2, "F should work once the fish is at the bank");
     }
 }

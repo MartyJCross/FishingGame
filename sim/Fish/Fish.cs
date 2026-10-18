@@ -155,6 +155,16 @@ public sealed class Fish
     public float HookDepth;
     /// <summary>How well the hook holds once set, 0..1 (0 = it pulls out).</summary>
     public float HookHold;
+
+    /// <summary>
+    /// Line pull above which the hook starts tearing out, N. Realistic margins (owner, 2026-10-18): a bass holds at
+    /// normal drag (about 36 N), crappie are still papermouths (about 15 N).
+    /// </summary>
+    public float HookTearN => 8f + 70f * Species.Fight.Mouth.Hardness;
+
+    /// <summary>The hook lost grip this tick (slack, headshakes, a jump, or pulling too hard), and whether it's tearing.</summary>
+    public bool HookSlipping, HookTearing;
+    private float _lastHookHold = 1f;
     /// <summary>Anaerobic (bursts) and aerobic (sustained) stamina, 0..1 (docs/04 §9.3).</summary>
     public float StaminaA = 1f, StaminaB = 1f;
     public FightMove Move;
@@ -500,9 +510,12 @@ public sealed class Fish
         if (Move == FightMove.Shake && t > 0.5f) HookHold -= dt * 0.015f * (1.2f - hard);
         // Head-shaking in the air: on a slack line the lure's weight swings free and the hook comes out (the classic
         // reason to keep the rod low and the line tight when a bass jumps). Tight line: it mostly holds.
-        if (Airborne) HookHold -= dt * (t < 0.4f ? 0.9f : 0.08f) * (1.2f - hard);
-        float tear = 4f + 26f * hard;
+        if (Airborne) HookHold -= dt * (t < 0.4f ? 0.35f : 0.05f) * (1.2f - hard);
+        float tear = HookTearN;
         if (t > tear) HookHold -= (t - tear) / tear * dt * 2f;
+        HookSlipping = HookHold < _lastHookHold - 1e-5f;
+        HookTearing = t > tear;
+        _lastHookHold = HookHold;
         if (HookHold <= 0f)
         {
             HookPulledOut = true;

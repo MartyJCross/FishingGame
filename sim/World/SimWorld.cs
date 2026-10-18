@@ -430,7 +430,7 @@ public sealed class SimWorld
             if (why == 0f && fish.StaminaA >= Config.LandStamina && fish.MassKg >= Config.SwingInKg)
             {
                 // A fish that isn't tired can still be netted, but the fresher it is the likelier it thrashes free.
-                float chance = Math.Clamp(1.2f - fish.StaminaA, 0.2f, 1f);
+                float chance = Math.Clamp(1.4f - fish.StaminaA, 0.3f, 1f);
                 if (!Rng.Chance(chance)) why = 3f;
             }
             if (why != 0f)

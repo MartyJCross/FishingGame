@@ -169,7 +169,7 @@ public sealed class Line
     public void TrackSustainedTension(float dt)
     {
         SustainedTension += (MaxTension - SustainedTension) * MathF.Min(1f, dt / 1.5f);
-        BreakLoad += (MaxTension - BreakLoad) * MathF.Min(1f, dt / 0.04f);
+        BreakLoad += (MaxTension - BreakLoad) * MathF.Min(1f, dt / 0.3f); // an overload has to last (~0.3 s) to snap it
     }
 
     /// <summary>Per-node extra solver mass per newton of sustained tension (keeps taut segments from zigzagging).</summary>

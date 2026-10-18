@@ -208,6 +208,7 @@ public partial class Main : Node2D
         if (_args.Panel == "guide") _guide.CallDeferred(nameof(SpeciesGuide.Open));
         if (_args.Panel?.StartsWith("guide:") == true) _guide.CallDeferred(nameof(SpeciesGuide.OpenSpecies), _args.Panel[6..]);
         if (_args.Panel == "notes") _story.CallDeferred(nameof(StoryPanel.Open));
+        if (_args.Panel == "fight") _driver.DebugHookBass();
     }
 
     private void Toast(string text, double seconds = 2.5)
