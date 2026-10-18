@@ -59,8 +59,8 @@ public partial class InputRouter : Node
     /// <summary>The left stick must be pushed at least this far for its rotation to count as cranking.</summary>
     public float StickCrankDeadzone = 0.55f;
 
-    /// <summary>Rod radians per pixel of mouse movement at sensitivity 1 (a full swing is about 800 px).</summary>
-    public const float RadiansPerPixel = 0.0055f;
+    /// <summary>Rod radians per pixel of mouse movement at sensitivity 1 (a full swing is about 1400 px).</summary>
+    public const float RadiansPerPixel = 0.003f;
 
     /// <summary>Owner's sensitivity multiplier (Tab menu slider), saved in user://settings.cfg.</summary>
     public float MouseSensitivity { get; private set; } = 1f;

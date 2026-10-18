@@ -133,7 +133,7 @@ public sealed class SimConfig
     public float HandMaxAngularAccel = 160f;
 
     [Tunable("Hands", 1f, 400f, Help = "How quickly the hands close the gap to the input target, 1/s (no overshoot)")]
-    public float HandStiffness = 30f;
+    public float HandStiffness = 12f;
 
     [Tunable("Hands", 0f, 60f, Help = "Hand spring damping")]
     public float HandDamping = 10f;

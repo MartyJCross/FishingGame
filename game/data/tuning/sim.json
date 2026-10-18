@@ -30,7 +30,7 @@
   "RetieMaxLineOut": 2.5,
   "HandMaxAngularSpeed": 18,
   "HandMaxAngularAccel": 160,
-  "HandStiffness": 30,
+  "HandStiffness": 12,
   "HandDamping": 10,
   "HandMinAngle": -1.2,
   "HandMaxAngle": 3.1,
