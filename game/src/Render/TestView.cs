@@ -226,6 +226,8 @@ public partial class TestView : Node2D
         }
         DrawColoredPolygon(_terrainPx, Bottom);
         DrawColoredPolygon(_deepPx!, BottomDeep);
+        foreach (var z in Driver.World.Spot.Structures) DrawStructure(z, t);
+
         // Bank: soil, a sandy lip down to the water, grass on top with tufts.
         Lp.Poly(this, Soil, new Vector2(-40f, 0.45f), new Vector2(-1.25f, 0.45f), new Vector2(-0.24f, -0.1f), new Vector2(0.2f, -0.45f), new Vector2(-40f, -0.6f));
         Lp.Poly(this, Sand, new Vector2(-1.35f, 0.5f), new Vector2(-1.15f, 0.6f), new Vector2(0.4f, -0.4f), new Vector2(0.1f, -0.45f), new Vector2(-0.3f, -0.05f));
@@ -266,6 +268,87 @@ public partial class TestView : Node2D
             var feet = new Vector2(feetV.X, feetV.Y);
             DrawDog(feet + new Vector2(-1.0f, 0f), t, fishOn);
             DrawAngler(a, feet);
+        }
+    }
+
+    private static readonly Color Wood = new(0.24f, 0.21f, 0.17f, 0.97f);
+    private static readonly Color WoodLight = new(0.33f, 0.29f, 0.23f, 0.97f);
+    private static readonly Color Pad = new(0.27f, 0.50f, 0.25f);
+    private static readonly Color PadDark = new(0.20f, 0.40f, 0.19f);
+    private static readonly Color Weed = new(0.26f, 0.45f, 0.27f, 0.85f);
+    private static readonly Color Rock = new(0.46f, 0.45f, 0.40f);
+    private static readonly Color RockDark = new(0.36f, 0.35f, 0.31f);
+
+    /// <summary>Cover in the water, drawn from the spot's structure zones (a stable layout per zone).</summary>
+    private void DrawStructure(TheLedger.Sim.World.StructureZone z, float t)
+    {
+        var w = Driver.World;
+        var rng = new RandomNumberGenerator { Seed = (ulong)(z.X0 * 1000f + z.Y0 * 37f + 11f) };
+        switch (z.Kind)
+        {
+            case "wood":
+            {
+                // A fallen tree: trunk from the bank end sloping down to the bottom, branches reaching up and out.
+                var a = new Vector2(z.X0, z.Y1);
+                var b = new Vector2(z.X1, w.Spot.GroundHeight(z.X1) + 0.25f);
+                Lp.Limb(this, Wood, a, b, 0.42f, 0.3f);
+                for (int i = 0; i < 9; i++)
+                {
+                    var root = a.Lerp(b, 0.12f + 0.85f * i / 8f);
+                    float ang = rng.RandfRange(0.5f, 2.6f) * (i % 3 == 2 ? -0.4f : 1f);
+                    float len = rng.RandfRange(0.7f, 1.7f);
+                    var tip = root + new Vector2(MathF.Cos(ang), MathF.Sin(ang)) * len;
+                    tip.Y = MathF.Min(tip.Y, -0.15f);
+                    Lp.Limb(this, i % 2 == 0 ? Wood : WoodLight, root, tip, 0.12f, 0.03f);
+                    var mid = root.Lerp(tip, 0.55f);
+                    float a2 = ang + rng.RandfRange(-0.9f, 0.9f);
+                    var twig = mid + new Vector2(MathF.Cos(a2), MathF.Sin(a2)) * len * 0.45f;
+                    twig.Y = MathF.Min(twig.Y, -0.12f);
+                    Lp.Limb(this, Wood, mid, twig, 0.05f, 0.015f);
+                }
+                Lp.Ngon(this, WoodLight, a, 0.23f, 7, 0.4f); // the broken-off root end at the bank
+                break;
+            }
+            case "lilyPads":
+            {
+                for (float x = z.X0; x < z.X1; x += rng.RandfRange(0.35f, 0.6f))
+                {
+                    float sY = w.Water.Height(x, w.Time);
+                    float ground = w.Spot.GroundHeight(x);
+                    Lp.Limb(this, new Color(0.3f, 0.45f, 0.25f, 0.5f), new Vector2(x, ground), new Vector2(x + 0.05f * MathF.Sin(t + x), sY - 0.02f), 0.025f, 0.02f);
+                    float r = rng.RandfRange(0.14f, 0.22f);
+                    Lp.Poly(this, rng.Randf() < 0.3f ? PadDark : Pad, new Vector2(x - r, sY + 0.005f), new Vector2(x - r * 0.6f, sY + 0.035f),
+                            new Vector2(x + r * 0.6f, sY + 0.035f), new Vector2(x + r, sY + 0.005f), new Vector2(x, sY - 0.01f));
+                    if (rng.Randf() < 0.18f)
+                        Lp.Poly(this, new Color(0.97f, 0.95f, 0.92f), new Vector2(x - 0.05f, sY + 0.03f), new Vector2(x, sY + 0.12f), new Vector2(x + 0.05f, sY + 0.03f));
+                }
+                break;
+            }
+            case "weeds":
+            {
+                for (float x = z.X0; x < z.X1; x += rng.RandfRange(0.12f, 0.3f))
+                {
+                    float ground = w.Spot.GroundHeight(x);
+                    float h = rng.RandfRange(0.4f, 1f) * (z.Y1 - ground);
+                    float sway = 0.12f * MathF.Sin(t * 0.8f + x * 1.7f);
+                    var b0 = new Vector2(x, ground);
+                    var m = new Vector2(x + sway * 0.4f, ground + h * 0.5f);
+                    var top = new Vector2(x + sway, ground + h);
+                    Lp.Limb(this, Weed, b0, m, 0.07f, 0.05f);
+                    Lp.Limb(this, Weed, m, top, 0.05f, 0.015f);
+                }
+                break;
+            }
+            case "rock":
+            {
+                for (float x = z.X0; x < z.X1; x += rng.RandfRange(0.4f, 0.9f))
+                {
+                    float ground = w.Spot.GroundHeight(x);
+                    float r = rng.RandfRange(0.25f, 0.6f);
+                    Lp.Ngon(this, rng.Randf() < 0.5f ? Rock : RockDark, new Vector2(x, ground + r * 0.4f), r, 6, rng.Randf());
+                }
+                break;
+            }
         }
     }
 

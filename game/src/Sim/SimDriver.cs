@@ -288,6 +288,14 @@ public sealed class SpotInfo
             AnglerStart = V(r.GetProperty("anglerStart")), WaterlineX = r.GetProperty("waterlineX").GetSingle(),
             SpringC = r.TryGetProperty("springC", out var sc) ? sc.GetSingle() : 22.5f,
             SpringMix = r.TryGetProperty("springMix", out var sm) ? sm.GetSingle() : 0f,
+            Structures = r.TryGetProperty("structures", out var st)
+                ? st.EnumerateArray().Select(z => new TheLedger.Sim.World.StructureZone
+                {
+                    Kind = z.GetProperty("kind").GetString()!, X0 = z.GetProperty("x")[0].GetSingle(), X1 = z.GetProperty("x")[1].GetSingle(),
+                    Y0 = z.GetProperty("y")[0].GetSingle(), Y1 = z.GetProperty("y")[1].GetSingle(), Snag = z.GetProperty("snag").GetSingle(),
+                    HoldMinN = z.GetProperty("holdN")[0].GetSingle(), HoldMaxN = z.GetProperty("holdN")[1].GetSingle(),
+                }).ToList()
+                : new List<TheLedger.Sim.World.StructureZone>(),
         };
         return info;
     }

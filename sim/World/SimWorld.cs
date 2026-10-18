@@ -175,6 +175,7 @@ public sealed class SimWorld
 
         float dt = Config.Dt;
         var env = new TackleEnvironment(Water, Spot, Wind, Time);
+        if (_snags.Length != _anglers.Length) _snags = new SnagState[_anglers.Length]; // once
         StepFish(dt);
         _splashCount = 0;
         for (int i = 0; i < _anglers.Length; i++)
@@ -200,6 +201,7 @@ public sealed class SimWorld
 
         LineForcesOnFish();
         Wakes();
+        Snags(dt);
         Failures();
         Landing();
 
@@ -269,7 +271,8 @@ public sealed class SimWorld
             for (int f = 0; f < _fish.Count; f++)
                 if (_fish[f].Holding && _fish[f].LureAngler == i) { holder = _fish[f]; break; }
             var line = _anglers[i].Rig.Line;
-            if (holder != null) line.Pin(holder.Mouth);
+            if (holder != null) { _snags[i].On = false; line.Pin(holder.Mouth); }
+            else if (_snags[i].On) line.Pin(_snags[i].At);
             else line.Unpin();
         }
     }
@@ -311,6 +314,51 @@ public sealed class SimWorld
         for (int f = 0; f < _fish.Count; f++)
             if (_fish[f].Holding && _fish[f].LureAngler == angler) return _fish[f];
         return null;
+    }
+
+    private struct SnagState { public bool On; public Vec2 At; public float HoldN; }
+    private SnagState[] _snags = Array.Empty<SnagState>();
+
+    /// <summary>Whether angler <paramref name="i"/>'s hook is caught on cover.</summary>
+    public bool IsSnagged(int i) => i < _snags.Length && _snags[i].On;
+
+    /// <summary>
+    /// Hooks catch on cover they move through (more readily the faster they go), and come free when the line pulls
+    /// harder than the snag holds. Pulling harder than the line can take breaks it instead (Failures runs next).
+    /// </summary>
+    private void Snags(float dt)
+    {
+        for (int i = 0; i < _anglers.Length; i++)
+        {
+            var a = _anglers[i];
+            var l = a.Rig.Line;
+            ref var s = ref _snags[i];
+            if (s.On)
+            {
+                // Reeled back to the rod or reset after a break: nothing left to be snagged.
+                if ((l.TerminalPos - s.At).Length > 0.5f || l.LineOut <= Config.RetieMaxLineOut) { s.On = false; continue; }
+                if (l.MaxTension > s.HoldN)
+                {
+                    s.On = false;
+                    Events.Push(new SimEvent { Type = SimEventType.SnagFreed, Tick = Tick, Angler = i, Position = s.At, Value = l.MaxTension });
+                }
+                continue;
+            }
+            if (FishOn(i) != null || l.Pinned || l.LineOut <= Config.RetieMaxLineOut) continue;
+            var p = l.TerminalPos;
+            int t = l.TerminalIndex;
+            float speed = MathF.Sqrt(l.VX[t] * l.VX[t] + l.VY[t] * l.VY[t]);
+            foreach (var z in Spot.Structures)
+            {
+                if (z.Snag <= 0f || !z.Contains(p)) continue;
+                if (!Rng.Chance(z.Snag * MathF.Min(1f, speed / 0.3f) * 0.8f * dt)) continue;
+                s.On = true;
+                s.At = p;
+                s.HoldN = Rng.Range(z.HoldMinN, z.HoldMaxN);
+                Events.Push(new SimEvent { Type = SimEventType.Snagged, Tick = Tick, Angler = i, Position = p, Value = s.HoldN });
+                break;
+            }
+        }
     }
 
     /// <summary>Line breaks above its breaking force (× knot), the rod breaks above its moment limit (docs/04 §4.3).</summary>

@@ -646,6 +646,16 @@ public sealed class Fish
             // Bottom feeders hug the bottom.
             if (Species.Feeding.Mode.StartsWith("bottom")) depth = MathF.Max(depth, surface - ground - 0.25f);
             _wander = new Vec2(x, surface - depth);
+            // Cover: often head for a patch of the structure this species likes (habitat.structure weights).
+            foreach (var z in ctx.Spot.Structures)
+            {
+                if (!Species.Habitat.Structure.TryGetValue(z.Kind, out float like) || !Rng.Chance(0.5f * like)) continue;
+                float zx = Math.Clamp(Rng.Range(z.X0, z.X1), range[0], range[1]);
+                float zs = ctx.Water.Height(zx, ctx.Time), zg = ctx.Spot.GroundHeight(zx);
+                float zy = Math.Clamp(Rng.Range(z.Y0, z.Y1), zg + 0.15f, zs - 0.15f);
+                _wander = new Vec2(zx, zy);
+                break;
+            }
         }
         _desired = _wander - head;
 

@@ -255,6 +255,12 @@ public partial class Main : Node2D
             case TheLedger.Sim.Core.SimEventType.Backlash:
                 Toast("Bird's nest! Thumb the spool as the lure slows. Hold R / Y to pick it out", 3.5);
                 break;
+            case TheLedger.Sim.Core.SimEventType.Snagged:
+                Toast("Snagged! Pull it free, or pull hard enough to break off", 3);
+                break;
+            case TheLedger.Sim.Core.SimEventType.SnagFreed:
+                Toast("It came free", 1.5);
+                break;
             case TheLedger.Sim.Core.SimEventType.FishJumped:
                 Toast("It jumped! Keep the line tight", 1.5);
                 break;

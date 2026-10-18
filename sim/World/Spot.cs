@@ -38,6 +38,9 @@ public sealed class Spot
     public float SpringC { get; init; } = 22.5f;
     public float SpringMix { get; init; }
 
+    /// <summary>Cover in the water (fallen trees, weed beds, lily pads, rock): fish use it, hooks snag in it.</summary>
+    public IReadOnlyList<StructureZone> Structures { get; init; } = Array.Empty<StructureZone>();
+
     /// <summary>Ground height at x (flat beyond the ends).</summary>
     public float GroundHeight(float x)
     {
@@ -78,4 +81,24 @@ public sealed class Spot
         AnglerStart = new Vec2(-2f, 0.6f),
         WaterlineX = -0.24f,
     };
+}
+
+/// <summary>
+/// A patch of cover, as a box in the cross-section. <see cref="Kind"/> matches the species' habitat.structure keys
+/// (wood, weeds, lilyPads, rock). <see cref="Snag"/> is how readily a moving hook catches in it (0..1); a snag lets go
+/// when the line pulls harder than a hold force drawn from <see cref="HoldMinN"/>..<see cref="HoldMaxN"/> (a twig
+/// snaps, weed tears), which can be more than the line can take.
+/// </summary>
+public sealed class StructureZone
+{
+    public string Kind { get; init; } = "wood";
+    public float X0 { get; init; }
+    public float X1 { get; init; }
+    public float Y0 { get; init; }
+    public float Y1 { get; init; }
+    public float Snag { get; init; }
+    public float HoldMinN { get; init; } = 3f;
+    public float HoldMaxN { get; init; } = 10f;
+
+    public bool Contains(Vec2 p) => p.X >= X0 && p.X <= X1 && p.Y >= Y0 && p.Y <= Y1;
 }

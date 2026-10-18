@@ -97,5 +97,41 @@
     }
   ],
   "springC": 22.8,
-  "springMix": 0.75
+  "springMix": 0.75,
+  "structures": [
+    {
+      "kind": "weeds",
+      "name": "eelgrass",
+      "x": [
+        1.6,
+        6.0
+      ],
+      "y": [
+        -1.55,
+        -0.9
+      ],
+      "snag": 0.3,
+      "holdN": [
+        2,
+        6
+      ]
+    },
+    {
+      "kind": "rock",
+      "name": "limestone ledge",
+      "x": [
+        8.2,
+        10.5
+      ],
+      "y": [
+        -4.6,
+        -1.4
+      ],
+      "snag": 0.7,
+      "holdN": [
+        12,
+        60
+      ]
+    }
+  ]
 }

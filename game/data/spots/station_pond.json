@@ -83,5 +83,56 @@
       "species": "golden_shiner",
       "count": 8
     }
+  ],
+  "structures": [
+    {
+      "kind": "wood",
+      "name": "fallen live oak",
+      "x": [
+        2.6,
+        7.8
+      ],
+      "y": [
+        -3.1,
+        -0.5
+      ],
+      "snag": 1.0,
+      "holdN": [
+        10,
+        50
+      ]
+    },
+    {
+      "kind": "lilyPads",
+      "x": [
+        10.0,
+        14.5
+      ],
+      "y": [
+        -0.35,
+        0.1
+      ],
+      "snag": 0.3,
+      "holdN": [
+        3,
+        9
+      ]
+    },
+    {
+      "kind": "weeds",
+      "x": [
+        17.0,
+        23.0
+      ],
+      "y": [
+        -3.4,
+        -2.4
+      ],
+      "snag": 0.35,
+      "holdN": [
+        2,
+        7
+      ]
+    }
   ]
 }
