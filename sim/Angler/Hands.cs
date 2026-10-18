@@ -43,9 +43,14 @@ public sealed class Hands
         // the input side hands over a target already in [min, max].
         float target = Math.Clamp(targetAngle, c.HandMinAngle, c.HandMaxAngle);
         float error = target - Angle;
-        float accel = c.HandStiffness * error - c.HandDamping * AngularVelocity;
-        accel = Math.Clamp(accel, -maxAccel, maxAccel);
-        AngularVelocity = Math.Clamp(AngularVelocity + accel * dt, -maxSpeed, maxSpeed);
+        // Track the target with no overshoot: head for it at a speed proportional to the gap (HandStiffness = 1/time
+        // constant), within the arm's top speed and acceleration. Predictable: the rod stops where the input stops.
+        // Never faster than the arm can still brake from before the target (√(2·a·gap)), so it stops on it.
+        float gap = MathF.Abs(error);
+        float wantSpeed = MathF.Min(MathF.Min(maxSpeed, gap * c.HandStiffness), MathF.Sqrt(2f * maxAccel * gap));
+        float wantVel = MathF.Sign(error) * wantSpeed;
+        float accel = dt > 0f ? Math.Clamp((wantVel - AngularVelocity) / dt, -maxAccel, maxAccel) : 0f;
+        AngularVelocity += accel * dt;
         Angle += AngularVelocity * dt;
 
         if (Angle < c.HandMinAngle) { Angle = c.HandMinAngle; AngularVelocity = MathF.Max(0f, AngularVelocity); }

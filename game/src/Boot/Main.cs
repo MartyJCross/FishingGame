@@ -344,6 +344,7 @@ public partial class Main : Node2D
     public override void _Process(double delta)
     {
         _router.ShoulderPx = SimSpace.ToPx(_driver.World.Anglers[0].Shoulder);
+        _router.RodAngle = _driver.World.Anglers[0].Hands.Angle;
         _router.MouseRodEnabled = !_tuning.MouseOver && !_menu.Visible;
         // The mouse is captured (hidden) while fishing; any menu or panel gives the cursor back.
         bool wantCapture = !_automated && !_menu.Visible && !_ledger.Visible && !_tuning.IsOpen

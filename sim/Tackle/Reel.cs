@@ -123,6 +123,12 @@ public sealed class Reel
         return Spec.SpoolInertia + 0.5f * lineMass * (r * r + rc * rc);
     }
 
+    /// <summary>
+    /// The hardest a finger or thumb can pin the line: the line slips under it before it breaks (a hard backswing with
+    /// the bail open must never snap the line, owner 2026-10-18).
+    /// </summary>
+    private float MaxHold(LineSpec line) => MathF.Min(Spec.FingerHoldN, 0.75f * line.BreakingForceN * line.KnotFactor);
+
     /// <summary>Spool resistance felt by the line in free spool: bearings, the magnetic brake (∝ spool speed), the thumb, N.</summary>
     public float SpoolResistance(LineSpec line)
     {
@@ -200,7 +206,7 @@ public sealed class Reel
                 // Spinning the spool up takes force too (its inertia as a mass at the line: I / r²).
                 float r = SpoolRadius(line);
                 float spinUp = SpoolInertiaNow(line) / (r * r) * MathF.Max(0f, _lastLineSpeed - SpoolOmega * r) / dt;
-                SlipForce = Thumb >= 0.98f ? float.PositiveInfinity : Loose > 0.01f ? 0.002f : MathF.Max(0.002f, SpoolResistance(line) + spinUp);
+                SlipForce = Thumb >= 0.98f ? MaxHold(line) : Loose > 0.01f ? 0.002f : MathF.Max(0.002f, SpoolResistance(line) + spinUp);
                 return;
             }
         }
@@ -220,7 +226,7 @@ public sealed class Reel
             float empty = 1f - Math.Clamp(Fill, 0f, 1f);
             float lip = Spec.LipFrictionN * (1f + 3f * empty * empty);
             float hold = Math.Clamp(input.LineHold, 0f, 1f);
-            SlipForce = hold >= 0.98f ? float.PositiveInfinity : lip + hold * hold * Spec.FingerHoldN;
+            SlipForce = MathF.Min(lip + hold * hold * Spec.FingerHoldN, MaxHold(line));
         }
         else
         {

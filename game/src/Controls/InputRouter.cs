@@ -44,6 +44,10 @@ public partial class InputRouter : Node
     /// <summary>The arm's reach in rod angle (matches SimConfig HandMinAngle / HandMaxAngle).</summary>
     public float ArmMin = -1.2f, ArmMax = 3.1f;
 
+    /// <summary>The rod's actual angle (set by the view each frame) and how far the target may lead it, rad.</summary>
+    public float RodAngle { get; set; } = 0.6f;
+    public float MaxLead = 0.6f;
+
 
     private float _reach = 0.5f;
     private float _lineHold;
@@ -88,6 +92,9 @@ public partial class InputRouter : Node
         {
             float k = RadiansPerPixel * MouseSensitivity * (Input.IsKeyPressed(Key.Shift) ? 0.25f : 1f);
             _rodTarget = Mathf.Clamp(_rodTarget - mm.Relative.X * k, ArmMin, ArmMax);
+            // Never let the target run far ahead of the arm: movement the arm can't follow is dropped, not stored,
+            // so the rod stops (almost) as soon as the mouse does.
+            _rodTarget = Mathf.Clamp(_rodTarget, RodAngle - MaxLead, RodAngle + MaxLead);
         }
     }
 
