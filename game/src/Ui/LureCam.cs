@@ -21,11 +21,11 @@ public partial class LureCam : SubViewportContainer
     {
         Stretch = true;
         AnchorLeft = 1f; AnchorRight = 1f; AnchorTop = 1f; AnchorBottom = 1f;
-        OffsetLeft = -500f; OffsetRight = -16f; OffsetTop = -330f; OffsetBottom = -70f;
+        OffsetLeft = -376f; OffsetRight = -16f; OffsetTop = -236f; OffsetBottom = -36f;
         MouseFilter = MouseFilterEnum.Ignore;
         _view = new SubViewport { World2D = GetViewport().World2D, TransparentBg = false, Msaa2D = Viewport.Msaa.Msaa2X };
         AddChild(_view);
-        _cam = new Camera2D { Zoom = new Vector2(3.2f, 3.2f) };
+        _cam = new Camera2D { Zoom = new Vector2(1.7f, 1.7f) };
         _view.AddChild(_cam);
         _cam.MakeCurrent();
 

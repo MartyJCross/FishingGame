@@ -242,6 +242,12 @@ input from a `.rec` recording), `--record FILE` (save this session's input on ex
   tunables until weather exists. `game/src/Render/WaterRenderer.cs` (volume gradient, surface line, near band with
   ripple rings, droplets). `--weather calm|breeze|windy|rain|storm`, `--scene water_test`, middle-click splash, F4 rain.
   `tools/sync_tuning.py` keeps `sim.json` in step with `SimConfig`. 32 tests.
+- **v0.4.2 lessons:** the line solver's node mass floor (5e-5 kg) is needed for stability (1e-5 broke casts and the
+  crank dive), but held against gravity it reads as phantom weight at the tip; `Rig.Step` adds that phantom weight
+  to the reel's slip force so it can't pull line off an open spool. Half-submerged bodies (the bobber) take water drag
+  only on the part under water (a wet/dry flicker dragged them toward the wind at water strength). Fish turn
+  with a stored yaw target + 0.8 s cooldown; the renderer never blends across a facing flip.
+- **Owner ideas backlog:** `docs/IDEAS.md` (check it when planning a milestone; add new owner ideas there).
 - **M2 done (2026-10-18, v0.3.0):** `sim/Tackle/`: `Rod` (XPBD chain, EI taper,
   strength taper, moments), `Line` (variable length, pay-out/merge, solver mass floor), `TackleSolver` (direct banded
   Cholesky over rod stretch + bend + line, double precision, Rayleigh damping), `Rig` (substeps, drag, buoyancy,

@@ -62,10 +62,14 @@ public partial class FishRenderer : Node2D
     private int BuildSpine(Fish f, float alpha)
     {
         int n = Math.Min(f.Count, _spine.Length);
+        // The body mirrors on the tick the fish's facing flips: don't blend across that (it smears the fish).
+        bool flipped = MathF.Cos(f.PrevYaw) * MathF.Cos(f.Yaw) < 0f;
+        float a = flipped ? 1f : alpha;
         for (int i = 0; i < n; i++)
-            _spine[i] = SimSpace.ToPx(Mathf.Lerp(f.PX[i], f.X[i], alpha), Mathf.Lerp(f.PY[i], f.Y[i], alpha));
-        float yaw = Mathf.LerpAngle(f.PrevYaw, f.Yaw, alpha);
-        float squash = MathF.Max(MathF.Abs(MathF.Cos(yaw)), 0.14f);
+            _spine[i] = SimSpace.ToPx(Mathf.Lerp(f.PX[i], f.X[i], a), Mathf.Lerp(f.PY[i], f.Y[i], a));
+        float yaw = flipped ? f.Yaw : Mathf.Lerp(f.PrevYaw, f.Yaw, alpha);
+        // Facing the camera mid-turn: a short, full-bodied silhouette, never a sliver.
+        float squash = 0.38f + 0.62f * MathF.Abs(MathF.Cos(yaw));
         Vector2 c = _spine[n / 2];
         for (int i = 0; i < n; i++) _spine[i] = c + (_spine[i] - c) * squash;
         return n;
@@ -258,7 +262,7 @@ public partial class FishRenderer : Node2D
         float L = f.LengthM * SimSpace.PixelsPerMetre;
         var (p, t) = Along(n, 0.07f);
         Vector2 up = new Vector2(t.Y, -t.X) * -f.FacingSign;
-        float yaw = Mathf.LerpAngle(f.PrevYaw, f.Yaw, alpha);
+        float yaw = MathF.Cos(f.PrevYaw) * MathF.Cos(f.Yaw) < 0f ? f.Yaw : Mathf.Lerp(f.PrevYaw, f.Yaw, alpha);
         float r = MathF.Max(0.032f * L, 1.2f) * (0.6f + 0.4f * MathF.Abs(MathF.Cos(yaw)));
         var world = Driver.World;
         float fade = Math.Clamp((world.Water.Height(f.HeadX, world.Time) - f.HeadY) / MathF.Max(visibility * 2.5f, 0.5f), 0f, 0.55f);

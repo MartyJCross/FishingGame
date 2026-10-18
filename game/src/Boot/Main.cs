@@ -40,6 +40,8 @@ public partial class Main : Node2D
         _args = CommandLine.Parse(OS.GetCmdlineUserArgs());
         foreach (string e in _args.Errors) GD.PushWarning($"Command line: {e}");
 
+        bool automated = _args.Background || _args.ScreenshotPath != null || _args.SmokeSeconds != null;
+        if (!automated) DisplayServer.WindowSetMode(DisplayServer.WindowMode.Fullscreen); // F11 toggles
         if (_args.Background)
         {
             // Automated runs stay out of the owner's way: never take focus, sit off-screen (pair with
@@ -243,6 +245,11 @@ public partial class Main : Node2D
 
     public override void _UnhandledInput(InputEvent e)
     {
+        if (e is InputEventKey { Pressed: true, Echo: false, PhysicalKeycode: Key.F11 })
+        {
+            bool full = DisplayServer.WindowGetMode() is DisplayServer.WindowMode.Fullscreen or DisplayServer.WindowMode.ExclusiveFullscreen;
+            DisplayServer.WindowSetMode(full ? DisplayServer.WindowMode.Windowed : DisplayServer.WindowMode.Fullscreen);
+        }
         if (e.IsActionPressed(InputActions.ToggleTuning)) _tuning.Toggle();
         if (e.IsActionPressed(InputActions.ToggleDebug)) _overlay.Toggle();
         if (e is InputEventKey { Pressed: true, Echo: false, PhysicalKeycode: Key.F4 })

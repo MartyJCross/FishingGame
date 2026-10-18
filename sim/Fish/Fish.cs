@@ -85,7 +85,7 @@ public sealed class Fish
         X = new float[n]; Y = new float[n]; PX = new float[n]; PY = new float[n];
         _bx = new float[n]; _by = new float[n];
         Seg = lengthM / (n - 1);
-        Yaw = PrevYaw = faceRight ? 0f : MathF.PI;
+        Yaw = PrevYaw = _yawTarget = faceRight ? 0f : MathF.PI;
         HeadX = head.X; HeadY = head.Y;
         for (int i = 0; i < n; i++) { _bx[i] = -i * Seg; _by[i] = 0f; }
         UpdateWorldNodes();
@@ -624,11 +624,21 @@ public sealed class Fish
         if (fl > fmax) { fx *= fmax / fl; fy *= fmax / fl; }
 
         // Facing: turn toward where it wants to go (through facing the camera); thrust works poorly mid-turn.
-        float want = vDes.X > 0.02f ? 0f : vDes.X < -0.02f ? MathF.PI : (FacingSign > 0f ? 0f : MathF.PI);
+        // Turn around only for a clear wish to go the other way, finish each turn, and don't turn again straight
+        // after one (no dithering).
+        _turnCooldown -= dt;
+        bool urgent = State is FishState.Strike or FishState.Flee or FishState.Hooked;
+        if (MathF.Abs(Yaw - _yawTarget) < 1e-3f && (_turnCooldown <= 0f || urgent))
+        {
+            float margin = 0.25f * CruiseSpeed;
+            if (vDes.X > margin && _yawTarget != 0f) { _yawTarget = 0f; _turnCooldown = 0.8f; }
+            else if (vDes.X < -margin && _yawTarget == 0f) { _yawTarget = MathF.PI; _turnCooldown = 0.8f; }
+        }
+        float want = _yawTarget;
         float diff = want - Yaw;
         if (MathF.Abs(diff) > 1e-3f)
         {
-            float rate = (State is FishState.Strike or FishState.Flee ? 14f : 5f) * dt;
+            float rate = (State is FishState.Strike or FishState.Flee ? 16f : 8f) * dt;
             if (MathF.Abs(diff) <= rate) Yaw = want;
             else Yaw += MathF.Sign(diff) * rate;
         }
@@ -698,7 +708,7 @@ public sealed class Fish
         }
     }
 
-    private float _lastHeadX, _lastHeadY;
+    private float _lastHeadX, _lastHeadY, _turnCooldown, _yawTarget;
     private bool _bodyInit;
 
     private void UpdateWorldNodes()

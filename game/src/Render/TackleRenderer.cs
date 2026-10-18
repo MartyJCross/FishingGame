@@ -132,7 +132,12 @@ public partial class TackleRenderer : Node2D
         for (int k = 0; k <= m; k++)
         {
             float tension = k < m ? line.Tension[Math.Min(k, m - 1)] : 0f;
-            _lineCols[k] = loads ? LoadColor(tension / breakN) : lineColor;
+            // Past half its strength the line warms toward amber, then red near the break (owner's idea, 2026-10-18).
+            float frac = tension / (breakN * line.Spec.KnotFactor);
+            _lineCols[k] = loads ? LoadColor(tension / breakN)
+                : frac < 0.5f ? lineColor
+                : frac < 0.8f ? lineColor.Lerp(new Color(1f, 0.72f, 0.2f), (frac - 0.5f) / 0.3f)
+                : new Color(1f, 0.72f, 0.2f).Lerp(new Color(1f, 0.15f, 0.1f), Math.Min(1f, (frac - 0.8f) / 0.2f));
         }
         // Constant on-screen width whatever the camera zoom (a sub-pixel line breaks up into dashes).
         float px = 1f / MathF.Max(GetViewport().GetCanvasTransform().X.Length(), 0.05f);

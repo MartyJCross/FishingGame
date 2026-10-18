@@ -141,6 +141,20 @@ public sealed class Rig
             TakenThisTick = MathF.Max(0f, before - Line.LineOut);
         }
 
+        // The solver gives light line nodes a minimum mass for stability; held up against gravity, that extra mass
+        // reads as weight at the rod tip. It isn't real line weight, so it mustn't pull line off an open spool.
+        if (float.IsFinite(slipForce))
+        {
+            var ln = Line;
+            float phantom = 0f;
+            for (int k = 0; k < ln.Count - 1; k++)
+            {
+                if (ln.Submerged[k] || ln.InContact[k]) break;
+                phantom += MathF.Max(0f, 1f / ln.SolverW[k] - ln.Mass[k]);
+            }
+            slipForce += phantom * c.Gravity;
+        }
+
         int n = Math.Max(1, c.TackleSubsteps);
         float h = dt / n;
         Rod.BeginTick();
@@ -312,8 +326,10 @@ public sealed class Rig
                     float fd = l.Terminal.FloatDiameterM;
                     float under = Math.Clamp((surface - l.Y[k]) / fd + 0.5f, 0f, 1f);
                     vy += env.Water.Density * l.Terminal.FloatVolumeM3 * under * c.Gravity * w * h;
-                    float rhoF = under > 0f ? env.Water.Density : AirDensity;
-                    Drag(ref vx, ref vy, u, 0.5f * rhoF * 0.6f * fd * fd * w, h);
+                    // Water drag on the part under the surface (moving with the water), air drag on the rest (wind).
+                    float kf = 0.5f * 0.6f * fd * fd * w;
+                    Drag(ref vx, ref vy, new Vec2(_lUx[k], _lUy[k]), kf * env.Water.Density * under, h);
+                    Drag(ref vx, ref vy, env.Wind, kf * AirDensity * (1f - under), h);
                 }
                 // Line: strong drag across the line, weak along it (that difference is what makes line belly).
                 float tx = (k + 1 < l.Count ? l.X[k + 1] : l.X[k]) - (k > 0 ? l.X[k - 1] : Rod.X[Rod.Tip]);
