@@ -273,10 +273,8 @@ input from a `.rec` recording), `--record FILE` (save this session's input on ex
     slip float), bait tear-off, live bait agents.
   - **Next: M5 fish** (bodies, senses, bites) for the Station Pond's tier-S species, then M6 (hookset, fight,
     landing) = the demo.
-  - **Species data agent (stopped by a usage limit):** partial work is in the git worktree
-    `.claude/worktrees/agent-a2366193d8b0027c9` on branch `worktree-agent-a2366193d8b0027c9` (it was writing redear,
-    Florida bass, black crappie). Check what it committed or left uncommitted there, finish the tier-S species, and
-    merge into `development`.
+  - **Species data:** 17 sourced species files in `game/data/species/` (all tier-S pond species plus early
+    Nature Coast fish), validated by `python tools/species_check.py` (0 errors). The agent worktree is removed.
   - **Owner (2026-10-18): save cost until the first demo (M6): less testing.** Key tests only, one test + build run
     per commit, one screenshot per visual change, CI checked once per milestone.
 

@@ -1,0 +1,124 @@
+{
+  "id": "brown_bullhead",
+  "commonName": "Brown bullhead",
+  "scientificName": "Ameiurus nebulosus",
+  "family": "Ictaluridae",
+  "tier": "1",
+  "sources": [
+    { "name": "FishBase species summary: Ameiurus nebulosus", "url": "https://www.fishbase.net.br/summary/Ameiurus-nebulosus.html", "retrieved": "2026-10-18" },
+    { "name": "FishBase length-weight table: Ameiurus nebulosus", "url": "https://www.fishbase.net.br/popdyn/LWRelationshipList.php?ID=3022&GenusName=Ameiurus&SpeciesName=nebulosus&fc=129", "retrieved": "2026-10-18" },
+    { "name": "FishBase growth table: Ameiurus nebulosus", "url": "https://www.fishbase.net.br/popdyn/PopGrowthList.php?ID=3022&GenusName=Ameiurus&SpeciesName=nebulosus&fc=129", "retrieved": "2026-10-18" },
+    { "name": "IGFA world record search: Bullhead, brown (all-tackle 7 lb 6 oz, Mahopac Lake, New York, 2009)", "url": "https://igfa.org/member-services/world-record/common-name/Bullhead%2C%20brown", "retrieved": "2026-10-18" },
+    { "name": "Chesapeake Bay Program field guide: Brown bullhead", "url": "https://www.chesapeakebay.net/discover/field-guide/entry/brown-bullhead", "retrieved": "2026-10-18" },
+    { "name": "Animal Diversity Web (University of Michigan): Ameiurus nebulosus", "url": "https://animaldiversity.org/accounts/Ameiurus_nebulosus/", "retrieved": "2026-10-18" },
+    { "name": "Florida freshwater regulations (FWC guide): bag and length limits (nongame fish)", "url": "https://www.eregulations.com/florida/fishing/freshwater/bag-length-limits", "retrieved": "2026-10-18" }
+  ],
+  "water": {
+    "salinityPpt": [0, 5],
+    "temperatureC": { "lethalMin": 0.5, "optimum": [24, 29], "lethalMax": 37 },
+    "oxygenMinMgL": 1.0,
+    "clarityToleranceM": [0.05, 5]
+  },
+  "habitat": {
+    "spots": ["station_pond", "suwannee"],
+    "depthM": [0.3, 6],
+    "structure": { "weeds": 0.7, "wood": 0.7, "docks": 0.3, "lilyPads": 0.4, "rock": 0.3, "dropOff": 0.4, "openWater": 0.2 }
+  },
+  "size": {
+    "lengthCm": { "typical": [20, 30], "max": 55 },
+    "lengthWeight": { "a": 0.01009, "b": 3.065, "units": "W_g = a * L_cm^b", "source": "FishBase LWR table: Lake Butte des Mortes, Wisconsin, TL, 15.2-29.2 cm, n=1634. The Alabama n=66443 relation (a=0.0282, b=2.76) gives only 0.54x the record at 55 cm." },
+    "growth": { "Linf_cm": 49.4, "k": 0.3, "maxAgeYears": 9, "source": "FishBase growth table: Chesapeake Bay, TL; max age FishBase summary" },
+    "recordWeightKg": 3.35
+  },
+  "activity": {
+    "diel": { "dawn": 0.5, "day": 0.25, "dusk": 0.9, "night": 1.0 },
+    "lunar": 0.05,
+    "tide": null,
+    "seasonal": { "winter": 0.3, "spring": 0.9, "summer": 1.0, "autumn": 0.7 },
+    "weather": { "overcast": 0.1, "rain": 0.15, "postColdFront": -0.15, "risingWaterTemp": 0.1 }
+  },
+  "diet": {
+    "items": { "insects": 0.3, "snails": 0.1, "mussels": 0.05, "crayfish": 0.1, "worms": 0.1, "fish": 0.1, "plants": 0.1, "fish_eggs": 0.05, "leeches": 0.05, "algae": 0.05 },
+    "preyLengthMaxFrac": 0.2
+  },
+  "feeding": {
+    "mode": "bottom_scent",
+    "biteStyles": { "nibble": 0.4, "run": 0.35, "pickupDrop": 0.25 },
+    "holdTimeS": [1.0, 4.0],
+    "followChance": 0.05,
+    "speedPreferenceMps": [0.0, 0.2],
+    "lureAttraction": {
+      "soft_plastic_worm": 0.1, "jig": 0.1, "spinnerbait": 0.02, "crankbait": 0.02, "topwater_walker": 0.0,
+      "popper": 0.0, "frog": 0.0, "swimbait": 0.02, "jerkbait": 0.0, "inline_spinner": 0.02, "spoon": 0.02,
+      "streamer_fly": 0.05, "popper_fly": 0.0
+    },
+    "baitAttraction": {
+      "live_minnow": 0.4, "wild_shiner": 0.2, "nightcrawler": 0.95, "red_worm": 0.85, "cricket": 0.3, "live_shrimp": 0.4,
+      "cut_bait": 0.75, "chicken_liver": 0.8, "stink_bait": 0.7, "dough": 0.5, "bread": 0.3, "corn": 0.2,
+      "live_crayfish": 0.4, "fiddler_crab": 0.0, "barnacle": 0.0
+    }
+  },
+  "senses": {
+    "vision": 0.3, "spectral": { "r": 0.7, "g": 0.9, "b": 0.5 }, "lowLight": 0.5,
+    "lateralLine": 0.75, "hearing": 0.8, "smell": 1.0, "electro": 0.2,
+    "lineShy": 0.1, "spookiness": 0.25
+  },
+  "behaviour": {
+    "schooling": "loose_small",
+    "territorial": 0.4,
+    "spawn": { "season": "spring_early_summer", "months": [4, 6], "tempC": [20, 27], "habitat": "sheltered_cavity_soft_bottom", "mode": "nest_guard_both_parents", "biteMotive": "defense" },
+    "migration": null
+  },
+  "fight": {
+    "powerCoeff": 0.7,
+    "stamina": { "anaerobic": 0.6, "aerobic": 0.7, "recovery": 0.6 },
+    "styles": { "bulldog": 0.35, "roll": 0.25, "headshake": 0.2, "run": 0.2 },
+    "mouth": { "hardness": 0.45, "gapeFrac": 0.22, "teeth": 0.1, "gillPlateCut": 0.0 }
+  },
+  "body": {
+    "locomotion": "subcarangiform",
+    "spineNodes": 9,
+    "stiffness": 0.45,
+    "shapeRef": "shapes/ictalurid_catfish.json",
+    "pattern": {
+      "dorsal": "#4a3b26",
+      "flank": "#6e5a3a",
+      "belly": "#e9dfb5",
+      "markings": [
+        { "type": "vermiculation", "color": "#2a2016", "where": "back and sides", "notes": "brown to black mottling over olive or yellowish brown" }
+      ],
+      "fins": "dusky; square-cut tail; four pairs of dark barbels; scaleless skin; sharp dorsal and pectoral spines",
+      "eye": "#2b2620",
+      "variants": {
+        "juvenile": "small and dark, travelling in a tight school that a parent guards",
+        "spawning_male": "no distinct breeding colours described in the sources used"
+      },
+      "source": "Chesapeake Bay Program field guide; Animal Diversity Web"
+    },
+    "variants": ["juvenile"]
+  },
+  "regulations": {
+    "minLengthCm": null,
+    "bagLimit": null,
+    "closedSeason": null,
+    "protected": false,
+    "invasive": false,
+    "notes": "Nongame fish: no statewide bag or length limit; individual Fish Management Areas may set limits.",
+    "basedOn": "https://www.eregulations.com/florida/fishing/freshwater/bag-length-limits",
+    "basedOnDate": "2026-10-18"
+  },
+  "economy": { "edible": true, "pricePerKg": 3, "marketDemand": "low" },
+  "ledger": {
+    "facts": [
+      "Both parents can guard the eggs and then the school of young, chasing off other fish and herding strays back.",
+      "A brown bullhead can bury itself in mud to wait out bad conditions, and it tolerates low oxygen and high carbon dioxide.",
+      "Its eyesight is poor; it finds food with eight barbels that sense touch and chemicals."
+    ],
+    "research": [
+      { "id": "bbh_worm_night", "task": "Catch one on a nightcrawler on a muddy bottom at night" },
+      { "id": "bbh_school", "task": "Observe a parent guarding a school of young" },
+      { "id": "bbh_big", "task": "Catch one over 1 kg" }
+    ],
+    "wrenNote": "Bullheads come out when the light goes. Worm on the bottom, a little slack in the line, and don't be quick: they mouth it a good while before they go."
+  }
+}

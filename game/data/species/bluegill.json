@@ -1,0 +1,131 @@
+{
+  "id": "bluegill",
+  "commonName": "Bluegill",
+  "scientificName": "Lepomis macrochirus",
+  "family": "Centrarchidae",
+  "tier": "S",
+  "sources": [
+    { "name": "FishBase species summary: Lepomis macrochirus", "url": "https://www.fishbase.net.br/summary/Lepomis-macrochirus.html", "retrieved": "2026-10-18" },
+    { "name": "FishBase length-weight table: Lepomis macrochirus", "url": "https://www.fishbase.net.br/popdyn/LWRelationshipList.php?ID=3375&GenusName=Lepomis&SpeciesName=macrochirus&fc=302", "retrieved": "2026-10-18" },
+    { "name": "FishBase growth table: Lepomis macrochirus", "url": "https://www.fishbase.net.br/popdyn/PopGrowthList.php?ID=3375&GenusName=Lepomis&SpeciesName=macrochirus&fc=302", "retrieved": "2026-10-18" },
+    { "name": "IGFA world record search: Bluegill (all-tackle 2.15 kg, Ketona Lake, Alabama, 1950)", "url": "https://igfa.org/member-services/world-record/common-name/Bluegill", "retrieved": "2026-10-18" },
+    { "name": "Outdoor Alabama (ADCNR): Bluegill", "url": "https://outdooralabama.com/bream/bluegill", "retrieved": "2026-10-18" },
+    { "name": "Virginia DWR: Bluegill", "url": "https://dwr.virginia.gov/wildlife/fish/bluegill/", "retrieved": "2026-10-18" },
+    { "name": "Florida freshwater regulations (FWC guide): bag and length limits", "url": "https://www.eregulations.com/florida/fishing/freshwater/bag-length-limits", "retrieved": "2026-10-18" },
+    { "name": "Florida freshwater regulations (FWC guide): methods of taking fish, game fish definition and sale", "url": "https://www.eregulations.com/florida/fishing/freshwater/methods-of-taking-fish", "retrieved": "2026-10-18" }
+  ],
+  "water": {
+    "salinityPpt": [0, 8],
+    "temperatureC": { "lethalMin": 1, "optimum": [25, 30], "lethalMax": 36 },
+    "oxygenMinMgL": 2.0,
+    "clarityToleranceM": [0.4, 12]
+  },
+  "habitat": {
+    "spots": ["station_pond", "spring_run", "suwannee"],
+    "depthM": [0.3, 6],
+    "structure": { "weeds": 0.9, "wood": 0.7, "docks": 0.8, "lilyPads": 0.7, "rock": 0.3, "dropOff": 0.5, "openWater": 0.2 }
+  },
+  "size": {
+    "lengthCm": { "typical": [12, 20], "max": 41 },
+    "lengthWeight": { "a": 0.00764, "b": 3.333, "units": "W_g = a * L_cm^b", "source": "FishBase LWR table: Oklahoma statewide, TL, 5.1-28.0 cm, n=3617. (The Alabama n=82212 relation, a=0.0152 b=3.07, gives only 0.63x the record at 41 cm.)" },
+    "growth": { "Linf_cm": 23.3, "k": 0.475, "maxAgeYears": 10, "source": "FishBase growth table: Onized Lake, Illinois, TL (warmest-water non-questionable US entry); max age FishBase summary" },
+    "recordWeightKg": 2.15
+  },
+  "activity": {
+    "diel": { "dawn": 0.9, "day": 0.8, "dusk": 0.9, "night": 0.15 },
+    "lunar": 0.1,
+    "tide": null,
+    "seasonal": { "winter": 0.4, "spring": 1.0, "summer": 0.9, "autumn": 0.7 },
+    "weather": { "overcast": 0.05, "rain": 0.05, "postColdFront": -0.3, "risingWaterTemp": 0.15 }
+  },
+  "diet": {
+    "items": { "insects": 0.45, "zooplankton": 0.15, "worms": 0.1, "snails": 0.1, "crayfish": 0.05, "fish": 0.05, "plants": 0.1 },
+    "preyLengthMaxFrac": 0.15
+  },
+  "feeding": {
+    "mode": "suction_picker",
+    "biteStyles": { "inhale": 0.5, "nibble": 0.45, "sip": 0.05 },
+    "holdTimeS": [0.3, 1.2],
+    "followChance": 0.3,
+    "speedPreferenceMps": [0.0, 0.6],
+    "lureAttraction": {
+      "soft_plastic_worm": 0.15, "jig": 0.6, "spinnerbait": 0.1, "crankbait": 0.1, "topwater_walker": 0.05,
+      "popper": 0.45, "frog": 0.02, "swimbait": 0.05, "jerkbait": 0.05, "inline_spinner": 0.4, "spoon": 0.1,
+      "streamer_fly": 0.4, "popper_fly": 0.8
+    },
+    "baitAttraction": {
+      "live_minnow": 0.2, "wild_shiner": 0.0, "nightcrawler": 0.8, "red_worm": 0.95, "cricket": 0.95, "live_shrimp": 0.4,
+      "cut_bait": 0.1, "chicken_liver": 0.05, "stink_bait": 0.0, "dough": 0.4, "bread": 0.5, "corn": 0.2,
+      "live_crayfish": 0.05, "fiddler_crab": 0.0, "barnacle": 0.0
+    }
+  },
+  "senses": {
+    "vision": 0.9, "spectral": { "r": 0.8, "g": 1.0, "b": 0.6 }, "lowLight": 0.3,
+    "lateralLine": 0.7, "hearing": 0.5, "smell": 0.3, "electro": 0.0,
+    "lineShy": 0.3, "spookiness": 0.45
+  },
+  "behaviour": {
+    "schooling": "loose_large",
+    "territorial": 0.6,
+    "spawn": { "season": "spring_summer", "months": [4, 9], "tempC": [21, 24], "habitat": "shallow_sand_gravel_colony", "mode": "colonial_nest_guard", "biteMotive": "defense" },
+    "migration": null
+  },
+  "fight": {
+    "powerCoeff": 0.9,
+    "stamina": { "anaerobic": 0.8, "aerobic": 0.5, "recovery": 0.7 },
+    "styles": { "circle": 0.55, "run": 0.15, "headshake": 0.15, "structureDash": 0.15 },
+    "mouth": { "hardness": 0.3, "gapeFrac": 0.08, "teeth": 0.0, "gillPlateCut": 0.0 }
+  },
+  "body": {
+    "locomotion": "subcarangiform",
+    "hoverMode": "labriform",
+    "spineNodes": 7,
+    "stiffness": 0.55,
+    "shapeRef": "shapes/centrarchid_sunfish.json",
+    "pattern": {
+      "dorsal": "#4b5a3a",
+      "flank": "#7a8a6c",
+      "belly": "#e8d58c",
+      "markings": [
+        { "type": "bars", "color": "#3e4a3c", "where": "flanks, 6-8 evenly spaced vertical bands", "notes": "faint on large adults, strongest on juveniles" },
+        { "type": "opercular_flap", "color": "#111418", "where": "rear edge of the gill cover", "notes": "solid black 'ear', no pale or coloured margin; small in juveniles, longer in adults" },
+        { "type": "spots", "color": "#1c1c22", "where": "one dark blotch at the rear base of the soft dorsal fin", "notes": "absent on very small fish" },
+        { "type": "iridescent_band", "color": "#4f72a8", "where": "lower cheek and gill cover", "notes": "blue sheen that gives the name" }
+      ],
+      "fins": "olive-grey and translucent; dark blotch at the rear of the soft dorsal; long pointed pectorals, clear",
+      "eye": "#3b2f25",
+      "variants": {
+        "spawning_male": "back and sides darken to purple-blue, breast and belly turn rusty orange, blue cheek sheen intensifies",
+        "juvenile": "light olive-grey with evenly spaced darker vertical bands, pale yellow-white belly, small black ear flap"
+      },
+      "source": "Outdoor Alabama bluegill page; FishBase short description; Virginia DWR"
+    },
+    "variants": ["juvenile", "spawning_male"]
+  },
+  "regulations": {
+    "minLengthCm": null,
+    "bagLimit": 50,
+    "aggregateGroup": "panfish",
+    "closedSeason": null,
+    "protected": false,
+    "invasive": false,
+    "saleProhibited": true,
+    "notes": "50 panfish a day (bluegill, redear, spotted sunfish, warmouth, redbreast and others) individually or in total; no length limit. Freshwater game fish: may not be sold.",
+    "basedOn": "https://www.eregulations.com/florida/fishing/freshwater/bag-length-limits",
+    "basedOnDate": "2026-10-18"
+  },
+  "economy": { "edible": true, "pricePerKg": 0, "marketDemand": "low", "notes": "Excellent eating, but Florida game fish cannot be sold; value comes from surveys and release." },
+  "ledger": {
+    "facts": [
+      "The all-tackle world record bluegill, 2.15 kg, was caught at Ketona Lake, Alabama, in 1950, and it has never been beaten.",
+      "Bluegill nest in colonies: hundreds of nests can crowd a shallow backwater, often right beside bass nests.",
+      "The male guards the eggs alone for about a week and strikes at anything that comes near."
+    ],
+    "research": [
+      { "id": "blg_cricket_float", "task": "Catch one on a cricket under a small float" },
+      { "id": "blg_colony", "task": "Find a spawning colony and photograph a guarding male" },
+      { "id": "blg_pounder", "task": "Catch one over 0.45 kg (a 'pounder')" }
+    ],
+    "wrenNote": "Light line, small hook, cricket just off the bottom by the bed edge. When the float lies over sideways, that's him. Lift, don't yank."
+  }
+}

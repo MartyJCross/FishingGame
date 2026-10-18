@@ -1,0 +1,126 @@
+{
+  "id": "american_eel",
+  "commonName": "American eel",
+  "scientificName": "Anguilla rostrata",
+  "family": "Anguillidae",
+  "tier": "2",
+  "sources": [
+    { "name": "FishBase species summary: Anguilla rostrata", "url": "https://www.fishbase.net.br/summary/Anguilla-rostrata.html", "retrieved": "2026-10-18" },
+    { "name": "FishBase length-weight table: Anguilla rostrata", "url": "https://www.fishbase.net.br/popdyn/LWRelationshipList.php?ID=296&GenusName=Anguilla&SpeciesName=rostrata&fc=49", "retrieved": "2026-10-18" },
+    { "name": "FishBase growth table: Anguilla rostrata", "url": "https://www.fishbase.net.br/popdyn/PopGrowthList.php?ID=296&GenusName=Anguilla&SpeciesName=rostrata&fc=49", "retrieved": "2026-10-18" },
+    { "name": "IGFA world record search: Eel, American (all-tackle 4.21 kg, Cape May, New Jersey, 1995)", "url": "https://igfa.org/member-services/world-record/common-name/Eel%2C%20American", "retrieved": "2026-10-18" },
+    { "name": "Chesapeake Bay Program field guide: American eel", "url": "https://www.chesapeakebay.net/discover/field-guide/entry/american-eel", "retrieved": "2026-10-18" },
+    { "name": "South Carolina DNR: American eel", "url": "https://dnr.sc.gov/fish/species/americaneel.html", "retrieved": "2026-10-18" },
+    { "name": "Florida freshwater regulations (FWC guide): bag and length limits (American eel)", "url": "https://www.eregulations.com/florida/fishing/freshwater/bag-length-limits", "retrieved": "2026-10-18" }
+  ],
+  "water": {
+    "salinityPpt": [0, 36],
+    "temperatureC": { "lethalMin": 0.5, "optimum": [16, 26], "lethalMax": 33 },
+    "oxygenMinMgL": 1.5,
+    "clarityToleranceM": [0.05, 30]
+  },
+  "habitat": {
+    "spots": ["spring_run", "suwannee"],
+    "depthM": [0.3, 10],
+    "structure": { "weeds": 0.5, "wood": 0.8, "docks": 0.4, "lilyPads": 0.2, "rock": 0.8, "dropOff": 0.5, "openWater": 0.05 }
+  },
+  "size": {
+    "lengthCm": { "typical": [40, 80], "max": 131 },
+    "lengthWeight": { "a": 0.00158, "b": 3.035, "units": "W_g = a * L_cm^b", "source": "FishBase LWR table: Altamaha River, Georgia (spring sample), TL, mixed sexes" },
+    "growth": { "Linf_cm": 126.0, "k": 0.07, "maxAgeYears": 43, "source": "FishBase growth table: Nova Scotia, TL (no southern entries). Max age FishBase; South Carolina DNR notes southern eels live much shorter lives (about 9 years for females, 5 for males)." },
+    "recordWeightKg": 4.21,
+    "notes": "FishBase gives a 152 cm TL maximum and a 7.3 kg maximum weight, but the angling record is 4.21 kg; lengthCm.max set to 131 cm, where the Georgia LWR meets the IGFA record. Only females grow large (males to about 60 cm)."
+  },
+  "activity": {
+    "diel": { "dawn": 0.4, "day": 0.1, "dusk": 0.8, "night": 1.0 },
+    "lunar": 0.1,
+    "tide": null,
+    "seasonal": { "winter": 0.3, "spring": 0.8, "summer": 1.0, "autumn": 0.8 },
+    "weather": { "overcast": 0.1, "rain": 0.15, "postColdFront": -0.15, "risingWaterTemp": 0.1 }
+  },
+  "diet": {
+    "items": { "insects": 0.25, "fish": 0.25, "crabs": 0.15, "worms": 0.15, "snails": 0.1, "mussels": 0.1 },
+    "preyLengthMaxFrac": 0.2
+  },
+  "feeding": {
+    "mode": "bottom_scent",
+    "biteStyles": { "run": 0.5, "nibble": 0.3, "pickupDrop": 0.2 },
+    "holdTimeS": [1.5, 6.0],
+    "followChance": 0.05,
+    "speedPreferenceMps": [0.0, 0.2],
+    "lureAttraction": {
+      "soft_plastic_worm": 0.15, "jig": 0.1, "spinnerbait": 0.02, "crankbait": 0.02, "topwater_walker": 0.0,
+      "popper": 0.0, "frog": 0.0, "swimbait": 0.02, "jerkbait": 0.0, "inline_spinner": 0.02, "spoon": 0.02,
+      "streamer_fly": 0.05, "popper_fly": 0.0
+    },
+    "baitAttraction": {
+      "live_minnow": 0.5, "wild_shiner": 0.3, "nightcrawler": 0.95, "red_worm": 0.7, "cricket": 0.1, "live_shrimp": 0.5,
+      "cut_bait": 0.85, "chicken_liver": 0.5, "stink_bait": 0.3, "dough": 0.0, "bread": 0.0, "corn": 0.0,
+      "live_crayfish": 0.3, "fiddler_crab": 0.1, "barnacle": 0.0
+    }
+  },
+  "senses": {
+    "vision": 0.3, "spectral": { "r": 0.6, "g": 0.9, "b": 0.7 }, "lowLight": 0.8,
+    "lateralLine": 0.8, "hearing": 0.5, "smell": 1.0, "electro": 0.0,
+    "lineShy": 0.1, "spookiness": 0.4
+  },
+  "behaviour": {
+    "schooling": "solitary",
+    "territorial": 0.2,
+    "spawn": { "season": "winter", "months": [1, 2], "tempC": null, "habitat": "sargasso_sea", "mode": "oceanic_semelparous", "biteMotive": "none", "notes": "Adults leave in October for the Sargasso Sea, spawn in January and die. Spawning has never been observed. Off the map: no in-game spawning." },
+    "migration": { "type": "catadromous", "season": "autumn", "notes": "Mature silver eels run downstream and out to sea in autumn; glass eels and elvers enter rivers in late winter and spring and move upstream in large numbers (Chesapeake Bay Program, SC DNR)." }
+  },
+  "fight": {
+    "powerCoeff": 0.9,
+    "stamina": { "anaerobic": 0.7, "aerobic": 0.8, "recovery": 0.7 },
+    "styles": { "roll": 0.45, "structureDash": 0.25, "bulldog": 0.15, "headshake": 0.15 },
+    "mouth": { "hardness": 0.45, "gapeFrac": 0.12, "teeth": 0.2, "gillPlateCut": 0.0 }
+  },
+  "body": {
+    "locomotion": "anguilliform",
+    "spineNodes": 18,
+    "stiffness": 0.1,
+    "shapeRef": "shapes/anguillid_eel.json",
+    "pattern": {
+      "dorsal": "#4a4a2a",
+      "flank": "#7a7a40",
+      "belly": "#e8e2b0",
+      "markings": [
+        { "type": "fin_edge", "color": "#c8b040", "where": "edges of the dorsal and anal fins", "notes": "yellow in young eels" }
+      ],
+      "fins": "one continuous fin fringe from mid-back around the tail to the vent; no pelvic fins; small rounded pectorals; lower jaw longer than the upper; thick lips",
+      "eye": "#2a2a22",
+      "variants": {
+        "juvenile": "glass eel: transparent; elver: brown, about 6 cm; yellow eel: greenish, yellowish-brown or blackish above, whitish below",
+        "spawning_migrant": "silver eel: sexually mature adults turn silver for the run to sea"
+      },
+      "source": "Chesapeake Bay Program field guide; South Carolina DNR; FishBase short description"
+    },
+    "variants": ["juvenile", "spawning_migrant"]
+  },
+  "regulations": {
+    "minLengthCm": 22.9,
+    "bagLimit": 25,
+    "closedSeason": null,
+    "protected": false,
+    "invasive": false,
+    "conservationStatus": "IUCN Endangered",
+    "notes": "Fresh water: 25 eels a day, each at least 9 in total length (bought bait eels exempt). Listed Endangered by IUCN: release is rewarded.",
+    "basedOn": "https://www.eregulations.com/florida/fishing/freshwater/bag-length-limits",
+    "basedOnDate": "2026-10-18"
+  },
+  "economy": { "edible": true, "pricePerKg": 8, "marketDemand": "medium", "notes": "A delicacy in Europe and Asia; most eels caught in the US are exported." },
+  "ledger": {
+    "facts": [
+      "Every American eel is born in the Sargasso Sea; adults leave the rivers in October, spawn there in January and die.",
+      "Eels can slither over rocks, dams and wet grass to get upstream.",
+      "The species is listed as Endangered by the IUCN."
+    ],
+    "research": [
+      { "id": "eel_night_worm", "task": "Catch one on a nightcrawler on the bottom at night" },
+      { "id": "eel_elvers", "task": "Observe elvers moving upstream in spring" },
+      { "id": "eel_big", "task": "Catch one over 1.5 kg" }
+    ],
+    "wrenNote": "An eel will tie your line in knots if you give him slack. Keep him coming steady, don't let him back into the rocks, and don't grab him bare-handed. Wet rag, or straight into the bucket."
+  }
+}

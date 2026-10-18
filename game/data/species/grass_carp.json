@@ -1,0 +1,127 @@
+{
+  "id": "grass_carp",
+  "commonName": "Grass carp",
+  "scientificName": "Ctenopharyngodon idella",
+  "family": "Xenocyprididae",
+  "tier": "2",
+  "sources": [
+    { "name": "FishBase species summary: Ctenopharyngodon idella", "url": "https://www.fishbase.net.br/summary/Ctenopharyngodon-idella.html", "retrieved": "2026-10-18" },
+    { "name": "FishBase length-weight table: Ctenopharyngodon idella", "url": "https://www.fishbase.net.br/popdyn/LWRelationshipList.php?ID=79&GenusName=Ctenopharyngodon&SpeciesName=idella&fc=751", "retrieved": "2026-10-18" },
+    { "name": "FishBase growth table: Ctenopharyngodon idella", "url": "https://www.fishbase.net.br/popdyn/PopGrowthList.php?ID=79&GenusName=Ctenopharyngodon&SpeciesName=idella&fc=751", "retrieved": "2026-10-18" },
+    { "name": "IGFA world record search: Carp, grass (all-tackle 39.75 kg, Piasuchnik Dam, Bulgaria, 2009)", "url": "https://igfa.org/member-services/world-record/common-name/Carp%2C%20grass", "retrieved": "2026-10-18" },
+    { "name": "Outdoor Alabama (ADCNR): Grass carp", "url": "https://outdooralabama.com/carp/grass-carp", "retrieved": "2026-10-18" },
+    { "name": "South Carolina DNR: Grass carp", "url": "https://dnr.sc.gov/fish/species/grasscarp.html", "retrieved": "2026-10-18" },
+    { "name": "Florida freshwater regulations (FWC guide): bag and length limits (grass carp must be released)", "url": "https://www.eregulations.com/florida/fishing/freshwater/bag-length-limits", "retrieved": "2026-10-18" },
+    { "name": "Florida freshwater regulations (FWC guide): freshwater fish of Florida (triploid grass carp stocked for vegetation control)", "url": "https://www.eregulations.com/florida/fishing/freshwater/freshwater-fish-of-florida", "retrieved": "2026-10-18" }
+  ],
+  "water": {
+    "salinityPpt": [0, 10],
+    "temperatureC": { "lethalMin": 0.5, "optimum": [20, 30], "lethalMax": 38 },
+    "oxygenMinMgL": 0.5,
+    "clarityToleranceM": [0.3, 15]
+  },
+  "habitat": {
+    "spots": ["station_pond"],
+    "depthM": [0.3, 4],
+    "structure": { "weeds": 1.0, "wood": 0.3, "docks": 0.3, "lilyPads": 0.6, "rock": 0.1, "dropOff": 0.2, "openWater": 0.3 }
+  },
+  "size": {
+    "lengthCm": { "typical": [60, 100], "max": 150 },
+    "lengthWeight": { "a": 0.0108, "b": 3.006, "units": "W_g = a * L_cm^b", "source": "FishBase LWR table: Lake Niushan, Yangtze River, China, 2002-2004, TL, 15.2-78.2 cm, n=243 (the only US entry is flagged doubtful)" },
+    "growth": { "Linf_cm": 121.5, "k": 0.186, "maxAgeYears": 21, "source": "FishBase growth table: Changjiang River, China. Linf is in standard length (no reliable TL entry). Max age FishBase summary." },
+    "recordWeightKg": 39.75
+  },
+  "activity": {
+    "diel": { "dawn": 0.8, "day": 1.0, "dusk": 0.8, "night": 0.2 },
+    "lunar": 0.0,
+    "tide": null,
+    "seasonal": { "winter": 0.3, "spring": 0.8, "summer": 1.0, "autumn": 0.7 },
+    "weather": { "overcast": 0.05, "rain": 0.0, "postColdFront": -0.25, "risingWaterTemp": 0.15 }
+  },
+  "diet": {
+    "items": { "plants": 0.85, "algae": 0.05, "insects": 0.05, "detritus": 0.05 },
+    "preyLengthMaxFrac": 0.05
+  },
+  "feeding": {
+    "mode": "grazer",
+    "biteStyles": { "run": 0.4, "lift": 0.3, "nibble": 0.3 },
+    "holdTimeS": [1.0, 5.0],
+    "followChance": 0.1,
+    "speedPreferenceMps": [0.0, 0.15],
+    "lureAttraction": {
+      "soft_plastic_worm": 0.0, "jig": 0.0, "spinnerbait": 0.0, "crankbait": 0.0, "topwater_walker": 0.0,
+      "popper": 0.0, "frog": 0.0, "swimbait": 0.0, "jerkbait": 0.0, "inline_spinner": 0.0, "spoon": 0.0,
+      "streamer_fly": 0.01, "popper_fly": 0.01
+    },
+    "baitAttraction": {
+      "live_minnow": 0.0, "wild_shiner": 0.0, "nightcrawler": 0.1, "red_worm": 0.1, "cricket": 0.15, "live_shrimp": 0.0,
+      "cut_bait": 0.0, "chicken_liver": 0.0, "stink_bait": 0.0, "dough": 0.6, "bread": 0.8, "corn": 0.7,
+      "live_crayfish": 0.0, "fiddler_crab": 0.0, "barnacle": 0.0
+    }
+  },
+  "senses": {
+    "vision": 0.85, "spectral": { "r": 0.85, "g": 1.0, "b": 0.6 }, "lowLight": 0.3,
+    "lateralLine": 0.85, "hearing": 0.8, "smell": 0.6, "electro": 0.0,
+    "lineShy": 0.7, "spookiness": 0.85
+  },
+  "behaviour": {
+    "schooling": "loose_small",
+    "territorial": 0.0,
+    "spawn": { "season": null, "tempC": null, "habitat": "long_fast_flowing_rivers", "mode": "none_sterile_triploid", "biteMotive": "none", "notes": "Florida's stocked fish are sterile triploids and never spawn. Wild diploid fish spawn in fast-flowing rivers; the eggs drift and hatch in 2-3 days." },
+    "migration": null
+  },
+  "fight": {
+    "powerCoeff": 1.2,
+    "stamina": { "anaerobic": 0.9, "aerobic": 0.9, "recovery": 0.6 },
+    "styles": { "run": 0.5, "bulldog": 0.2, "jump": 0.1, "headshake": 0.1, "structureDash": 0.1 },
+    "mouth": { "hardness": 0.4, "gapeFrac": 0.1, "teeth": 0.0, "gillPlateCut": 0.0 }
+  },
+  "body": {
+    "locomotion": "subcarangiform",
+    "spineNodes": 9,
+    "stiffness": 0.45,
+    "shapeRef": "shapes/cyprinid_carp.json",
+    "pattern": {
+      "dorsal": "#6b6e4a",
+      "flank": "#a9a98a",
+      "belly": "#ece6c0",
+      "markings": [
+        { "type": "vermiculation", "color": "#3b3d2a", "where": "sides and back", "notes": "large scales, each edged in black, giving a crosshatched net pattern" }
+      ],
+      "fins": "grey-olive and plain; anal fin set far back on the tail stalk; thick, mullet-like body with a small blunt head and no barbels",
+      "eye": "#c9b98a",
+      "variants": {
+        "juvenile": "plain silvery",
+        "spawning_male": "not applicable: Florida fish are sterile"
+      },
+      "source": "Outdoor Alabama grass carp page; South Carolina DNR; FishBase diagnosis"
+    },
+    "variants": ["juvenile"]
+  },
+  "regulations": {
+    "minLengthCm": null,
+    "bagLimit": 0,
+    "closedSeason": null,
+    "protected": false,
+    "invasive": false,
+    "nonNative": true,
+    "mustRelease": true,
+    "notes": "It is illegal to possess grass carp without a permit: every fish must be released immediately. Stocked (sterile triploid) for weed control.",
+    "basedOn": "https://www.eregulations.com/florida/fishing/freshwater/bag-length-limits",
+    "basedOnDate": "2026-10-18"
+  },
+  "economy": { "edible": true, "pricePerKg": 0, "marketDemand": "low", "notes": "Eaten in Asia, but in Florida it may not be kept, so it has no value at the fish house." },
+  "ledger": {
+    "facts": [
+      "Florida stocks sterile grass carp on purpose, to keep ponds and lakes from choking with weeds.",
+      "An adult can eat up to its own weight in plants in a day.",
+      "It tolerates oxygen as low as 0.5 ppm and salinities up to 10 ppt."
+    ],
+    "research": [
+      { "id": "gcp_bread_release", "task": "Catch one on bread and release it without lifting it from the water" },
+      { "id": "gcp_sight", "task": "Sight-fish one grazing along the weed edge" },
+      { "id": "gcp_big", "task": "Catch and release one over 10 kg" }
+    ],
+    "wrenNote": "Grass carp see you long before you see them. Stay low, float a crust over the edge of the grass and wait. When it's gone, count two and lift. Then she goes back. That's the law, and she's working for the pond."
+  }
+}

@@ -1,0 +1,127 @@
+{
+  "id": "bowfin",
+  "commonName": "Bowfin",
+  "scientificName": "Amia calva",
+  "family": "Amiidae",
+  "tier": "1",
+  "sources": [
+    { "name": "FishBase species summary: Amia calva", "url": "https://www.fishbase.net.br/summary/Amia-calva.html", "retrieved": "2026-10-18" },
+    { "name": "FishBase length-weight table: Amia calva", "url": "https://www.fishbase.net.br/popdyn/LWRelationshipList.php?ID=2600&GenusName=Amia&SpeciesName=calva&fc=35", "retrieved": "2026-10-18" },
+    { "name": "FishBase growth table: Amia calva", "url": "https://www.fishbase.net.br/popdyn/PopGrowthList.php?ID=2600&GenusName=Amia&SpeciesName=calva&fc=35", "retrieved": "2026-10-18" },
+    { "name": "IGFA world record search: Bowfin (all-tackle 9.75 kg, Forest Lake, South Carolina, 1980)", "url": "https://igfa.org/member-services/world-record/common-name/Bowfin", "retrieved": "2026-10-18" },
+    { "name": "Florida Museum of Natural History: Bowfin species profile", "url": "https://www.floridamuseum.ufl.edu/discover-fish/species-profiles/bowfin/", "retrieved": "2026-10-18" },
+    { "name": "South Carolina DNR: Bowfin", "url": "https://dnr.sc.gov/fish/species/bowfin.html", "retrieved": "2026-10-18" },
+    { "name": "Florida freshwater regulations (FWC guide): bag and length limits (nongame fish)", "url": "https://www.eregulations.com/florida/fishing/freshwater/bag-length-limits", "retrieved": "2026-10-18" }
+  ],
+  "water": {
+    "salinityPpt": [0, 5],
+    "temperatureC": { "lethalMin": 1, "optimum": [18, 30], "lethalMax": 35.2 },
+    "oxygenMinMgL": 0.5,
+    "clarityToleranceM": [0.2, 10]
+  },
+  "habitat": {
+    "spots": ["station_pond", "suwannee"],
+    "depthM": [0.3, 5],
+    "structure": { "weeds": 1.0, "wood": 0.8, "docks": 0.3, "lilyPads": 0.8, "rock": 0.1, "dropOff": 0.4, "openWater": 0.1 }
+  },
+  "size": {
+    "lengthCm": { "typical": [45, 65], "max": 100 },
+    "lengthWeight": { "a": 0.00965, "b": 3.0, "units": "W_g = a * L_cm^b", "source": "FishBase LWR table: Indiana and Wisconsin, TL, 35.6-74.9 cm, n=11 (small sample)" },
+    "growth": { "Linf_cm": 80.7, "k": 0.227, "maxAgeYears": 30, "source": "FishBase growth table: upper Mississippi River, females, TL; max age FishBase summary" },
+    "recordWeightKg": 9.75,
+    "notes": "FishBase gives a 109 cm TL maximum (12.5 kg by this LWR, above the world record); the Florida Museum's longest recorded fish is 87 cm. lengthCm.max set to 100 cm, where the LWR meets the record."
+  },
+  "activity": {
+    "diel": { "dawn": 1.0, "day": 0.4, "dusk": 1.0, "night": 0.7 },
+    "lunar": 0.05,
+    "tide": null,
+    "seasonal": { "winter": 0.3, "spring": 0.9, "summer": 0.9, "autumn": 0.8 },
+    "weather": { "overcast": 0.1, "rain": 0.05, "postColdFront": -0.2, "risingWaterTemp": 0.15 }
+  },
+  "diet": {
+    "items": { "fish": 0.65, "crayfish": 0.15, "frogs": 0.08, "insects": 0.07, "shrimp": 0.05 },
+    "preyLengthMaxFrac": 0.35
+  },
+  "feeding": {
+    "mode": "suction_ambush",
+    "biteStyles": { "slam": 0.4, "inhale": 0.35, "crash": 0.15, "run": 0.1 },
+    "holdTimeS": [0.8, 3.0],
+    "followChance": 0.15,
+    "speedPreferenceMps": [0.1, 0.9],
+    "lureAttraction": {
+      "soft_plastic_worm": 0.6, "jig": 0.5, "spinnerbait": 0.8, "crankbait": 0.55, "topwater_walker": 0.5,
+      "popper": 0.45, "frog": 0.75, "swimbait": 0.65, "jerkbait": 0.45, "inline_spinner": 0.5, "spoon": 0.5,
+      "streamer_fly": 0.6, "popper_fly": 0.35
+    },
+    "baitAttraction": {
+      "live_minnow": 0.9, "wild_shiner": 0.85, "nightcrawler": 0.4, "red_worm": 0.2, "cricket": 0.05, "live_shrimp": 0.4,
+      "cut_bait": 0.85, "chicken_liver": 0.2, "stink_bait": 0.1, "dough": 0.0, "bread": 0.0, "corn": 0.0,
+      "live_crayfish": 0.6, "fiddler_crab": 0.0, "barnacle": 0.0
+    }
+  },
+  "senses": {
+    "vision": 0.7, "spectral": { "r": 0.8, "g": 1.0, "b": 0.5 }, "lowLight": 0.6,
+    "lateralLine": 0.8, "hearing": 0.5, "smell": 0.75, "electro": 0.0,
+    "lineShy": 0.1, "spookiness": 0.35
+  },
+  "behaviour": {
+    "schooling": "solitary",
+    "territorial": 0.7,
+    "spawn": { "season": "spring", "months": [3, 6], "tempC": [16, 19], "habitat": "weedy_shallows_cleared_nest", "mode": "nest_guard_and_fry_guard", "biteMotive": "defense" },
+    "migration": { "type": "diel_onshore", "notes": "Adults usually hold in deeper water and move into the shallows at night and in the breeding season (Florida Museum)." }
+  },
+  "fight": {
+    "powerCoeff": 1.3,
+    "stamina": { "anaerobic": 0.9, "aerobic": 0.8, "recovery": 0.8 },
+    "styles": { "roll": 0.35, "headshake": 0.25, "run": 0.2, "structureDash": 0.15, "jump": 0.05 },
+    "mouth": { "hardness": 0.75, "gapeFrac": 0.25, "teeth": 0.6, "gillPlateCut": 0.0 }
+  },
+  "body": {
+    "locomotion": "amiiform",
+    "spineNodes": 10,
+    "stiffness": 0.55,
+    "shapeRef": "shapes/amiid_bowfin.json",
+    "pattern": {
+      "dorsal": "#4a5634",
+      "flank": "#76804f",
+      "belly": "#e3e0b8",
+      "markings": [
+        { "type": "vermiculation", "color": "#2f3a22", "where": "back and sides", "notes": "dark olive netlike mottling" },
+        { "type": "eye_spot", "color": "#101010", "where": "upper base of the tail", "notes": "round to oval black spot; in mature males ringed orange-yellow (#e8a23a); faint or absent in mature females, present in all juveniles" },
+        { "type": "stripe", "color": "#4a3a22", "where": "head", "notes": "yellow-brown head with darker horizontal bars" }
+      ],
+      "fins": "very long, low dorsal fin (42-53 rays) running most of the back; paired and anal fins vivid green; rounded tail light olive with irregular dark vertical bars",
+      "eye": "#8a6a2a",
+      "variants": {
+        "spawning_male": "fins bright green and the tail-spot ring a more intense orange",
+        "juvenile": "black tail spot in both sexes; young travel in a tight swarm guarded by the male"
+      },
+      "source": "Florida Museum of Natural History bowfin profile; FishBase short description; South Carolina DNR"
+    },
+    "variants": ["juvenile", "spawning_male"]
+  },
+  "regulations": {
+    "minLengthCm": null,
+    "bagLimit": null,
+    "closedSeason": null,
+    "protected": false,
+    "invasive": false,
+    "notes": "Nongame fish: no bag or length limit.",
+    "basedOn": "https://www.eregulations.com/florida/fishing/freshwater/bag-length-limits",
+    "basedOnDate": "2026-10-18"
+  },
+  "economy": { "edible": true, "pricePerKg": 1, "marketDemand": "low", "notes": "Edible but little valued; mercury builds up in the flesh, and badly cooked flesh is said to ball up in the mouth ('cottonfish')." },
+  "ledger": {
+    "facts": [
+      "Bowfin breathe air through their gas bladder: hardly at all at 4-10 C, most of all between about 18 and 30 C.",
+      "The male builds the nest, then guards the eggs and a tight swarm of young for months.",
+      "It is the lone surviving species of its family, a true 'living fossil'."
+    ],
+    "research": [
+      { "id": "bow_spinnerbait", "task": "Catch one on a spinnerbait in weedy water" },
+      { "id": "bow_fry_swarm", "task": "Observe a male guarding his swarm of young" },
+      { "id": "bow_big", "task": "Catch one over 4.5 kg" }
+    ],
+    "wrenNote": "Bowfin save the worst for the boat. Ease the drag a touch before he gets there, net him, don't lift him, and keep your fingers out of that mouth."
+  }
+}

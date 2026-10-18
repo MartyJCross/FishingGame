@@ -1,0 +1,127 @@
+{
+  "id": "black_crappie",
+  "commonName": "Black crappie",
+  "scientificName": "Pomoxis nigromaculatus",
+  "family": "Centrarchidae",
+  "tier": "S",
+  "sources": [
+    { "name": "FishBase species summary: Pomoxis nigromaculatus", "url": "https://www.fishbase.net.br/summary/Pomoxis-nigromaculatus.html", "retrieved": "2026-10-18" },
+    { "name": "FishBase length-weight table: Pomoxis nigromaculatus", "url": "https://www.fishbase.net.br/popdyn/LWRelationshipList.php?ID=3388&GenusName=Pomoxis&SpeciesName=nigromaculatus&fc=302", "retrieved": "2026-10-18" },
+    { "name": "FishBase growth table: Pomoxis nigromaculatus", "url": "https://www.fishbase.net.br/popdyn/PopGrowthList.php?ID=3388&GenusName=Pomoxis&SpeciesName=nigromaculatus&fc=302", "retrieved": "2026-10-18" },
+    { "name": "IGFA world record search: Crappie, black (all-tackle 2.47 kg, Richeison Pond, Tennessee, 2018)", "url": "https://igfa.org/member-services/world-record/common-name/Crappie%2C%20black", "retrieved": "2026-10-18" },
+    { "name": "Florida Museum of Natural History: Black crappie species profile", "url": "https://www.floridamuseum.ufl.edu/discover-fish/species-profiles/black-crappie/", "retrieved": "2026-10-18" },
+    { "name": "South Carolina DNR: Black crappie", "url": "https://dnr.sc.gov/fish/species/blackcrappie.html", "retrieved": "2026-10-18" },
+    { "name": "Florida freshwater regulations (FWC guide): bag and length limits", "url": "https://www.eregulations.com/florida/fishing/freshwater/bag-length-limits", "retrieved": "2026-10-18" }
+  ],
+  "water": {
+    "salinityPpt": [0, 5],
+    "temperatureC": { "lethalMin": 2, "optimum": [20, 26], "lethalMax": 33 },
+    "oxygenMinMgL": 3.0,
+    "clarityToleranceM": [0.5, 10]
+  },
+  "habitat": {
+    "spots": ["station_pond", "suwannee"],
+    "depthM": [0.5, 8],
+    "structure": { "weeds": 0.6, "wood": 0.95, "docks": 0.85, "lilyPads": 0.4, "rock": 0.3, "dropOff": 0.7, "openWater": 0.4 }
+  },
+  "size": {
+    "lengthCm": { "typical": [20, 30], "max": 49 },
+    "lengthWeight": { "a": 0.0137, "b": 3.044, "units": "W_g = a * L_cm^b", "source": "FishBase LWR table: Par Pond, South Carolina, TL, n=13 (small sample; Oahe Lake SD a=0.00883 b=3.198 n=318 gives 0.91x the record)" },
+    "growth": { "Linf_cm": 35.6, "k": 0.447, "maxAgeYears": 15, "source": "FishBase growth table: Norris Lake, Tennessee, TL; max age FishBase summary" },
+    "recordWeightKg": 2.47
+  },
+  "activity": {
+    "diel": { "dawn": 1.0, "day": 0.4, "dusk": 1.0, "night": 0.6 },
+    "lunar": 0.1,
+    "tide": null,
+    "seasonal": { "winter": 0.8, "spring": 0.9, "summer": 0.4, "autumn": 0.7 },
+    "weather": { "overcast": 0.1, "rain": 0.0, "postColdFront": -0.3, "risingWaterTemp": 0.15 }
+  },
+  "diet": {
+    "items": { "fish": 0.5, "zooplankton": 0.2, "insects": 0.25, "shrimp": 0.05 },
+    "preyLengthMaxFrac": 0.25
+  },
+  "feeding": {
+    "mode": "suction_ambush",
+    "biteStyles": { "inhale": 0.8, "nibble": 0.1, "lift": 0.1 },
+    "holdTimeS": [0.4, 1.2],
+    "followChance": 0.3,
+    "speedPreferenceMps": [0.0, 0.5],
+    "lureAttraction": {
+      "soft_plastic_worm": 0.1, "jig": 0.95, "spinnerbait": 0.25, "crankbait": 0.3, "topwater_walker": 0.02,
+      "popper": 0.08, "frog": 0.0, "swimbait": 0.4, "jerkbait": 0.25, "inline_spinner": 0.5, "spoon": 0.35,
+      "streamer_fly": 0.6, "popper_fly": 0.1
+    },
+    "baitAttraction": {
+      "live_minnow": 1.0, "wild_shiner": 0.5, "nightcrawler": 0.15, "red_worm": 0.2, "cricket": 0.15, "live_shrimp": 0.3,
+      "cut_bait": 0.05, "chicken_liver": 0.0, "stink_bait": 0.0, "dough": 0.05, "bread": 0.05, "corn": 0.0,
+      "live_crayfish": 0.05, "fiddler_crab": 0.0, "barnacle": 0.0
+    }
+  },
+  "senses": {
+    "vision": 0.95, "spectral": { "r": 0.85, "g": 1.0, "b": 0.55 }, "lowLight": 0.7,
+    "lateralLine": 0.7, "hearing": 0.5, "smell": 0.2, "electro": 0.0,
+    "lineShy": 0.3, "spookiness": 0.5
+  },
+  "behaviour": {
+    "schooling": "loose_large",
+    "territorial": 0.4,
+    "spawn": { "season": "late_winter_spring", "months": [2, 5], "tempC": [15, 19], "habitat": "shallow_sand_mud_near_vegetation_colony", "mode": "colonial_nest_guard", "biteMotive": "defense" },
+    "migration": null
+  },
+  "fight": {
+    "powerCoeff": 0.6,
+    "stamina": { "anaerobic": 0.6, "aerobic": 0.4, "recovery": 0.6 },
+    "styles": { "headshake": 0.35, "run": 0.25, "circle": 0.2, "dive": 0.2 },
+    "mouth": { "hardness": 0.1, "gapeFrac": 0.15, "teeth": 0.0, "gillPlateCut": 0.0 }
+  },
+  "body": {
+    "locomotion": "subcarangiform",
+    "spineNodes": 7,
+    "stiffness": 0.55,
+    "shapeRef": "shapes/centrarchid_crappie.json",
+    "pattern": {
+      "dorsal": "#4b5847",
+      "flank": "#c4cabf",
+      "belly": "#eef0ea",
+      "markings": [
+        { "type": "spots", "color": "#1f2420", "where": "whole body", "notes": "irregular black mottling and speckles spread fairly evenly; no vertical bars (white crappie have bars)" },
+        { "type": "spots", "color": "#232823", "where": "dorsal, anal and caudal fins", "notes": "rows of dark spots with pale windows between" }
+      ],
+      "fins": "large dorsal and anal fins of near-equal size, pale with rows of dark spots; paired fins clear",
+      "eye": "#5a4a38",
+      "variants": {
+        "spawning_male": "mostly black, especially the face and breast, with flecks of iridescent blue and green",
+        "juvenile": "translucent larvae; small juveniles pale silver with faint speckling"
+      },
+      "source": "Florida Museum of Natural History black crappie profile"
+    },
+    "variants": ["juvenile", "spawning_male"]
+  },
+  "regulations": {
+    "minLengthCm": null,
+    "bagLimit": 25,
+    "aggregateGroup": "crappie",
+    "closedSeason": null,
+    "protected": false,
+    "invasive": false,
+    "saleProhibited": true,
+    "notes": "25 crappie (speckled perch) a day; no statewide length limit. Freshwater game fish: may not be sold.",
+    "basedOn": "https://www.eregulations.com/florida/fishing/freshwater/bag-length-limits",
+    "basedOnDate": "2026-10-18"
+  },
+  "economy": { "edible": true, "pricePerKg": 0, "marketDemand": "low", "notes": "Popular eating fish; Florida game fish cannot be sold." },
+  "ledger": {
+    "facts": [
+      "Crappie have thin, papery mouth membranes: a hard hookset or a stiff rod tears the hook straight out.",
+      "Crappie under about 16 cm eat plankton and insect larvae; bigger ones switch to small fish.",
+      "Males dig nests in colonies, up to 30 nests in a 9-square-yard patch, and guard the eggs for the 2-3 days until they hatch."
+    ],
+    "research": [
+      { "id": "bkc_jig_brush", "task": "Catch one on a small jig over a brush pile" },
+      { "id": "bkc_after_dark", "task": "Catch one after dark" },
+      { "id": "bkc_slab", "task": "Catch one over 0.9 kg" }
+    ],
+    "wrenNote": "Specks hang just over the brush. Count the jig down, swim it slow, and when it goes heavy just lean on him. Set like it's a bass and you'll rip that paper mouth."
+  }
+}

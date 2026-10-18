@@ -1,0 +1,128 @@
+{
+  "id": "warmouth",
+  "commonName": "Warmouth",
+  "scientificName": "Lepomis gulosus",
+  "family": "Centrarchidae",
+  "tier": "1",
+  "sources": [
+    { "name": "FishBase species summary: Lepomis gulosus", "url": "https://www.fishbase.net.br/summary/Lepomis-gulosus.html", "retrieved": "2026-10-18" },
+    { "name": "FishBase length-weight table: Lepomis gulosus", "url": "https://www.fishbase.net.br/popdyn/LWRelationshipList.php?ID=3373&GenusName=Lepomis&SpeciesName=gulosus&fc=302", "retrieved": "2026-10-18" },
+    { "name": "FishBase growth table: Lepomis gulosus (no entries)", "url": "https://www.fishbase.net.br/popdyn/PopGrowthList.php?ID=3373&GenusName=Lepomis&SpeciesName=gulosus&fc=302", "retrieved": "2026-10-18" },
+    { "name": "IGFA world record search: Warmouth (all-tackle 1.1 kg, Guess Lake, Yellow River, Holt, Florida, 1985)", "url": "https://igfa.org/member-services/world-record/common-name/Warmouth", "retrieved": "2026-10-18" },
+    { "name": "Outdoor Alabama (ADCNR): Warmouth", "url": "https://outdooralabama.com/bream/warmouth", "retrieved": "2026-10-18" },
+    { "name": "South Carolina DNR: Warmouth", "url": "https://dnr.sc.gov/fish/species/warmouth.html", "retrieved": "2026-10-18" },
+    { "name": "Florida freshwater regulations (FWC guide): bag and length limits", "url": "https://www.eregulations.com/florida/fishing/freshwater/bag-length-limits", "retrieved": "2026-10-18" }
+  ],
+  "water": {
+    "salinityPpt": [0, 15],
+    "temperatureC": { "lethalMin": 2, "optimum": [24, 30], "lethalMax": 36 },
+    "oxygenMinMgL": 2.0,
+    "clarityToleranceM": [0.2, 8]
+  },
+  "habitat": {
+    "spots": ["station_pond", "suwannee"],
+    "depthM": [0.3, 4],
+    "structure": { "weeds": 0.9, "wood": 0.9, "docks": 0.5, "lilyPads": 0.7, "rock": 0.5, "dropOff": 0.3, "openWater": 0.05 }
+  },
+  "size": {
+    "lengthCm": { "typical": [12, 20], "max": 31 },
+    "lengthWeight": { "a": 0.0129, "b": 3.204, "units": "W_g = a * L_cm^b", "source": "FishBase LWR table: Ahquabi Lake, Iowa, TL, 5.3-20.6 cm, n=203 (the Alabama n=3860 relation, a=0.0174 b=3.08, gives 0.62x the record at 31 cm)" },
+    "growth": { "maxAgeYears": 8, "source": "Max age: South Carolina DNR (about 8 years); Outdoor Alabama gives 6-7", "notes": "FishBase has no von Bertalanffy entries for this species; Linf_cm and k omitted." },
+    "recordWeightKg": 1.1
+  },
+  "activity": {
+    "diel": { "dawn": 0.9, "day": 0.6, "dusk": 0.9, "night": 0.3 },
+    "lunar": 0.05,
+    "tide": null,
+    "seasonal": { "winter": 0.4, "spring": 1.0, "summer": 0.85, "autumn": 0.65 },
+    "weather": { "overcast": 0.1, "rain": 0.05, "postColdFront": -0.25, "risingWaterTemp": 0.15 }
+  },
+  "diet": {
+    "items": { "shrimp": 0.3, "crayfish": 0.2, "insects": 0.25, "fish": 0.2, "mussels": 0.05 },
+    "preyLengthMaxFrac": 0.3
+  },
+  "feeding": {
+    "mode": "suction_ambush",
+    "biteStyles": { "inhale": 0.7, "slam": 0.2, "nibble": 0.1 },
+    "holdTimeS": [0.4, 1.4],
+    "followChance": 0.2,
+    "speedPreferenceMps": [0.0, 0.6],
+    "lureAttraction": {
+      "soft_plastic_worm": 0.4, "jig": 0.65, "spinnerbait": 0.35, "crankbait": 0.3, "topwater_walker": 0.1,
+      "popper": 0.35, "frog": 0.1, "swimbait": 0.3, "jerkbait": 0.2, "inline_spinner": 0.5, "spoon": 0.2,
+      "streamer_fly": 0.5, "popper_fly": 0.45
+    },
+    "baitAttraction": {
+      "live_minnow": 0.8, "wild_shiner": 0.2, "nightcrawler": 0.85, "red_worm": 0.9, "cricket": 0.7, "live_shrimp": 0.75,
+      "cut_bait": 0.15, "chicken_liver": 0.05, "stink_bait": 0.0, "dough": 0.05, "bread": 0.05, "corn": 0.0,
+      "live_crayfish": 0.6, "fiddler_crab": 0.0, "barnacle": 0.0
+    }
+  },
+  "senses": {
+    "vision": 0.85, "spectral": { "r": 0.85, "g": 1.0, "b": 0.5 }, "lowLight": 0.5,
+    "lateralLine": 0.75, "hearing": 0.5, "smell": 0.3, "electro": 0.0,
+    "lineShy": 0.2, "spookiness": 0.35
+  },
+  "behaviour": {
+    "schooling": "solitary",
+    "territorial": 0.6,
+    "spawn": { "season": "late_spring_summer", "months": [5, 8], "tempC": [21, 27], "habitat": "near_stumps_vegetation_gravel", "mode": "nest_guard", "biteMotive": "defense" },
+    "migration": null
+  },
+  "fight": {
+    "powerCoeff": 0.8,
+    "stamina": { "anaerobic": 0.75, "aerobic": 0.5, "recovery": 0.65 },
+    "styles": { "structureDash": 0.35, "headshake": 0.25, "circle": 0.25, "run": 0.15 },
+    "mouth": { "hardness": 0.35, "gapeFrac": 0.15, "teeth": 0.0, "gillPlateCut": 0.0 }
+  },
+  "body": {
+    "locomotion": "subcarangiform",
+    "spineNodes": 7,
+    "stiffness": 0.6,
+    "shapeRef": "shapes/centrarchid_sunfish.json",
+    "pattern": {
+      "dorsal": "#5a4a2e",
+      "flank": "#7c6441",
+      "belly": "#d9c48a",
+      "markings": [
+        { "type": "vermiculation", "color": "#3a2a1c", "where": "back and sides", "notes": "dark brown blotches and mottling over yellowish brown, with a purple sheen" },
+        { "type": "stripe", "color": "#5c2a22", "where": "cheek", "notes": "3-5 dark red-brown streaks radiating back from the eye toward the gill cover" },
+        { "type": "opercular_flap", "color": "#2a2420", "where": "rear of the gill cover", "notes": "short, stiff, with a reddish spot (#8a2f22)" }
+      ],
+      "fins": "light brown, mottled and banded, most strongly on the rear of the soft dorsal and anal fins; big mouth for a sunfish",
+      "eye": "#b3261e",
+      "variants": {
+        "spawning_male": "bright orange spot at the base of the dorsal fin; colours richer",
+        "juvenile": "a light horizontal stripe near the lateral line"
+      },
+      "source": "Outdoor Alabama warmouth page; South Carolina DNR warmouth page"
+    },
+    "variants": ["juvenile", "spawning_male"]
+  },
+  "regulations": {
+    "minLengthCm": null,
+    "bagLimit": 50,
+    "aggregateGroup": "panfish",
+    "closedSeason": null,
+    "protected": false,
+    "invasive": false,
+    "saleProhibited": true,
+    "notes": "Counts toward the 50 panfish daily limit; no length limit. Freshwater game fish: may not be sold.",
+    "basedOn": "https://www.eregulations.com/florida/fishing/freshwater/bag-length-limits",
+    "basedOnDate": "2026-10-18"
+  },
+  "economy": { "edible": true, "pricePerKg": 0, "marketDemand": "low", "notes": "Florida game fish cannot be sold." },
+  "ledger": {
+    "facts": [
+      "The all-tackle world record warmouth came from Florida: 1.1 kg, Guess Lake on the Yellow River near Holt, in 1985.",
+      "Its big mouth lets it eat a wider range of food than other sunfish, crayfish and small fish included.",
+      "In the Mobile Delta, tiny freshwater shrimp are one of its most important foods."
+    ],
+    "research": [
+      { "id": "wrm_stump_worm", "task": "Catch one on a worm dropped tight beside a stump" },
+      { "id": "wrm_red_eye", "task": "Photograph a warmouth's red eye up close" },
+      { "id": "wrm_big", "task": "Catch one over 0.45 kg" }
+    ],
+    "wrenNote": "Goggle-eye lives in the thickest, ugliest wood in the pond. Don't cast past it; drop the worm straight down beside the stump. He won't come out far for it."
+  }
+}

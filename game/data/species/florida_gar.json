@@ -1,0 +1,124 @@
+{
+  "id": "florida_gar",
+  "commonName": "Florida gar",
+  "scientificName": "Lepisosteus platyrhincus",
+  "family": "Lepisosteidae",
+  "tier": "1",
+  "sources": [
+    { "name": "FishBase species summary: Lepisosteus platyrhincus", "url": "https://www.fishbase.net.br/summary/Lepisosteus-platyrhincus.html", "retrieved": "2026-10-18" },
+    { "name": "FishBase length-weight table: Lepisosteus platyrhincus", "url": "https://www.fishbase.net.br/popdyn/LWRelationshipList.php?ID=2598&GenusName=Lepisosteus&SpeciesName=platyrhincus&fc=34", "retrieved": "2026-10-18" },
+    { "name": "FishBase growth table: Lepisosteus platyrhincus", "url": "https://www.fishbase.net.br/popdyn/PopGrowthList.php?ID=2598&GenusName=Lepisosteus&SpeciesName=platyrhincus&fc=34", "retrieved": "2026-10-18" },
+    { "name": "IGFA world record search: Gar, Florida (all-tackle 4.53 kg, Florida Everglades, 2002)", "url": "https://igfa.org/member-services/world-record/common-name/Gar%2C%20Florida", "retrieved": "2026-10-18" },
+    { "name": "Florida Museum of Natural History: Florida gar species profile", "url": "https://www.floridamuseum.ufl.edu/discover-fish/species-profiles/florida-gar/", "retrieved": "2026-10-18" },
+    { "name": "Florida freshwater regulations (FWC guide): bag and length limits (nongame fish; alligator gar rule)", "url": "https://www.eregulations.com/florida/fishing/freshwater/bag-length-limits", "retrieved": "2026-10-18" }
+  ],
+  "water": {
+    "salinityPpt": [0, 8],
+    "temperatureC": { "lethalMin": 6, "optimum": [25, 32], "lethalMax": 38 },
+    "oxygenMinMgL": 0.5,
+    "clarityToleranceM": [0.3, 30]
+  },
+  "habitat": {
+    "spots": ["station_pond", "spring_run", "suwannee"],
+    "depthM": [0.2, 4],
+    "structure": { "weeds": 0.85, "wood": 0.6, "docks": 0.4, "lilyPads": 0.6, "rock": 0.2, "dropOff": 0.3, "openWater": 0.4 }
+  },
+  "size": {
+    "lengthCm": { "typical": [45, 75], "max": 95 },
+    "lengthWeight": { "a": 0.00127, "b": 3.313, "units": "W_g = a * L_cm^b", "source": "FishBase LWR table: Everglades, south Florida, 2000-2001, TL, 24.4-81.7 cm, n=476" },
+    "growth": { "Linf_cm": 76.2, "k": 0.15, "maxAgeYears": null, "source": "FishBase growth table: Tamiami Canal, Everglades, females, TL", "notes": "No maximum age found in the sources used." },
+    "recordWeightKg": 4.53,
+    "notes": "FishBase and the Florida Museum give a 132-133 cm TL maximum, where this Everglades LWR predicts about 13 kg, far above any documented fish. lengthCm.max set to 95 cm, where the LWR meets the IGFA record. IGFA's all-tackle length record is 82 cm."
+  },
+  "activity": {
+    "diel": { "dawn": 0.8, "day": 0.9, "dusk": 0.8, "night": 0.3 },
+    "lunar": 0.0,
+    "tide": null,
+    "seasonal": { "winter": 0.3, "spring": 0.9, "summer": 1.0, "autumn": 0.7 },
+    "weather": { "overcast": 0.0, "rain": 0.0, "postColdFront": -0.2, "risingWaterTemp": 0.15 }
+  },
+  "diet": {
+    "items": { "fish": 0.8, "shrimp": 0.1, "insects": 0.1 },
+    "preyLengthMaxFrac": 0.25
+  },
+  "feeding": {
+    "mode": "sideswipe_ambush",
+    "biteStyles": { "slam": 0.5, "run": 0.4, "shortStrike": 0.1 },
+    "holdTimeS": [2.0, 8.0],
+    "followChance": 0.4,
+    "speedPreferenceMps": [0.2, 1.0],
+    "lureAttraction": {
+      "soft_plastic_worm": 0.1, "jig": 0.2, "spinnerbait": 0.3, "crankbait": 0.3, "topwater_walker": 0.2,
+      "popper": 0.15, "frog": 0.1, "swimbait": 0.35, "jerkbait": 0.3, "inline_spinner": 0.4, "spoon": 0.35,
+      "streamer_fly": 0.5, "popper_fly": 0.1, "rope_lure": 0.85
+    },
+    "baitAttraction": {
+      "live_minnow": 0.9, "wild_shiner": 0.85, "nightcrawler": 0.15, "red_worm": 0.05, "cricket": 0.05, "live_shrimp": 0.4,
+      "cut_bait": 0.7, "chicken_liver": 0.1, "stink_bait": 0.05, "dough": 0.0, "bread": 0.0, "corn": 0.0,
+      "live_crayfish": 0.15, "fiddler_crab": 0.0, "barnacle": 0.0
+    }
+  },
+  "senses": {
+    "vision": 0.9, "spectral": { "r": 0.85, "g": 1.0, "b": 0.5 }, "lowLight": 0.4,
+    "lateralLine": 0.8, "hearing": 0.5, "smell": 0.4, "electro": 0.0,
+    "lineShy": 0.25, "spookiness": 0.45
+  },
+  "behaviour": {
+    "schooling": "loose_small",
+    "territorial": 0.1,
+    "spawn": { "season": "spring", "months": [4, 5], "tempC": [21, 27], "habitat": "shallow_weedy_backwater_or_riffle", "mode": "egg_scatter_no_care", "biteMotive": "none", "notes": "Mostly April-May, possibly into October. Spawning temperature not given in the sources used; the range is an estimate." },
+    "migration": null
+  },
+  "fight": {
+    "powerCoeff": 0.9,
+    "stamina": { "anaerobic": 0.6, "aerobic": 0.6, "recovery": 0.75 },
+    "styles": { "roll": 0.3, "headshake": 0.25, "run": 0.25, "jump": 0.2 },
+    "mouth": { "hardness": 0.95, "gapeFrac": 0.2, "teeth": 0.8, "gillPlateCut": 0.0 }
+  },
+  "body": {
+    "locomotion": "subcarangiform",
+    "spineNodes": 14,
+    "stiffness": 0.9,
+    "shapeRef": "shapes/lepisosteid_gar.json",
+    "pattern": {
+      "dorsal": "#5a4a2c",
+      "flank": "#8a7446",
+      "belly": "#e8d9a0",
+      "markings": [
+        { "type": "spots", "color": "#16130e", "where": "head, body and all fins", "notes": "irregular round black spots, densest toward the rear and on the fins" }
+      ],
+      "fins": "rounded, olive-brown and heavily black-spotted; body armoured in diamond-shaped interlocking ganoid scales; snout shorter and broader than a spotted gar's, with a single row of canines",
+      "eye": "#b88a3a",
+      "variants": {
+        "juvenile": "dark stripes along the back and sides; a fragile, constantly vibrating filament on the upper tail, lost in the first year",
+        "spawning_male": "no distinct breeding colours described in the sources used"
+      },
+      "source": "Florida Museum of Natural History Florida gar profile; FishBase short description"
+    },
+    "variants": ["juvenile"]
+  },
+  "regulations": {
+    "minLengthCm": null,
+    "bagLimit": null,
+    "closedSeason": null,
+    "protected": false,
+    "invasive": false,
+    "notes": "Nongame fish: no bag or length limit. (Do not confuse with alligator gar, which may not be possessed without a permit and must be released.)",
+    "basedOn": "https://www.eregulations.com/florida/fishing/freshwater/bag-length-limits",
+    "basedOnDate": "2026-10-18"
+  },
+  "economy": { "edible": true, "pricePerKg": 0, "marketDemand": "low", "notes": "Rarely eaten and there is no market for the flesh. The eggs are toxic." },
+  "ledger": {
+    "facts": [
+      "Gar eggs are highly toxic to people and other animals, birds included.",
+      "A Florida gar breathes air through a lung-like gas bladder joined to its throat, so it can live in hot, stagnant water.",
+      "It hangs near the surface like a floating stick, eases toward prey with flicks of its fins, then snaps its head sideways."
+    ],
+    "research": [
+      { "id": "flg_rope", "task": "Catch one on a rope lure" },
+      { "id": "flg_air", "task": "Photograph a gar gulping air at the surface" },
+      { "id": "flg_big", "task": "Catch one over 2.5 kg" }
+    ],
+    "wrenNote": "A gar's mouth is all bone. A hook won't stick, so don't fight it: rope lure, let him chew till his teeth tangle, then lead him in slow. Keep your fingers clear of that beak."
+  }
+}

@@ -1,0 +1,126 @@
+{
+  "id": "golden_shiner",
+  "commonName": "Golden shiner",
+  "scientificName": "Notemigonus crysoleucas",
+  "family": "Leuciscidae",
+  "tier": "S",
+  "sources": [
+    { "name": "FishBase species summary: Notemigonus crysoleucas", "url": "https://www.fishbase.net.br/summary/Notemigonus-crysoleucas.html", "retrieved": "2026-10-18" },
+    { "name": "FishBase length-weight table: Notemigonus crysoleucas", "url": "https://www.fishbase.net.br/popdyn/LWRelationshipList.php?ID=276&GenusName=Notemigonus&SpeciesName=crysoleucas&fc=756", "retrieved": "2026-10-18" },
+    { "name": "Lazur and Chapman 1996, Golden Shiner Culture: A Reference Profile, UF/IFAS Florida Cooperative Extension FA-34", "url": "https://extension.rwfm.tamu.edu/wp-content/uploads/sites/8/2013/09/Golden-Shiner-Culture-A-Reference-Profile.pdf", "retrieved": "2026-10-18" },
+    { "name": "Florida Springs Institute springs field guide: Golden shiner", "url": "https://floridaspringsinstitute.org/fish/golden-shiner/", "retrieved": "2026-10-18" },
+    { "name": "Wisconsin DNR hook-and-line state records (golden shiner 9.1 oz, 10.25 in, Lake Mendota, 2021); no IGFA record exists for this species", "url": "https://dnr.wisconsin.gov/topic/Fishing/recordfish/hookline", "retrieved": "2026-10-18" },
+    { "name": "Florida freshwater regulations (FWC guide): methods of taking fish (nongame and bait rules)", "url": "https://www.eregulations.com/florida/fishing/freshwater/methods-of-taking-fish", "retrieved": "2026-10-18" },
+    { "name": "Florida freshwater regulations (FWC guide): bag and length limits (nongame fish)", "url": "https://www.eregulations.com/florida/fishing/freshwater/bag-length-limits", "retrieved": "2026-10-18" }
+  ],
+  "water": {
+    "salinityPpt": [0, 8],
+    "temperatureC": { "lethalMin": 0.5, "optimum": [20, 27], "lethalMax": 40 },
+    "oxygenMinMgL": 1.0,
+    "clarityToleranceM": [0.2, 20]
+  },
+  "habitat": {
+    "spots": ["station_pond", "spring_run", "suwannee"],
+    "depthM": [0.2, 4],
+    "structure": { "weeds": 1.0, "wood": 0.3, "docks": 0.4, "lilyPads": 0.7, "rock": 0.1, "dropOff": 0.3, "openWater": 0.5 }
+  },
+  "size": {
+    "lengthCm": { "typical": [8, 18], "max": 27 },
+    "lengthWeight": { "a": 0.0054, "b": 3.216, "units": "W_g = a * L_cm^b", "source": "FishBase LWR table: Illinois, Mississippi, Kankakee and Iroquois rivers, TL, 3.6-15.0 cm, n=57" },
+    "growth": { "maxAgeYears": 9, "source": "Max age: FishBase summary; Lazur and Chapman 1996", "notes": "FishBase has no von Bertalanffy entries for this species; Linf_cm and k omitted." },
+    "recordWeightKg": 0.258,
+    "notes": "No IGFA record exists. recordWeightKg is the Wisconsin hook-and-line state record (26.0 cm). lengthCm.max set to 27 cm to match that fish; FishBase gives a 32 cm TL maximum, where this LWR predicts 0.37 kg."
+  },
+  "activity": {
+    "diel": { "dawn": 0.9, "day": 0.9, "dusk": 0.8, "night": 0.1 },
+    "lunar": 0.0,
+    "tide": null,
+    "seasonal": { "winter": 0.6, "spring": 1.0, "summer": 0.8, "autumn": 0.8 },
+    "weather": { "overcast": 0.05, "rain": 0.0, "postColdFront": -0.2, "risingWaterTemp": 0.1 }
+  },
+  "diet": {
+    "items": { "zooplankton": 0.35, "insects": 0.3, "algae": 0.15, "snails": 0.05, "fish_eggs": 0.05, "fish": 0.05, "plants": 0.05 },
+    "preyLengthMaxFrac": 0.08
+  },
+  "feeding": {
+    "mode": "midwater_picker",
+    "biteStyles": { "nibble": 0.6, "inhale": 0.3, "sip": 0.1 },
+    "holdTimeS": [0.2, 0.8],
+    "followChance": 0.25,
+    "speedPreferenceMps": [0.0, 0.3],
+    "lureAttraction": {
+      "soft_plastic_worm": 0.0, "jig": 0.1, "spinnerbait": 0.0, "crankbait": 0.0, "topwater_walker": 0.0,
+      "popper": 0.0, "frog": 0.0, "swimbait": 0.0, "jerkbait": 0.0, "inline_spinner": 0.02, "spoon": 0.0,
+      "streamer_fly": 0.15, "popper_fly": 0.05
+    },
+    "baitAttraction": {
+      "live_minnow": 0.0, "wild_shiner": 0.0, "nightcrawler": 0.2, "red_worm": 0.4, "cricket": 0.2, "live_shrimp": 0.05,
+      "cut_bait": 0.0, "chicken_liver": 0.0, "stink_bait": 0.0, "dough": 0.9, "bread": 0.9, "corn": 0.3,
+      "live_crayfish": 0.0, "fiddler_crab": 0.0, "barnacle": 0.0
+    }
+  },
+  "senses": {
+    "vision": 0.8, "spectral": { "r": 0.8, "g": 1.0, "b": 0.7 }, "lowLight": 0.3,
+    "lateralLine": 0.85, "hearing": 0.7, "smell": 0.6, "electro": 0.0,
+    "lineShy": 0.5, "spookiness": 0.8
+  },
+  "behaviour": {
+    "schooling": "tight",
+    "territorial": 0.0,
+    "spawn": { "season": "spring_to_autumn", "months": [3, 10], "tempC": [20, 27], "habitat": "submerged_vegetation", "mode": "egg_scatter_vegetation", "biteMotive": "none" },
+    "migration": null
+  },
+  "fight": {
+    "powerCoeff": 0.4,
+    "stamina": { "anaerobic": 0.5, "aerobic": 0.4, "recovery": 0.7 },
+    "styles": { "run": 0.4, "surfaceSkitter": 0.3, "headshake": 0.2, "circle": 0.1 },
+    "mouth": { "hardness": 0.15, "gapeFrac": 0.06, "teeth": 0.0, "gillPlateCut": 0.0 }
+  },
+  "body": {
+    "locomotion": "subcarangiform",
+    "spineNodes": 7,
+    "stiffness": 0.5,
+    "shapeRef": "shapes/leuciscid_shiner.json",
+    "pattern": {
+      "dorsal": "#6a7944",
+      "flank": "#cbb35e",
+      "belly": "#efe6c6",
+      "markings": [
+        { "type": "stripe", "color": "#7b7858", "where": "mid-side, nose to tail", "notes": "dusky stripe; the lateral line dips steeply down toward the belly and levels off to the tail" },
+        { "type": "iridescent_band", "color": "#d9bf63", "where": "whole flank", "notes": "gold in tannin-dark water, silver in clear water" }
+      ],
+      "fins": "often tinted reddish-orange; anal fin crescent-shaped; scaleless keel along the belly between pelvic fins and vent; small upturned mouth",
+      "eye": "#cdbf92",
+      "variants": {
+        "spawning_male": "breeding colours not described in the sources used; keep adult colours with the warmest fin tint",
+        "juvenile": "silver, with herringbone lines on the upper side"
+      },
+      "source": "FishBase short description; Lazur and Chapman 1996; Florida Springs Institute"
+    },
+    "variants": ["juvenile"]
+  },
+  "regulations": {
+    "minLengthCm": null,
+    "bagLimit": null,
+    "closedSeason": null,
+    "protected": false,
+    "invasive": false,
+    "notes": "Nongame fish: no bag or length limit. Cast nets for bait in fresh water: stretched mesh no greater than 1 in; minnow traps up to 24 in long. Taking bait for sale needs a commercial licence.",
+    "basedOn": "https://www.eregulations.com/florida/fishing/freshwater/methods-of-taking-fish",
+    "basedOnDate": "2026-10-18"
+  },
+  "economy": { "edible": false, "pricePerKg": 0, "marketDemand": "low", "notes": "Not a food fish. Its value is as live bait (wild shiners for big bass); handle through the bait economy." },
+  "ledger": {
+    "facts": [
+      "Golden shiners tolerate water up to 40 C, the highest temperature of any North American minnow.",
+      "They sense 'schreckstoff', the alarm substance of injured minnows, and in one study avoided places marked by the droppings of snakes that had eaten shiners.",
+      "A female scatters 10,000-20,000 sticky eggs over submerged plants, early in the morning, several times a season."
+    ],
+    "research": [
+      { "id": "gsh_bread", "task": "Catch one on a pinch of bread on a tiny hook" },
+      { "id": "gsh_three", "task": "Catch three from the same school without spooking it" },
+      { "id": "gsh_bait_bass", "task": "Catch a Florida bass on a shiner you caught yourself" }
+    ],
+    "wrenNote": "Tiny hook, a pea of bread, no weight. Flick a few crumbs out first and wait for the flash under them. Keep the ones you catch cool and lively. A big bass can tell."
+  }
+}

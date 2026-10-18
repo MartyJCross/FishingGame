@@ -1,0 +1,124 @@
+{
+  "id": "channel_catfish",
+  "commonName": "Channel catfish",
+  "scientificName": "Ictalurus punctatus",
+  "family": "Ictaluridae",
+  "tier": "S",
+  "sources": [
+    { "name": "FishBase species summary: Ictalurus punctatus", "url": "https://www.fishbase.net.br/summary/Ictalurus-punctatus.html", "retrieved": "2026-10-18" },
+    { "name": "FishBase length-weight table: Ictalurus punctatus", "url": "https://www.fishbase.net.br/popdyn/LWRelationshipList.php?ID=290&GenusName=Ictalurus&SpeciesName=punctatus&fc=129", "retrieved": "2026-10-18" },
+    { "name": "FishBase growth table: Ictalurus punctatus", "url": "https://www.fishbase.net.br/popdyn/PopGrowthList.php?ID=290&GenusName=Ictalurus&SpeciesName=punctatus&fc=129", "retrieved": "2026-10-18" },
+    { "name": "IGFA world record search: Catfish, channel (all-tackle 26.3 kg, Santee-Cooper Reservoir, South Carolina, 1964)", "url": "https://igfa.org/member-services/world-record/common-name/Catfish%2C%20channel", "retrieved": "2026-10-18" },
+    { "name": "Florida Museum of Natural History: Channel catfish species profile", "url": "https://www.floridamuseum.ufl.edu/discover-fish/species-profiles/channel-catfish/", "retrieved": "2026-10-18" },
+    { "name": "Florida freshwater regulations (FWC guide): bag and length limits (nongame fish)", "url": "https://www.eregulations.com/florida/fishing/freshwater/bag-length-limits", "retrieved": "2026-10-18" },
+    { "name": "Florida freshwater regulations (FWC guide): freshwater fish of Florida (state record 44.50 lb)", "url": "https://www.eregulations.com/florida/fishing/freshwater/freshwater-fish-of-florida", "retrieved": "2026-10-18" }
+  ],
+  "water": {
+    "salinityPpt": [0, 20],
+    "temperatureC": { "lethalMin": 0.5, "optimum": [24, 30], "lethalMax": 36 },
+    "oxygenMinMgL": 2.0,
+    "clarityToleranceM": [0.05, 10]
+  },
+  "habitat": {
+    "spots": ["station_pond", "suwannee"],
+    "depthM": [0.5, 10],
+    "structure": { "weeds": 0.3, "wood": 0.8, "docks": 0.4, "lilyPads": 0.2, "rock": 0.6, "dropOff": 0.8, "openWater": 0.3 }
+  },
+  "size": {
+    "lengthCm": { "typical": [35, 60], "max": 132 },
+    "lengthWeight": { "a": 0.00571, "b": 3.132, "units": "W_g = a * L_cm^b", "source": "FishBase LWR table: Georgia rivers, TL, 17.8-55.9 cm, n=988" },
+    "growth": { "Linf_cm": 75.9, "k": 0.135, "maxAgeYears": 24, "source": "FishBase growth table: Kentucky Lake, TL; max age FishBase summary" },
+    "recordWeightKg": 26.3
+  },
+  "activity": {
+    "diel": { "dawn": 0.6, "day": 0.3, "dusk": 0.9, "night": 1.0 },
+    "lunar": 0.05,
+    "tide": null,
+    "seasonal": { "winter": 0.25, "spring": 0.8, "summer": 1.0, "autumn": 0.7 },
+    "weather": { "overcast": 0.1, "rain": 0.2, "postColdFront": -0.2, "risingWaterTemp": 0.15 }
+  },
+  "diet": {
+    "items": { "fish": 0.35, "crayfish": 0.2, "insects": 0.15, "mussels": 0.1, "snails": 0.05, "plants": 0.05, "carrion": 0.1 },
+    "preyLengthMaxFrac": 0.3
+  },
+  "feeding": {
+    "mode": "bottom_scent",
+    "biteStyles": { "run": 0.6, "pickupDrop": 0.25, "nibble": 0.15 },
+    "holdTimeS": [1.5, 6.0],
+    "followChance": 0.05,
+    "speedPreferenceMps": [0.0, 0.3],
+    "lureAttraction": {
+      "soft_plastic_worm": 0.15, "jig": 0.2, "spinnerbait": 0.1, "crankbait": 0.15, "topwater_walker": 0.0,
+      "popper": 0.0, "frog": 0.02, "swimbait": 0.1, "jerkbait": 0.05, "inline_spinner": 0.1, "spoon": 0.1,
+      "streamer_fly": 0.1, "popper_fly": 0.0
+    },
+    "baitAttraction": {
+      "live_minnow": 0.7, "wild_shiner": 0.6, "nightcrawler": 0.85, "red_worm": 0.5, "cricket": 0.2, "live_shrimp": 0.6,
+      "cut_bait": 0.95, "chicken_liver": 0.9, "stink_bait": 0.85, "dough": 0.5, "bread": 0.3, "corn": 0.25,
+      "live_crayfish": 0.7, "fiddler_crab": 0.0, "barnacle": 0.0
+    }
+  },
+  "senses": {
+    "vision": 0.4, "spectral": { "r": 0.7, "g": 0.9, "b": 0.5 }, "lowLight": 0.6,
+    "lateralLine": 0.8, "hearing": 0.8, "smell": 1.0, "electro": 0.2,
+    "lineShy": 0.15, "spookiness": 0.3
+  },
+  "behaviour": {
+    "schooling": "loose_small",
+    "territorial": 0.3,
+    "spawn": { "season": "summer", "months": [5, 7], "tempC": [24, 28], "habitat": "cavity_hole_log_bank", "mode": "cavity_nest_guard", "biteMotive": "defense" },
+    "migration": { "type": "seasonal_depth", "notes": "Shallow rivers in summer, deep holes in winter; individuals may return to the same summer site for years (Florida Museum)." }
+  },
+  "fight": {
+    "powerCoeff": 1.0,
+    "stamina": { "anaerobic": 0.7, "aerobic": 0.9, "recovery": 0.6 },
+    "styles": { "run": 0.4, "bulldog": 0.25, "sulk": 0.15, "headshake": 0.1, "roll": 0.1 },
+    "mouth": { "hardness": 0.5, "gapeFrac": 0.25, "teeth": 0.1, "gillPlateCut": 0.0 }
+  },
+  "body": {
+    "locomotion": "subcarangiform",
+    "spineNodes": 9,
+    "stiffness": 0.45,
+    "shapeRef": "shapes/ictalurid_catfish.json",
+    "pattern": {
+      "dorsal": "#5c6970",
+      "flank": "#9ba4a9",
+      "belly": "#efeee6",
+      "markings": [
+        { "type": "spots", "color": "#1d2226", "where": "scattered over the sides", "notes": "small black spots; clear on young fish, often fading in big adults" }
+      ],
+      "fins": "grey; deeply forked tail; rounded anal fin margin; sharp spines leading the dorsal and pectoral fins; eight barbels (four on the chin, two on the snout, one at each mouth corner)",
+      "eye": "#3a3428",
+      "variants": {
+        "spawning_male": "head swells above the eyes and turns black or blue-black, with black lips; females paler",
+        "juvenile": "light grey back, silvery sides, distinct black spots"
+      },
+      "source": "Florida Museum of Natural History channel catfish profile; FishBase short description"
+    },
+    "variants": ["juvenile", "spawning_male"]
+  },
+  "regulations": {
+    "minLengthCm": null,
+    "bagLimit": null,
+    "closedSeason": null,
+    "protected": false,
+    "invasive": false,
+    "notes": "Nongame fish: no statewide bag or length limit; individual Fish Management Areas may set limits. Watch the dorsal and pectoral spines when handling.",
+    "basedOn": "https://www.eregulations.com/florida/fishing/freshwater/bag-length-limits",
+    "basedOnDate": "2026-10-18"
+  },
+  "economy": { "edible": true, "pricePerKg": 5, "marketDemand": "medium" },
+  "ledger": {
+    "facts": [
+      "Channel catfish have taste buds spread across the whole body, not just the mouth and barbels.",
+      "They feed most actively from sundown to about midnight, and most of all when the water is rising.",
+      "It is the most widely farmed warm-water fish in the United States."
+    ],
+    "research": [
+      { "id": "ccf_liver_night", "task": "Catch one on chicken liver after dark" },
+      { "id": "ccf_rising_water", "task": "Catch one while the water is rising after rain" },
+      { "id": "ccf_big", "task": "Catch one over 9 kg" }
+    ],
+    "wrenNote": "Bottom, after sundown, at the upstream lip of a hole, and the bait fresh. When he picks it up, let him run a few feet, then just reel tight and lift. No need to cross his eyes."
+  }
+}

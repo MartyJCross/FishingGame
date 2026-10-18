@@ -1,0 +1,125 @@
+{
+  "id": "atlantic_needlefish",
+  "commonName": "Atlantic needlefish",
+  "scientificName": "Strongylura marina",
+  "family": "Belonidae",
+  "tier": "2",
+  "sources": [
+    { "name": "FishBase species summary: Strongylura marina", "url": "https://www.fishbase.net.br/summary/Strongylura-marina.html", "retrieved": "2026-10-18" },
+    { "name": "FishBase length-weight table: Strongylura marina", "url": "https://www.fishbase.net.br/popdyn/LWRelationshipList.php?ID=974&GenusName=Strongylura&SpeciesName=marina&fc=207", "retrieved": "2026-10-18" },
+    { "name": "FishBase growth table: Strongylura marina (no entries)", "url": "https://www.fishbase.net.br/popdyn/PopGrowthList.php?ID=974&GenusName=Strongylura&SpeciesName=marina&fc=207", "retrieved": "2026-10-18" },
+    { "name": "IGFA world record search: Needlefish, Atlantic (all-tackle 1.84 kg, Cape May Reef, New Jersey, 2004)", "url": "https://igfa.org/member-services/world-record/common-name/Needlefish%2C%20Atlantic", "retrieved": "2026-10-18" },
+    { "name": "Chesapeake Bay Program field guide: Atlantic needlefish", "url": "https://www.chesapeakebay.net/discover/field-guide/entry/atlantic-needlefish", "retrieved": "2026-10-18" },
+    { "name": "Florida saltwater regulations (FWC guide): coastal species (unregulated species rule)", "url": "https://www.eregulations.com/florida/fishing/saltwater/coastal-species", "retrieved": "2026-10-18" }
+  ],
+  "water": {
+    "salinityPpt": [0, 36],
+    "temperatureC": { "lethalMin": 8, "optimum": [20, 30], "lethalMax": 34 },
+    "oxygenMinMgL": 4.0,
+    "clarityToleranceM": [0.8, 30]
+  },
+  "habitat": {
+    "spots": ["spring_run", "waccasassa_flats", "homosassa_tarpon"],
+    "depthM": [0.0, 2],
+    "structure": { "weeds": 0.5, "wood": 0.2, "docks": 0.6, "lilyPads": 0.0, "rock": 0.2, "dropOff": 0.2, "openWater": 0.8 }
+  },
+  "size": {
+    "lengthCm": { "typical": [35, 60], "max": 105 },
+    "lengthWeight": { "a": 0.0007, "b": 3.175, "units": "W_g = a * L_cm^b", "source": "FishBase LWR table: central coast of Brazil, 1993-2000, TL, 37.6-78.3 cm, n=12 (no US entries)" },
+    "growth": { "maxAgeYears": null, "source": "none found", "notes": "FishBase has no growth entries and no maximum age for this species; Linf_cm and k omitted." },
+    "recordWeightKg": 1.84,
+    "notes": "FishBase gives a 111 cm TL maximum (2.2 kg by this LWR, 1.19x the record); lengthCm.max set to 105 cm, where the LWR meets the IGFA record. Most fish are under 60 cm (Chesapeake Bay Program: 'grows to two feet')."
+  },
+  "activity": {
+    "diel": { "dawn": 0.8, "day": 1.0, "dusk": 0.8, "night": 0.4 },
+    "lunar": 0.05,
+    "tide": { "rising": 0.8, "falling": 0.8, "slack": 0.6 },
+    "seasonal": { "winter": 0.4, "spring": 0.9, "summer": 1.0, "autumn": 0.8 },
+    "weather": { "overcast": -0.05, "rain": -0.05, "postColdFront": -0.2, "risingWaterTemp": 0.1 }
+  },
+  "diet": {
+    "items": { "fish": 0.8, "shrimp": 0.2 },
+    "preyLengthMaxFrac": 0.15
+  },
+  "feeding": {
+    "mode": "sideswipe_ambush",
+    "biteStyles": { "slam": 0.6, "shortStrike": 0.3, "nibble": 0.1 },
+    "holdTimeS": [0.3, 1.2],
+    "followChance": 0.5,
+    "speedPreferenceMps": [0.5, 2.0],
+    "lureAttraction": {
+      "soft_plastic_worm": 0.0, "jig": 0.3, "spinnerbait": 0.2, "crankbait": 0.3, "topwater_walker": 0.4,
+      "popper": 0.3, "frog": 0.0, "swimbait": 0.3, "jerkbait": 0.4, "inline_spinner": 0.7, "spoon": 0.7,
+      "streamer_fly": 0.75, "popper_fly": 0.4
+    },
+    "baitAttraction": {
+      "live_minnow": 0.7, "wild_shiner": 0.3, "nightcrawler": 0.0, "red_worm": 0.0, "cricket": 0.0, "live_shrimp": 0.5,
+      "cut_bait": 0.5, "chicken_liver": 0.0, "stink_bait": 0.0, "dough": 0.0, "bread": 0.0, "corn": 0.0,
+      "live_crayfish": 0.0, "fiddler_crab": 0.0, "barnacle": 0.0
+    }
+  },
+  "senses": {
+    "vision": 1.0, "spectral": { "r": 0.8, "g": 1.0, "b": 0.8 }, "lowLight": 0.5,
+    "lateralLine": 0.6, "hearing": 0.4, "smell": 0.2, "electro": 0.0,
+    "lineShy": 0.3, "spookiness": 0.6
+  },
+  "behaviour": {
+    "schooling": "loose_small",
+    "territorial": 0.0,
+    "spawn": { "season": "late_spring", "months": [5, 6], "tempC": null, "habitat": "grass_beds", "mode": "attached_eggs_no_care", "biteMotive": "none", "notes": "Eggs sink and stick to grass blades by adhesive fibres (Chesapeake Bay Program). Spawning temperature not given in the sources used." },
+    "migration": null
+  },
+  "fight": {
+    "powerCoeff": 0.7,
+    "stamina": { "anaerobic": 0.7, "aerobic": 0.4, "recovery": 0.6 },
+    "styles": { "jump": 0.4, "surfaceSkitter": 0.35, "headshake": 0.15, "run": 0.1 },
+    "mouth": { "hardness": 0.9, "gapeFrac": 0.06, "teeth": 0.8, "gillPlateCut": 0.0 }
+  },
+  "body": {
+    "locomotion": "subcarangiform",
+    "spineNodes": 12,
+    "stiffness": 0.6,
+    "shapeRef": "shapes/belonid_needlefish.json",
+    "pattern": {
+      "dorsal": "#4f7a6a",
+      "flank": "#c7d2d0",
+      "belly": "#eef2f0",
+      "markings": [
+        { "type": "stripe", "color": "#7f9fb8", "where": "along each side", "notes": "thin bluish-silver stripe" },
+        { "type": "spots", "color": "#151515", "where": "behind the eye", "notes": "black pigment that does not reach below the middle of the eye" }
+      ],
+      "fins": "single dorsal fin set far back near the tail, opposite the anal fin; long needle-like jaws lined with teeth",
+      "eye": "#9aa0a0",
+      "variants": {
+        "juvenile": "young lack the long jaws of the adult",
+        "spawning_male": "no distinct breeding colours described in the sources used"
+      },
+      "source": "Chesapeake Bay Program field guide; FishBase short description"
+    },
+    "variants": ["juvenile"]
+  },
+  "regulations": {
+    "minLengthCm": null,
+    "bagLimit": null,
+    "closedSeason": null,
+    "protected": false,
+    "invasive": false,
+    "notes": "Unregulated species: recreational limit is 100 lb or 2 fish, whichever is more, so in practice no limit.",
+    "basedOn": "https://www.eregulations.com/florida/fishing/saltwater/coastal-species",
+    "basedOnDate": "2026-10-18"
+  },
+  "economy": { "edible": true, "pricePerKg": 1.5, "marketDemand": "low" },
+  "ledger": {
+    "facts": [
+      "A female Atlantic needlefish has only one ovary.",
+      "Its eggs sink and stick to blades of seagrass by fine adhesive fibres.",
+      "Young needlefish lack the long jaws; adults gather at night under lights on piers and bridges."
+    ],
+    "research": [
+      { "id": "ndl_spoon", "task": "Catch one on a small, fast spoon" },
+      { "id": "ndl_light", "task": "Find needlefish gathered under a light at night" },
+      { "id": "ndl_big", "task": "Catch one over 0.5 kg" }
+    ],
+    "wrenNote": "Needlefish hit and miss more often than they hit and hold. Small spoon, fast, and don't set on the first tap: keep it coming till he's really on. Then mind the beak."
+  }
+}

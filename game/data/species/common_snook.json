@@ -1,0 +1,127 @@
+{
+  "id": "common_snook",
+  "commonName": "Common snook",
+  "scientificName": "Centropomus undecimalis",
+  "family": "Centropomidae",
+  "tier": "1",
+  "sources": [
+    { "name": "FishBase species summary: Centropomus undecimalis", "url": "https://www.fishbase.net.br/summary/Centropomus-undecimalis.html", "retrieved": "2026-10-18" },
+    { "name": "FishBase length-weight table: Centropomus undecimalis", "url": "https://www.fishbase.net.br/popdyn/LWRelationshipList.php?ID=345&GenusName=Centropomus&SpeciesName=undecimalis&fc=287", "retrieved": "2026-10-18" },
+    { "name": "FishBase growth table: Centropomus undecimalis", "url": "https://www.fishbase.net.br/popdyn/PopGrowthList.php?ID=345&GenusName=Centropomus&SpeciesName=undecimalis&fc=287", "retrieved": "2026-10-18" },
+    { "name": "IGFA world record search: Snook, common (all-tackle 24.32 kg, Parismina Ranch, Costa Rica, 1978)", "url": "https://igfa.org/member-services/world-record/common-name/Snook%2C%20common", "retrieved": "2026-10-18" },
+    { "name": "Florida Museum of Natural History: Common snook species profile", "url": "https://www.floridamuseum.ufl.edu/discover-fish/species-profiles/centropomus-undecimalis/", "retrieved": "2026-10-18" },
+    { "name": "Florida saltwater regulations (FWC guide): coastal species (snook)", "url": "https://www.eregulations.com/florida/fishing/saltwater/coastal-species", "retrieved": "2026-10-18" }
+  ],
+  "water": {
+    "salinityPpt": [0, 40],
+    "temperatureC": { "lethalMin": 9, "optimum": [25, 31], "lethalMax": 35 },
+    "oxygenMinMgL": 3.0,
+    "clarityToleranceM": [0.3, 30]
+  },
+  "habitat": {
+    "spots": ["spring_run", "waccasassa_flats", "homosassa_tarpon"],
+    "depthM": [0.3, 8],
+    "structure": { "weeds": 0.4, "wood": 0.8, "docks": 0.9, "lilyPads": 0.1, "rock": 0.6, "dropOff": 0.6, "openWater": 0.2 }
+  },
+  "size": {
+    "lengthCm": { "typical": [50, 85], "max": 140 },
+    "lengthWeight": { "a": 0.01, "b": 2.97, "units": "W_g = a * L_cm^b", "source": "FishBase LWR table: Caribbean coast of Colombia, 2012-2013, TL, 12.6-102 cm (no US entries; the Cuban entry is fork length)" },
+    "growth": { "Linf_cm": 77.7, "k": 0.49, "maxAgeYears": 18, "source": "FishBase growth table: southwest Florida (Linf in fork length). Max age: oldest sampled fish, an 18-year-old Atlantic-coast female (Florida Museum)." },
+    "recordWeightKg": 24.32
+  },
+  "activity": {
+    "diel": { "dawn": 0.9, "day": 0.4, "dusk": 0.9, "night": 1.0 },
+    "lunar": 0.15,
+    "tide": { "rising": 0.8, "falling": 1.0, "slack": 0.3 },
+    "seasonal": { "winter": 0.4, "spring": 0.9, "summer": 1.0, "autumn": 0.9 },
+    "weather": { "overcast": 0.1, "rain": 0.05, "postColdFront": -0.5, "risingWaterTemp": 0.2 }
+  },
+  "diet": {
+    "items": { "fish": 0.65, "shrimp": 0.2, "crabs": 0.15 },
+    "preyLengthMaxFrac": 0.3
+  },
+  "feeding": {
+    "mode": "suction_ambush",
+    "biteStyles": { "inhale": 0.45, "crash": 0.3, "slam": 0.25 },
+    "holdTimeS": [0.5, 1.5],
+    "followChance": 0.25,
+    "speedPreferenceMps": [0.2, 1.5],
+    "lureAttraction": {
+      "soft_plastic_worm": 0.4, "jig": 0.85, "spinnerbait": 0.35, "crankbait": 0.55, "topwater_walker": 0.8,
+      "popper": 0.6, "frog": 0.1, "swimbait": 0.85, "jerkbait": 0.85, "inline_spinner": 0.3, "spoon": 0.5,
+      "streamer_fly": 0.8, "popper_fly": 0.5
+    },
+    "baitAttraction": {
+      "live_minnow": 0.95, "wild_shiner": 0.8, "nightcrawler": 0.05, "red_worm": 0.0, "cricket": 0.0, "live_shrimp": 0.95,
+      "cut_bait": 0.4, "chicken_liver": 0.0, "stink_bait": 0.0, "dough": 0.0, "bread": 0.0, "corn": 0.0,
+      "live_crayfish": 0.2, "fiddler_crab": 0.1, "barnacle": 0.0
+    }
+  },
+  "senses": {
+    "vision": 0.95, "spectral": { "r": 0.85, "g": 1.0, "b": 0.6 }, "lowLight": 0.8,
+    "lateralLine": 0.9, "hearing": 0.6, "smell": 0.3, "electro": 0.0,
+    "lineShy": 0.65, "spookiness": 0.65
+  },
+  "behaviour": {
+    "schooling": "loose_small",
+    "territorial": 0.2,
+    "sexChange": "protandric",
+    "spawn": { "season": "summer", "months": [5, 9], "tempC": [26, 30], "habitat": "passes_and_river_mouths", "mode": "aggregate_broadcast", "biteMotive": "hunger", "notes": "Spawning aggregations at passes and river mouths May-September (FishBase). Temperature range is an estimate inside FishBase's 25-31 C." },
+    "migration": { "type": "thermal_refuge", "notes": "Cold-intolerant: moves up rivers and into warm springs during cold snaps; adults die at about 6-12 C (Florida Museum)." }
+  },
+  "fight": {
+    "powerCoeff": 1.3,
+    "stamina": { "anaerobic": 1.0, "aerobic": 0.75, "recovery": 0.6 },
+    "styles": { "structureDash": 0.35, "headshake": 0.25, "jump": 0.2, "run": 0.2 },
+    "mouth": { "hardness": 0.55, "gapeFrac": 0.25, "teeth": 0.1, "gillPlateCut": 0.8 }
+  },
+  "body": {
+    "locomotion": "subcarangiform",
+    "spineNodes": 9,
+    "stiffness": 0.5,
+    "shapeRef": "shapes/centropomid_snook.json",
+    "pattern": {
+      "dorsal": "#5f5a3a",
+      "flank": "#c8bc84",
+      "belly": "#f0ecd8",
+      "markings": [
+        { "type": "stripe", "color": "#141414", "where": "the lateral line, from the gill cover to the tail fork", "notes": "a distinct black line, the snook's signature" }
+      ],
+      "fins": "pelvic fins pale yellow; two separate dorsal fins; forked tail; long sloping snout with a jutting lower jaw; razor-edged gill covers",
+      "eye": "#c9a64a",
+      "variants": {
+        "spawning_male": "pelvic and tail fins turn noticeably more yellow at spawning (both sexes)",
+        "juvenile": "juvenile colours not described in the sources used; keep the black lateral line"
+      },
+      "source": "Florida Museum of Natural History common snook profile; FishBase (black lateral line)"
+    },
+    "variants": ["juvenile", "spawning_male"]
+  },
+  "regulations": {
+    "minLengthCm": 71.1,
+    "maxLengthCm": 83.8,
+    "bagLimit": 1,
+    "closedSeason": [["12-01", "02-29"], ["05-01", "08-31"]],
+    "protected": false,
+    "invasive": false,
+    "saleProhibited": true,
+    "permitRequired": "snook permit (with a saltwater licence)",
+    "notes": "Gulf coast (Big Bend region): slot 28-33 in total length, 1 per harvester per day, open March-April and September-November. Snatch hooks and spearing prohibited. Gamefish since 1957: sale banned. These rules apply in fresh water too.",
+    "basedOn": "https://www.eregulations.com/florida/fishing/saltwater/coastal-species",
+    "basedOnDate": "2026-10-18"
+  },
+  "economy": { "edible": true, "pricePerKg": 0, "marketDemand": "low", "notes": "Excellent food fish, but sale has been banned in Florida since 1957." },
+  "ledger": {
+    "facts": [
+      "Snook start life as males and many later turn female, so nearly all the biggest snook are females.",
+      "Cold kills snook: adults die at about 6-12 C, which is why they crowd into warm springs during cold snaps.",
+      "Florida declared the snook a gamefish in 1957 and banned its sale."
+    ],
+    "research": [
+      { "id": "snk_dock_light", "task": "Catch one under a dock light at night" },
+      { "id": "snk_spring_refuge", "task": "Find snook sheltering in the Spring Run during a cold snap" },
+      { "id": "snk_slot", "task": "Catch a slot-size snook (71-84 cm)" }
+    ],
+    "wrenNote": "Snook face into the current and wait at the edge of the shade. Cast up-tide, let the bait swing past the piling, and when he takes it, turn his head right now or those gill plates will cut you off."
+  }
+}

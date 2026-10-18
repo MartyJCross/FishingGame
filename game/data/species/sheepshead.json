@@ -1,0 +1,125 @@
+{
+  "id": "sheepshead",
+  "commonName": "Sheepshead",
+  "scientificName": "Archosargus probatocephalus",
+  "family": "Sparidae",
+  "tier": "1",
+  "sources": [
+    { "name": "FishBase species summary: Archosargus probatocephalus", "url": "https://www.fishbase.net.br/summary/Archosargus-probatocephalus.html", "retrieved": "2026-10-18" },
+    { "name": "FishBase length-weight table: Archosargus probatocephalus", "url": "https://www.fishbase.net.br/popdyn/LWRelationshipList.php?ID=441&GenusName=Archosargus&SpeciesName=probatocephalus&fc=330", "retrieved": "2026-10-18" },
+    { "name": "FishBase growth table: Archosargus probatocephalus", "url": "https://www.fishbase.net.br/popdyn/PopGrowthList.php?ID=441&GenusName=Archosargus&SpeciesName=probatocephalus&fc=330", "retrieved": "2026-10-18" },
+    { "name": "IGFA world record search: Sheepshead (all-tackle 9.63 kg, New Orleans, Louisiana, 1982)", "url": "https://igfa.org/member-services/world-record/common-name/Sheepshead", "retrieved": "2026-10-18" },
+    { "name": "Florida Museum of Natural History: Sheepshead species profile", "url": "https://www.floridamuseum.ufl.edu/discover-fish/species-profiles/archosargus-probatocephalus/", "retrieved": "2026-10-18" },
+    { "name": "Florida saltwater regulations (FWC guide): coastal species (sheepshead)", "url": "https://www.eregulations.com/florida/fishing/saltwater/coastal-species", "retrieved": "2026-10-18" }
+  ],
+  "water": {
+    "salinityPpt": [0, 36],
+    "temperatureC": { "lethalMin": 5, "optimum": [18, 27], "lethalMax": 34 },
+    "oxygenMinMgL": 4.0,
+    "clarityToleranceM": [0.3, 20]
+  },
+  "habitat": {
+    "spots": ["spring_run", "waccasassa_flats", "homosassa_tarpon", "nature_coast_ledges"],
+    "depthM": [0.5, 15],
+    "structure": { "weeds": 0.3, "wood": 0.4, "docks": 1.0, "lilyPads": 0.0, "rock": 0.95, "dropOff": 0.4, "openWater": 0.05 }
+  },
+  "size": {
+    "lengthCm": { "typical": [35, 50], "max": 76 },
+    "lengthWeight": { "a": 0.0157, "b": 3.085, "units": "W_g = a * L_cm^b", "source": "FishBase LWR table: Terminos Lagoon, Campeche, Gulf of Mexico, TL, 11.7-18.4 cm, n=7 (weak: few, small fish). The Louisiana 1987-88 relations (a=0.053, b=2.85) give 1.26x the record but list no length type." },
+    "growth": { "Linf_cm": 47.8, "k": 0.358, "maxAgeYears": 20, "source": "FishBase growth table: Texas bays, TL. Max age: at least 20 years (Florida Museum)." },
+    "recordWeightKg": 9.63,
+    "notes": "lengthCm.max is the Florida Museum's maximum (76 cm, 9.6 kg); FishBase gives 91 cm TL, where this LWR predicts about 17 kg."
+  },
+  "activity": {
+    "diel": { "dawn": 0.8, "day": 1.0, "dusk": 0.7, "night": 0.2 },
+    "lunar": 0.05,
+    "tide": { "rising": 0.9, "falling": 0.9, "slack": 0.4 },
+    "seasonal": { "winter": 0.9, "spring": 1.0, "summer": 0.5, "autumn": 0.6 },
+    "weather": { "overcast": 0.05, "rain": 0.0, "postColdFront": -0.15, "risingWaterTemp": 0.1 }
+  },
+  "diet": {
+    "items": { "crabs": 0.35, "bivalves": 0.25, "barnacles": 0.15, "shrimp": 0.1, "fish": 0.05, "plants": 0.1 },
+    "preyLengthMaxFrac": 0.1
+  },
+  "feeding": {
+    "mode": "crusher_picker",
+    "biteStyles": { "nibble": 0.75, "inhale": 0.15, "pickupDrop": 0.1 },
+    "holdTimeS": [0.2, 0.8],
+    "followChance": 0.1,
+    "speedPreferenceMps": [0.0, 0.2],
+    "lureAttraction": {
+      "soft_plastic_worm": 0.02, "jig": 0.25, "spinnerbait": 0.0, "crankbait": 0.02, "topwater_walker": 0.0,
+      "popper": 0.0, "frog": 0.0, "swimbait": 0.02, "jerkbait": 0.0, "inline_spinner": 0.02, "spoon": 0.02,
+      "streamer_fly": 0.05, "popper_fly": 0.0
+    },
+    "baitAttraction": {
+      "live_minnow": 0.05, "wild_shiner": 0.0, "nightcrawler": 0.05, "red_worm": 0.0, "cricket": 0.0, "live_shrimp": 0.85,
+      "cut_bait": 0.2, "chicken_liver": 0.0, "stink_bait": 0.0, "dough": 0.0, "bread": 0.0, "corn": 0.0,
+      "live_crayfish": 0.1, "fiddler_crab": 1.0, "barnacle": 0.9
+    }
+  },
+  "senses": {
+    "vision": 0.85, "spectral": { "r": 0.8, "g": 1.0, "b": 0.6 }, "lowLight": 0.3,
+    "lateralLine": 0.75, "hearing": 0.6, "smell": 0.5, "electro": 0.0,
+    "lineShy": 0.5, "spookiness": 0.5
+  },
+  "behaviour": {
+    "schooling": "loose_large",
+    "territorial": 0.1,
+    "spawn": { "season": "late_winter_spring", "months": [2, 4], "tempC": null, "habitat": "offshore_reefs_wrecks_markers", "mode": "offshore_broadcast_aggregation", "biteMotive": "none", "notes": "Moves offshore in late winter and early spring to spawn, over reefs and navigation markers; Gulf larvae January-May. Spawning temperature not given in the sources used." },
+    "migration": { "type": "spawning_offshore", "season": "late_winter_spring", "notes": "Offshore to spawn, then back to inshore pilings and estuaries; seeks warm spring outlets and river mouths in cold weather (Florida Museum)." }
+  },
+  "fight": {
+    "powerCoeff": 1.1,
+    "stamina": { "anaerobic": 0.85, "aerobic": 0.7, "recovery": 0.6 },
+    "styles": { "bulldog": 0.4, "headshake": 0.25, "structureDash": 0.25, "run": 0.1 },
+    "mouth": { "hardness": 0.85, "gapeFrac": 0.08, "teeth": 0.4, "gillPlateCut": 0.0 }
+  },
+  "body": {
+    "locomotion": "subcarangiform",
+    "spineNodes": 7,
+    "stiffness": 0.65,
+    "shapeRef": "shapes/sparid_porgy.json",
+    "pattern": {
+      "dorsal": "#7a7f5a",
+      "flank": "#c9cbb4",
+      "belly": "#eceee2",
+      "markings": [
+        { "type": "bars", "color": "#1c1d1a", "where": "flanks, five or six dark vertical crossbars each side", "notes": "sharpest in young fish" }
+      ],
+      "fins": "dorsal, anal and pelvic fins dusky to black; tail and pectorals greenish; stout fin spines; mouth full of broad, human-like incisor and molar teeth",
+      "eye": "#5a4a30",
+      "variants": {
+        "juvenile": "from 25-30 mm already forked-tailed and barred, the bars crisp; earlier larvae brownish",
+        "spawning_male": "no distinct breeding colours described in the sources used"
+      },
+      "source": "Florida Museum of Natural History sheepshead profile"
+    },
+    "variants": ["juvenile"]
+  },
+  "regulations": {
+    "minLengthCm": 30.5,
+    "bagLimit": 8,
+    "vesselLimit": { "marchApril": 50 },
+    "closedSeason": null,
+    "protected": false,
+    "invasive": false,
+    "notes": "Minimum 12 in, 8 per harvester per day; vessel limit 50 in March and April. Snatching prohibited.",
+    "basedOn": "https://www.eregulations.com/florida/fishing/saltwater/coastal-species",
+    "basedOnDate": "2026-10-18"
+  },
+  "economy": { "edible": true, "pricePerKg": 5, "marketDemand": "medium", "notes": "Fine white flesh with a mild flavour, but heavy scales and spines make it hard to clean." },
+  "ledger": {
+    "facts": [
+      "Sheepshead crush oysters, clams and crabs with their teeth and scrape barnacles straight off pilings.",
+      "Their heavy scales and stout spines make them one of the hardest fish to clean.",
+      "In cold weather they seek out warm water near spring outlets and sometimes swim into fresh water."
+    ],
+    "research": [
+      { "id": "shp_fiddler", "task": "Catch one on a fiddler crab beside a piling" },
+      { "id": "shp_barnacle", "task": "Catch one on barnacles scraped from the piling it's feeding on" },
+      { "id": "shp_big", "task": "Catch one over 3.6 kg" }
+    ],
+    "wrenNote": "They'll pick your hook clean and you'll never feel it. Fiddler crab, short leader, straight down the piling. Set when you feel nothing but a little weight. Old saying: set before the bite."
+  }
+}

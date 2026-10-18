@@ -1,0 +1,131 @@
+{
+  "id": "redear_sunfish",
+  "commonName": "Redear sunfish",
+  "scientificName": "Lepomis microlophus",
+  "family": "Centrarchidae",
+  "tier": "S",
+  "sources": [
+    { "name": "FishBase species summary: Lepomis microlophus", "url": "https://www.fishbase.net.br/summary/Lepomis-microlophus.html", "retrieved": "2026-10-18" },
+    { "name": "FishBase length-weight table: Lepomis microlophus", "url": "https://www.fishbase.net.br/popdyn/LWRelationshipList.php?ID=3378&GenusName=Lepomis&SpeciesName=microlophus&fc=302", "retrieved": "2026-10-18" },
+    { "name": "FishBase growth table: Lepomis microlophus (no entries)", "url": "https://www.fishbase.net.br/popdyn/PopGrowthList.php?ID=3378&GenusName=Lepomis&SpeciesName=microlophus&fc=302", "retrieved": "2026-10-18" },
+    { "name": "IGFA world record search: Sunfish, redear (all-tackle 2.83 kg, Lake Havasu, Arizona, 2021)", "url": "https://igfa.org/member-services/world-record/common-name/Sunfish%2C%20redear", "retrieved": "2026-10-18" },
+    { "name": "Outdoor Alabama (ADCNR): Redear sunfish", "url": "https://outdooralabama.com/bream/redear-sunfish", "retrieved": "2026-10-18" },
+    { "name": "South Carolina DNR: Redear sunfish", "url": "https://dnr.sc.gov/fish/species/redearsunfish.html", "retrieved": "2026-10-18" },
+    { "name": "Florida freshwater regulations (FWC guide): bag and length limits", "url": "https://www.eregulations.com/florida/fishing/freshwater/bag-length-limits", "retrieved": "2026-10-18" },
+    { "name": "Florida freshwater regulations (FWC guide): freshwater fish of Florida (state record 4.86 lb)", "url": "https://www.eregulations.com/florida/fishing/freshwater/freshwater-fish-of-florida", "retrieved": "2026-10-18" }
+  ],
+  "water": {
+    "salinityPpt": [0, 20],
+    "temperatureC": { "lethalMin": 2, "optimum": [22, 28], "lethalMax": 36 },
+    "oxygenMinMgL": 2.5,
+    "clarityToleranceM": [0.5, 15]
+  },
+  "habitat": {
+    "spots": ["station_pond", "spring_run", "suwannee"],
+    "depthM": [0.5, 6],
+    "structure": { "weeds": 0.7, "wood": 0.6, "docks": 0.5, "lilyPads": 0.5, "rock": 0.4, "dropOff": 0.6, "openWater": 0.15 }
+  },
+  "size": {
+    "lengthCm": { "typical": [18, 26], "max": 44 },
+    "lengthWeight": { "a": 0.00859, "b": 3.258, "units": "W_g = a * L_cm^b", "source": "FishBase LWR table: Oklahoma statewide, TL, 6.1-30.6 cm, n=1567. The Florida relations (Blue Cypress Lake, canal area) give about 0.6x the record at 43 cm." },
+    "growth": { "maxAgeYears": 8, "source": "Max age: South Carolina DNR (about 8 years); FishBase gives 7.", "notes": "FishBase has no von Bertalanffy entries for this species; Linf_cm and k omitted." },
+    "recordWeightKg": 2.83,
+    "notes": "lengthCm.max set to 44 cm (FishBase max 43.2 cm TL) so that the LWR stays within 35% of the record. Record-class western redear are unusually heavy for their length."
+  },
+  "activity": {
+    "diel": { "dawn": 0.8, "day": 0.9, "dusk": 0.8, "night": 0.1 },
+    "lunar": 0.1,
+    "tide": null,
+    "seasonal": { "winter": 0.35, "spring": 1.0, "summer": 0.75, "autumn": 0.6 },
+    "weather": { "overcast": 0.05, "rain": 0.0, "postColdFront": -0.3, "risingWaterTemp": 0.2 }
+  },
+  "diet": {
+    "items": { "snails": 0.4, "mussels": 0.15, "insects": 0.3, "crayfish": 0.05, "worms": 0.05, "zooplankton": 0.05 },
+    "preyLengthMaxFrac": 0.12
+  },
+  "feeding": {
+    "mode": "bottom_picker_crusher",
+    "biteStyles": { "inhale": 0.45, "nibble": 0.35, "run": 0.2 },
+    "holdTimeS": [0.4, 1.5],
+    "followChance": 0.15,
+    "speedPreferenceMps": [0.0, 0.3],
+    "lureAttraction": {
+      "soft_plastic_worm": 0.15, "jig": 0.35, "spinnerbait": 0.05, "crankbait": 0.05, "topwater_walker": 0.02,
+      "popper": 0.1, "frog": 0.0, "swimbait": 0.03, "jerkbait": 0.03, "inline_spinner": 0.15, "spoon": 0.05,
+      "streamer_fly": 0.2, "popper_fly": 0.15
+    },
+    "baitAttraction": {
+      "live_minnow": 0.1, "wild_shiner": 0.0, "nightcrawler": 0.85, "red_worm": 1.0, "cricket": 0.75, "live_shrimp": 0.5,
+      "cut_bait": 0.05, "chicken_liver": 0.05, "stink_bait": 0.0, "dough": 0.15, "bread": 0.15, "corn": 0.1,
+      "live_crayfish": 0.1, "fiddler_crab": 0.0, "barnacle": 0.0
+    }
+  },
+  "senses": {
+    "vision": 0.8, "spectral": { "r": 0.8, "g": 1.0, "b": 0.6 }, "lowLight": 0.3,
+    "lateralLine": 0.7, "hearing": 0.5, "smell": 0.45, "electro": 0.0,
+    "lineShy": 0.4, "spookiness": 0.55
+  },
+  "behaviour": {
+    "schooling": "loose_small",
+    "territorial": 0.6,
+    "spawn": { "season": "spring", "months": [4, 6], "tempC": [21, 26], "habitat": "shallow_sand_gravel_mud_colony", "mode": "colonial_nest_guard", "biteMotive": "defense" },
+    "migration": null
+  },
+  "fight": {
+    "powerCoeff": 0.95,
+    "stamina": { "anaerobic": 0.8, "aerobic": 0.55, "recovery": 0.7 },
+    "styles": { "circle": 0.5, "run": 0.2, "dive": 0.1, "headshake": 0.1, "structureDash": 0.1 },
+    "mouth": { "hardness": 0.3, "gapeFrac": 0.09, "teeth": 0.0, "gillPlateCut": 0.0 }
+  },
+  "body": {
+    "locomotion": "subcarangiform",
+    "hoverMode": "labriform",
+    "spineNodes": 7,
+    "stiffness": 0.55,
+    "shapeRef": "shapes/centrarchid_sunfish.json",
+    "pattern": {
+      "dorsal": "#5c6a3f",
+      "flank": "#aaa97c",
+      "belly": "#efe29a",
+      "markings": [
+        { "type": "opercular_flap", "color": "#19191c", "where": "rear of the gill cover", "notes": "short stiff black flap with a red or orange rear margin (#d4472b): the 'red ear'" },
+        { "type": "spots", "color": "#6e5a3a", "where": "scattered brown speckles on the back and upper flanks", "notes": "body has an iridescent gold-green sheen" },
+        { "type": "spots", "color": "#a6672f", "where": "sides of the head", "notes": "mottled brown to dark orange spots" }
+      ],
+      "fins": "dorsal light grey; anal pale yellow to white; pectorals long and pointed, reaching past the eye when laid forward, clear",
+      "eye": "#4a3a2a",
+      "variants": {
+        "spawning_male": "breeding colours are not described in the sources used; keep adult colours, slightly darker, with the flap margin at its reddest",
+        "juvenile": "plainer olive-silver, flap margin pale orange and barely visible"
+      },
+      "source": "Outdoor Alabama redear sunfish page; South Carolina DNR redear page"
+    },
+    "variants": ["juvenile", "spawning_male"]
+  },
+  "regulations": {
+    "minLengthCm": null,
+    "bagLimit": 50,
+    "aggregateGroup": "panfish",
+    "closedSeason": null,
+    "protected": false,
+    "invasive": false,
+    "saleProhibited": true,
+    "notes": "Counts toward the 50 panfish daily limit; no length limit. Freshwater game fish: may not be sold.",
+    "basedOn": "https://www.eregulations.com/florida/fishing/freshwater/bag-length-limits",
+    "basedOnDate": "2026-10-18"
+  },
+  "economy": { "edible": true, "pricePerKg": 0, "marketDemand": "low", "notes": "Prized eating, but Florida game fish cannot be sold." },
+  "ledger": {
+    "facts": [
+      "Redear have molar-like teeth in the throat and the muscles to crack snail and mussel shells, hence 'shellcracker'.",
+      "Males grunt while courting, and nests can sit alone or in groups of up to a hundred.",
+      "They tolerate brackish water of 15-20 ppt and outnumber bluegill at the head of Mobile Bay."
+    ],
+    "research": [
+      { "id": "rds_bottom_worm", "task": "Catch one on a red worm lying on the bottom" },
+      { "id": "rds_bed", "task": "Catch one off a spawning bed in spring" },
+      { "id": "rds_trophy", "task": "Catch one over 0.9 kg" }
+    ],
+    "wrenNote": "Shellcrackers feed on the bottom, so put the worm there, not under a float a foot up. Fish the shell beds and the edge of the grass, and give him a second to swim off with it."
+  }
+}

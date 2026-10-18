@@ -1,0 +1,132 @@
+{
+  "id": "florida_bass",
+  "commonName": "Florida bass",
+  "scientificName": "Micropterus salmoides",
+  "scientificNameNotes": "Since the 2023 American Fisheries Society split (as used by FWC and IGFA), Micropterus salmoides is the Florida bass and the northern largemouth is M. nigricans. Older sources call the Florida bass M. floridanus or M. salmoides floridanus. FishBase's M. salmoides entry still mixes data from both.",
+  "family": "Centrarchidae",
+  "tier": "S",
+  "sources": [
+    { "name": "Florida freshwater regulations (FWC guide): The Florida bass - what's in a name", "url": "https://www.eregulations.com/florida/fishing/freshwater/the-florida-bass-whats-in-a-name", "retrieved": "2026-10-18" },
+    { "name": "IGFA world record search: Bass, Florida (all-tackle 10.12 kg, Lake Biwa, Japan, 2009)", "url": "https://igfa.org/member-services/world-record/common-name/Bass%2C%20Florida", "retrieved": "2026-10-18" },
+    { "name": "IGFA world record search: Bass, largemouth (10.09 kg, Montgomery Lake, Georgia, 1932)", "url": "https://igfa.org/member-services/world-record/common-name/Bass%2C%20largemouth", "retrieved": "2026-10-18" },
+    { "name": "FishBase species summary: Micropterus salmoides", "url": "https://www.fishbase.net.br/summary/Micropterus-salmoides.html", "retrieved": "2026-10-18" },
+    { "name": "FishBase length-weight table: Micropterus salmoides", "url": "https://www.fishbase.net.br/popdyn/LWRelationshipList.php?ID=3385&GenusName=Micropterus&SpeciesName=salmoides&fc=302", "retrieved": "2026-10-18" },
+    { "name": "FishBase growth table: Micropterus salmoides", "url": "https://www.fishbase.net.br/popdyn/PopGrowthList.php?ID=3385&GenusName=Micropterus&SpeciesName=salmoides&fc=302", "retrieved": "2026-10-18" },
+    { "name": "Florida Museum of Natural History: Largemouth bass species profile (includes the Florida form)", "url": "https://www.floridamuseum.ufl.edu/discover-fish/species-profiles/largemouth-bass/", "retrieved": "2026-10-18" },
+    { "name": "Florida freshwater regulations (FWC guide): TrophyCatch research highlights (handling study)", "url": "https://www.eregulations.com/florida/fishing/freshwater/trophy-catch-research-highlights", "retrieved": "2026-10-18" },
+    { "name": "Florida freshwater regulations (FWC guide): bag and length limits", "url": "https://www.eregulations.com/florida/fishing/freshwater/bag-length-limits", "retrieved": "2026-10-18" },
+    { "name": "Florida freshwater regulations (FWC guide): freshwater fish of Florida (state record 17.27 lb)", "url": "https://www.eregulations.com/florida/fishing/freshwater/freshwater-fish-of-florida", "retrieved": "2026-10-18" }
+  ],
+  "water": {
+    "salinityPpt": [0, 12],
+    "temperatureC": { "lethalMin": 4, "optimum": [27, 30], "lethalMax": 37 },
+    "oxygenMinMgL": 3.0,
+    "clarityToleranceM": [0.3, 30]
+  },
+  "habitat": {
+    "spots": ["station_pond", "spring_run", "suwannee"],
+    "depthM": [0.3, 6],
+    "structure": { "weeds": 0.9, "wood": 0.9, "docks": 0.8, "lilyPads": 0.85, "rock": 0.5, "dropOff": 0.6, "openWater": 0.1 }
+  },
+  "size": {
+    "lengthCm": { "typical": [30, 50], "max": 74 },
+    "lengthWeight": { "a": 0.0112, "b": 3.19, "units": "W_g = a * L_cm^b", "source": "FishBase LWR table (M. salmoides): 'Florida, pond 2', TL, n=489" },
+    "growth": { "Linf_cm": 61.9, "k": 0.26, "maxAgeYears": 23, "source": "FishBase growth table: Florida, TL (21.7 C). Max age is FishBase's figure for M. salmoides in the broad sense." },
+    "recordWeightKg": 10.12,
+    "notes": "FishBase's 97 cm maximum is for the old broad species and puts any LWR far above the record. lengthCm.max is set to 74 cm, where the Florida LWR reaches the record weight (an estimate: the sources used give no length for the record fish). Florida state record: 7.83 kg (17.27 lb)."
+  },
+  "activity": {
+    "diel": { "dawn": 1.0, "day": 0.4, "dusk": 1.0, "night": 0.3 },
+    "lunar": 0.1,
+    "tide": null,
+    "seasonal": { "winter": 0.55, "spring": 0.9, "summer": 0.7, "autumn": 0.85 },
+    "weather": { "overcast": 0.15, "rain": 0.1, "postColdFront": -0.4, "risingWaterTemp": 0.25 }
+  },
+  "diet": {
+    "items": { "fish": 0.6, "crayfish": 0.15, "frogs": 0.08, "insects": 0.08, "shrimp": 0.05, "small_mammals": 0.02, "reptiles": 0.02 },
+    "preyLengthMaxFrac": 0.4
+  },
+  "feeding": {
+    "mode": "suction_ambush",
+    "biteStyles": { "inhale": 0.55, "crash": 0.3, "slam": 0.15 },
+    "holdTimeS": [0.6, 1.8],
+    "followChance": 0.2,
+    "speedPreferenceMps": [0.1, 1.2],
+    "lureAttraction": {
+      "soft_plastic_worm": 0.9, "jig": 0.8, "spinnerbait": 0.75, "crankbait": 0.75, "topwater_walker": 0.85,
+      "popper": 0.8, "frog": 0.9, "swimbait": 0.85, "jerkbait": 0.65, "inline_spinner": 0.5, "spoon": 0.5,
+      "streamer_fly": 0.7, "popper_fly": 0.7
+    },
+    "baitAttraction": {
+      "live_minnow": 0.8, "wild_shiner": 1.0, "nightcrawler": 0.55, "red_worm": 0.3, "cricket": 0.15, "live_shrimp": 0.5,
+      "cut_bait": 0.1, "chicken_liver": 0.02, "stink_bait": 0.0, "dough": 0.0, "bread": 0.0, "corn": 0.0,
+      "live_crayfish": 0.8, "fiddler_crab": 0.0, "barnacle": 0.0
+    }
+  },
+  "senses": {
+    "vision": 1.0, "spectral": { "r": 0.9, "g": 1.0, "b": 0.45 }, "lowLight": 0.5,
+    "lateralLine": 0.9, "hearing": 0.6, "smell": 0.3, "electro": 0.0,
+    "lineShy": 0.45, "spookiness": 0.6
+  },
+  "behaviour": {
+    "schooling": "loose_small",
+    "territorial": 0.5,
+    "spawn": { "season": "late_winter_spring", "months": [2, 5], "tempC": [16, 22], "habitat": "shallow_firm_bottom", "mode": "nest_guard", "biteMotive": "defense" },
+    "migration": { "type": "seasonal_depth", "notes": "Deeper water in winter; into bays and shallows that warm first in spring (Florida Museum)." }
+  },
+  "fight": {
+    "powerCoeff": 1.0,
+    "stamina": { "anaerobic": 1.0, "aerobic": 0.7, "recovery": 0.6 },
+    "styles": { "jump": 0.35, "headshake": 0.3, "structureDash": 0.25, "run": 0.1 },
+    "mouth": { "hardness": 0.4, "gapeFrac": 0.2, "teeth": 0.05, "gillPlateCut": 0.0 }
+  },
+  "body": {
+    "locomotion": "subcarangiform",
+    "spineNodes": 8,
+    "stiffness": 0.5,
+    "shapeRef": "shapes/centrarchid_bass.json",
+    "pattern": {
+      "dorsal": "#3d572c",
+      "flank": "#8c9e6c",
+      "belly": "#ece8d6",
+      "markings": [
+        { "type": "blotched_band", "color": "#2a3422", "where": "mid-flank, from the snout through the eye to the tail base", "notes": "a row of dark blotches that merge into a solid stripe on the caudal peduncle" }
+      ],
+      "fins": "vertical fins lightly pigmented olive; paired fins mostly clear; mouth extends past the rear of the eye",
+      "eye": "#a8752b",
+      "variants": {
+        "spawning_male": "darker overall; fish from mud-bottomed lakes are dark olive-brown to nearly black",
+        "juvenile": "pale green with a crisp dark lateral band"
+      },
+      "source": "Florida Museum of Natural History largemouth bass profile"
+    },
+    "variants": ["juvenile", "spawning_male"]
+  },
+  "regulations": {
+    "minLengthCm": null,
+    "bagLimit": 5,
+    "aggregateGroup": "black_bass",
+    "trophyAllowance": { "overLengthCm": 40.6, "count": 1 },
+    "closedSeason": null,
+    "protected": false,
+    "invasive": false,
+    "saleProhibited": true,
+    "notes": "5 black bass a day in total (Florida, largemouth, Suwannee and others), only one of which may be 16 in (40.6 cm) or longer; no minimum length. Freshwater game fish: may not be sold.",
+    "basedOn": "https://www.eregulations.com/florida/fishing/freshwater/bag-length-limits",
+    "basedOnDate": "2026-10-18"
+  },
+  "economy": { "edible": true, "pricePerKg": 0, "marketDemand": "low", "notes": "Florida game fish cannot be sold; trophy fish are worth far more released (TrophyCatch-style rewards)." },
+  "ledger": {
+    "facts": [
+      "A Florida bass and a northern largemouth can't be told apart by eye: it takes a genetic test.",
+      "IGFA lists a 10.12 kg fish from Lake Biwa, Japan (2009), as the Florida bass all-tackle record; George Perry's famous 1932 Georgia fish is the largemouth record.",
+      "In a Florida study, bass held level and fully supported with two hands recovered in under 10 seconds on average."
+    ],
+    "research": [
+      { "id": "flb_topwater_dawn", "task": "Catch one on a topwater lure at dawn" },
+      { "id": "flb_wild_shiner", "task": "Catch one over 3.6 kg (8 lb) on a wild shiner" },
+      { "id": "flb_bed", "task": "Photograph a male guarding a nest without disturbing it" }
+    ],
+    "wrenNote": "Big Florida fish don't chase in cold water. A wild shiner swimming free along the pads at first light will do what no plug can. Let her turn with it before you come tight."
+  }
+}
