@@ -192,10 +192,64 @@ public partial class TestView : Node2D
     private static readonly Color Cap = new(0.78f, 0.36f, 0.22f);
     private static readonly Color Hair = new(0.25f, 0.18f, 0.12f);
 
-    // Dog (a yellow lab).
-    private static readonly Color Dog = new(0.80f, 0.62f, 0.36f);
-    private static readonly Color DogShade = new(0.66f, 0.49f, 0.27f);
+    // Skiff, the scruffy station dog (docs/01 section 3): brindle-brown with a pale muzzle.
+    private static readonly Color Dog = new(0.55f, 0.45f, 0.34f);
+    private static readonly Color DogShade = new(0.42f, 0.34f, 0.26f);
+    private static readonly Color Muzzle = new(0.78f, 0.72f, 0.62f);
     private static readonly Color Nose = new(0.15f, 0.11f, 0.09f);
+
+    /// <summary>Whether Skiff comes fishing (Tab menu; saved in settings).</summary>
+    public static bool DogOn = true;
+
+    private enum DogMood { Sit, Alert, Sleep }
+    private DogMood _mood = DogMood.Sit;
+    private double _moodUntil, _quietSince, _barkUntil, _nextBark;
+    private int _barksLeft;
+
+    public override void _Ready()
+    {
+        Driver.EventRaised += OnDogEvent;
+        var cfg = new ConfigFile();
+        if (cfg.Load("user://settings.cfg") == Error.Ok) DogOn = (bool)cfg.GetValue("game", "dog", true);
+        _quietSince = Now;
+    }
+
+    public override void _ExitTree() => Driver.EventRaised -= OnDogEvent;
+
+    private static double Now => Time.GetTicksMsec() * 0.001;
+
+    /// <summary>Skiff reacts to the fishing: barks at jumps, perks up at hooksets and night bites, wakes for any of it.</summary>
+    private void OnDogEvent(SimEvent e)
+    {
+        bool night = Driver.World.Hour < 6f || Driver.World.Hour > 20f;
+        switch (e.Type)
+        {
+            case SimEventType.FishJumped: Wake(4); Bark(2); break;
+            case SimEventType.HookSet: Wake(6); Bark(1); break;
+            case SimEventType.FishLanded: Wake(5); break;
+            case SimEventType.Bite when night: Wake(3); break;
+            case SimEventType.LureEntered:
+                _quietSince = Now;
+                if (_mood == DogMood.Sleep) Wake(2);
+                break;
+        }
+    }
+
+    private void Wake(double seconds)
+    {
+        _mood = DogMood.Alert;
+        _moodUntil = Now + seconds;
+        _quietSince = Now;
+    }
+
+    private void Bark(int n)
+    {
+        _barksLeft = n;
+        _nextBark = Now + 0.15;
+    }
+
+    /// <summary>A bark happened (the sound engine listens for this).</summary>
+    public static event Action? Barked;
 
     private Vector2[]? _terrainPx, _deepPx;
 
@@ -266,7 +320,7 @@ public partial class TestView : Node2D
         {
             Vec2 feetV = Vec2.Lerp(a.PrevPosition, a.Position, alpha);
             var feet = new Vector2(feetV.X, feetV.Y);
-            DrawDog(feet + new Vector2(-1.0f, 0f), t, fishOn);
+            if (DogOn) DrawDog(feet + new Vector2(-1.0f, 0f), t, fishOn);
             DrawAngler(a, feet);
         }
     }
@@ -352,6 +406,20 @@ public partial class TestView : Node2D
         }
     }
 
+    /// <summary>Skiff asleep: lying flat, head on paws, slow breathing.</summary>
+    private void DrawDogAsleep(Vector2 at, float t)
+    {
+        float breathe = 0.012f * MathF.Sin(t * 1.6f);
+        Lp.Poly(this, DogShade, at + new Vector2(-0.5f, 0.02f), at + new Vector2(-0.62f, 0.12f), at + new Vector2(-0.45f, 0.1f)); // tail curled
+        Lp.Poly(this, Dog, at + new Vector2(-0.48f, 0f), at + new Vector2(0.2f, 0f), at + new Vector2(0.16f, 0.2f + breathe),
+                at + new Vector2(-0.1f, 0.26f + breathe), at + new Vector2(-0.42f, 0.2f + breathe));
+        var head = at + new Vector2(0.3f, 0.1f);
+        Lp.Ngon(this, Dog, head, 0.1f, 6, 0.3f);
+        Lp.Poly(this, Muzzle, head + new Vector2(0.04f, -0.08f), head + new Vector2(0.24f, -0.08f), head + new Vector2(0.22f, -0.01f), head + new Vector2(0.04f, 0.02f));
+        Lp.Poly(this, DogShade, head + new Vector2(-0.07f, 0.05f), head + new Vector2(0.03f, 0.07f), head + new Vector2(0.02f, -0.1f), head + new Vector2(-0.08f, -0.08f));
+        Lp.Ngon(this, Nose, head + new Vector2(0.24f, -0.045f), 0.025f, 5);
+    }
+
     private void DrawAngler(TheLedger.Sim.Angler.AnglerState a, Vector2 feet)
     {
         var shoulder = feet + new Vector2(0f, a.ShoulderHeight);
@@ -396,9 +464,25 @@ public partial class TestView : Node2D
         Lp.Ngon(this, skin, shoulder + d.Normalized() * dist, 0.05f, 6);
     }
 
-    /// <summary>The dog sits by the angler; its tail goes when a fish is on.</summary>
+    /// <summary>Skiff sits by the angler: alert (ears up, tail going) when something happens, asleep when nothing does.</summary>
     private void DrawDog(Vector2 at, float t, bool excited)
     {
+        double now = Now;
+        if (_barksLeft > 0 && now >= _nextBark)
+        {
+            _barksLeft--;
+            _barkUntil = now + 0.16;
+            _nextBark = now + 0.32;
+            Barked?.Invoke();
+        }
+        if (excited) { _mood = DogMood.Alert; _moodUntil = now + 2; _quietSince = now; }
+        if (_mood == DogMood.Alert && now > _moodUntil) _mood = DogMood.Sit;
+        bool night = Driver.World.Hour < 6f || Driver.World.Hour > 20f;
+        if (_mood == DogMood.Sit && now - _quietSince > (night ? 25 : 60)) _mood = DogMood.Sleep;
+        if (_mood == DogMood.Sleep) { DrawDogAsleep(at, t); return; }
+        bool alert = _mood == DogMood.Alert;
+        bool barking = now < _barkUntil;
+        excited |= alert;
         float wag = MathF.Sin(t * (excited ? 14f : 3f)) * (excited ? 0.5f : 0.2f);
         float bob = excited ? 0.03f * MathF.Abs(MathF.Sin(t * 7f)) : 0.01f * MathF.Sin(t * 1.3f);
         var hip = at + new Vector2(-0.22f, 0.18f + bob);
@@ -410,11 +494,18 @@ public partial class TestView : Node2D
                 at + new Vector2(0.24f, 0.42f + bob), at + new Vector2(0.12f, 0.12f), hip + new Vector2(0.05f, -0.12f));
         Lp.Limb(this, Dog, at + new Vector2(0.12f, 0.3f), at + new Vector2(0.12f, 0f), 0.07f, 0.06f);
         Lp.Limb(this, DogShade, at + new Vector2(0.03f, 0.3f), at + new Vector2(0.04f, 0f), 0.07f, 0.06f);
-        var head = at + new Vector2(0.24f, 0.66f + bob);
+        var head = at + new Vector2(0.24f, 0.66f + bob + (alert ? 0.04f : 0f) + (barking ? 0.03f : 0f));
         Lp.Ngon(this, Dog, head, 0.12f, 6, 0.2f);
-        Lp.Poly(this, Dog, head + new Vector2(0.05f, -0.02f), head + new Vector2(0.27f, -0.05f), head + new Vector2(0.27f, -0.12f), head + new Vector2(0.05f, -0.12f));
+        // Scruffy tufts on the head and chest.
+        Lp.Poly(this, DogShade, head + new Vector2(-0.06f, 0.1f), head + new Vector2(-0.02f, 0.16f), head + new Vector2(0.02f, 0.1f));
+        Lp.Poly(this, DogShade, hip + new Vector2(0.24f, 0.1f), hip + new Vector2(0.3f, 0.02f), hip + new Vector2(0.2f, 0.04f));
+        Lp.Poly(this, Muzzle, head + new Vector2(0.05f, -0.02f), head + new Vector2(0.27f, -0.05f), head + new Vector2(0.27f, -0.12f), head + new Vector2(0.05f, -0.12f));
+        if (barking) Lp.Poly(this, Nose, head + new Vector2(0.12f, -0.11f), head + new Vector2(0.27f, -0.12f), head + new Vector2(0.24f, -0.19f));
         Lp.Ngon(this, Nose, head + new Vector2(0.27f, -0.07f), 0.03f, 5);
-        Lp.Poly(this, DogShade, head + new Vector2(-0.08f, 0.06f), head + new Vector2(0.02f, 0.08f), head + new Vector2(-0.04f, -0.14f), head + new Vector2(-0.1f, -0.1f));
+        if (alert)
+            Lp.Poly(this, DogShade, head + new Vector2(-0.08f, 0.06f), head + new Vector2(0.0f, 0.08f), head + new Vector2(-0.05f, 0.24f)); // ears pricked
+        else
+            Lp.Poly(this, DogShade, head + new Vector2(-0.08f, 0.06f), head + new Vector2(0.02f, 0.08f), head + new Vector2(-0.04f, -0.14f), head + new Vector2(-0.1f, -0.1f));
         Lp.Ngon(this, Nose, head + new Vector2(0.08f, 0.03f), 0.018f, 5);
     }
 }

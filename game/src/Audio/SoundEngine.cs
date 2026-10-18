@@ -24,7 +24,7 @@ public partial class SoundEngine : Node
     private readonly Dictionary<int, Vector2[]> _buffers = new();
     private readonly Random _rng = new(7);
 
-    private enum Kind : byte { Noise, Plop, Click, Chirp, Snap, Croak }
+    private enum Kind : byte { Noise, Plop, Click, Chirp, Snap, Croak, Bark }
 
     private struct Voice
     {
@@ -45,6 +45,7 @@ public partial class SoundEngine : Node
 
     public override void _Ready()
     {
+        TheLedger.Render.TestView.Barked += OnBark;
         var gen = new AudioStreamGenerator { MixRate = Rate, BufferLength = 0.12f };
         _player = new AudioStreamPlayer { Stream = gen, VolumeDb = -2f };
         AddChild(_player);
@@ -54,7 +55,13 @@ public partial class SoundEngine : Node
         _lastBail = Driver.World.Anglers[0].Reel.BailOpen;
     }
 
-    public override void _ExitTree() => Driver.EventRaised -= OnEvent;
+    public override void _ExitTree()
+    {
+        Driver.EventRaised -= OnEvent;
+        TheLedger.Render.TestView.Barked -= OnBark;
+    }
+
+    private void OnBark() => Add(Kind.Bark, 0.14f, 0.35f, 520f, 300f, -0.35f, 0.4f);
 
     private float Rnd() => (float)_rng.NextDouble();
     private float Noise() => Rnd() * 2f - 1f;
@@ -250,6 +257,11 @@ public partial class SoundEngine : Node
                     case Kind.Snap:
                         vo.Phase += f * dt;
                         s = 0.6f * nz + 0.6f * MathF.Sin(vo.Phase * MathF.Tau);
+                        break;
+                    case Kind.Bark:
+                        // A short rough woof: a falling buzzy tone with breath noise.
+                        vo.Phase += f * dt;
+                        s = 0.6f * MathF.Sign(MathF.Sin(vo.Phase * MathF.Tau)) * MathF.Abs(MathF.Sin(vo.Phase * MathF.Tau * 0.5f)) + 0.35f * Noise();
                         break;
                     case Kind.Croak:
                         vo.Phase += f * dt;
