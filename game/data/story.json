@@ -1,0 +1,49 @@
+{
+  "_note": "Act 1 opening (docs/01_VISION_AND_WORLD.md section 6). Steps run in order; goal types: releaseSpecies (distinct species released at a spot), catchSpecies (each listed species landed at a spot), pay (a button in Field notes), none (end of what exists so far).",
+  "steps": [
+    {
+      "id": "survey1",
+      "title": "First survey",
+      "giver": "Odile",
+      "intro": "Morning. Odile Marsh, Cedar Shoals Fisheries Trust. You're the new hire, so you get the pond. I need five species out of it, measured and released. Not kept. Released. The Trust needs data, not dinner.",
+      "goal": { "type": "releaseSpecies", "spot": "station_pond", "count": 5 },
+      "done": "Five species. Huh. Wren used to say a pond tells you everything if you ask it properly. Come by the boathouse, Teodor's been eyeing that old rowboat of hers.",
+      "page": {
+        "title": "Wren's page: The Station Pond, April",
+        "text": "Bluegill bed in the shallows when the water climbs past 21 degrees. The big bass sit under the fallen oak and wait for them to get careless. So do I. The pond is small but it is honest: whatever you learn here, the sea will test."
+      }
+    },
+    {
+      "id": "teal",
+      "title": "The Teal",
+      "giver": "Teodor",
+      "intro": "Wren's rowboat, the Teal. Hull's sound, oarlocks are shot, transom's soft. Sixty dollars in parts and I'll have her floating by tomorrow. Then you can row up to the spring run like she used to.",
+      "goal": { "type": "pay", "amount": 60, "button": "Pay Teodor for the Teal's repairs ($60)" },
+      "done": "There she is. Row easy, the spring run's clear as gin and the mullet will see you coming a mile off.",
+      "unlocks": ["kings_bay"],
+      "page": {
+        "title": "Wren's page: The Teal",
+        "text": "Bought her for forty dollars and a cooler of mullet. She leaks a little on the left, which keeps me humble. A small boat goes where the fish are, not where the ramps are."
+      }
+    },
+    {
+      "id": "spring_survey",
+      "title": "Spring run survey",
+      "giver": "Odile",
+      "intro": "The spring run holds 22 degrees all year, so in a cold snap half the coast piles in there. Get me a mullet, a sheepshead and a redear out of Kings Bay. Measured. Then we'll talk about what Wren left in that bay.",
+      "goal": { "type": "catchSpecies", "spot": "kings_bay", "species": ["striped_mullet", "sheepshead", "redear_sunfish"] },
+      "done": "Good numbers. Better than good. I found something in the boathouse while you were out: another of Wren's pages, tucked in the Teal's seat locker.",
+      "page": {
+        "title": "Wren's page: Kings Bay, a January cold front",
+        "text": "Snook stacked in the spring boils like cordwood, waiting out the cold. Manatees above them. Everything alive on this coast knows where the warm water is. The Lantern rose again over the caves last night, Mze says. It moves with the dark. Something old follows it up."
+      }
+    },
+    {
+      "id": "end",
+      "title": "Wren's road",
+      "giver": "Odile",
+      "intro": "Wren's next page points north, to a lodge on Lake of the Woods. We'll need a truck that runs and a reason the Trust can afford it. (More of the Ledger's road arrives in later updates.)",
+      "goal": { "type": "none" }
+    }
+  ]
+}

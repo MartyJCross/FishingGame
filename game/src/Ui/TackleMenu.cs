@@ -15,9 +15,11 @@ public partial class TackleMenu : PanelContainer
     public Action OpenLedger { get; set; } = () => { };
     public Action OpenShop { get; set; } = () => { };
     public Action OpenTravel { get; set; } = () => { };
+    public Action OpenStory { get; set; } = () => { };
 
     private Button _lure = null!, _rod = null!;
     private Label _note = null!, _title = null!;
+    private Button _notes = null!;
 
     public override void _Ready()
     {
@@ -33,6 +35,7 @@ public partial class TackleMenu : PanelContainer
         box.AddChild(title);
         _lure = MakeButton(box, () => Router.PulseRig = true);
         _rod = MakeButton(box, () => Router.PulseRack = true);
+        _notes = MakeButton(box, () => { Visible = false; OpenStory(); });
         MakeButton(box, () => { Visible = false; OpenShop(); }).Text = "Bait & tackle shop";
         MakeButton(box, () => { Visible = false; OpenTravel(); }).Text = "Travel";
         MakeButton(box, () => { Visible = false; OpenLedger(); }).Text = "The Ledger (catch log)";
@@ -75,6 +78,8 @@ public partial class TackleMenu : PanelContainer
         _rod.Disabled |= a.Rack.Count < 2;
         _note.Text = reeledIn ? "" : "Reel in to change lure or rod";
         var p = ProfileStore.Current;
+        var (have, need, _) = Story.Progress();
+        _notes.Text = $"Field notes:  {Story.Current.Title}" + (need > 0 && Story.Current.Goal.Type != "pay" ? $"  ({have}/{need})" : "");
         _title.Text = $"{Driver.Info.Name}\n${p.Money:0.00}      cooler: {p.Cooler.Count}";
     }
 }

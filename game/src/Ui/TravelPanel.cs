@@ -42,6 +42,7 @@ public partial class TravelPanel : PanelContainer
         foreach (var s in SpotInfo.All())
         {
             bool here = s.Id == Driver.Info.Id;
+            bool open = Story.SpotOpen(s.Id);
             var row = new HBoxContainer();
             var text = new VBoxContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill };
             var name = new Label { Text = s.Name };
@@ -51,11 +52,11 @@ public partial class TravelPanel : PanelContainer
             text.AddChild(name);
             text.AddChild(place);
             row.AddChild(text);
-            string action = here ? "You're here" : s.TravelCost > 0f ? $"Drive  ${s.TravelCost:0.00}" : "Drive home";
+            string action = here ? "You're here" : !open ? "Locked (Field notes)" : s.TravelCost > 0f ? $"Drive  ${s.TravelCost:0.00}" : "Drive home";
             var go = new Button
             {
                 Text = action, CustomMinimumSize = new Vector2(150, 36), FocusMode = FocusModeEnum.None,
-                Disabled = here || p.Money < s.TravelCost, SizeFlagsVertical = SizeFlags.ShrinkCenter,
+                Disabled = here || !open || p.Money < s.TravelCost, SizeFlagsVertical = SizeFlags.ShrinkCenter,
             };
             go.Pressed += () =>
             {

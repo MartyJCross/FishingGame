@@ -23,7 +23,9 @@ public partial class Main : Node2D
     private Camera2D _camera = null!;
     private Node2D _worldRoot = null!;
     private Label _reelHud = null!;
-    private Label _toast = null!;
+    private Label _toast = null!, _radio = null!;
+    private double _radioTime;
+    private StoryPanel _story = null!;
     private Label _card = null!;
     private LedgerPanel _ledger = null!;
     private TheLedger.Ui.TackleMenu _menu = null!;
@@ -85,6 +87,7 @@ public partial class Main : Node2D
         if (_args.Spot != null) _driver.SpotId = _args.Spot;
         else if (!_automated) _driver.SpotId = ProfileStore.Current.Spot;
         _driver.Setup(config, _args);
+        if (!_automated) CallDeferred(nameof(StoryBriefing));
         if (!_automated && _args.Weather == null)
         {
             _weather = new TheLedger.SimGlue.WeatherDirector { Name = "Weather", Driver = _driver };
@@ -142,7 +145,8 @@ public partial class Main : Node2D
         hud.AddChild(new TheLedger.Ui.ControlsHud { Name = "Controls", Driver = _driver, Router = _router });
         _shop = new TheLedger.Ui.ShopPanel { Name = "Shop", Driver = _driver };
         _travel = new TheLedger.Ui.TravelPanel { Name = "Travel", Driver = _driver };
-        _menu = new TheLedger.Ui.TackleMenu { Name = "TackleMenu", Driver = _driver, Router = _router, OpenLedger = () => _ledger.Toggle(), OpenShop = () => _shop.Open(), OpenTravel = () => _travel.Open() };
+        _story = new StoryPanel { Name = "Story", Finished = StoryMoment };
+        _menu = new TheLedger.Ui.TackleMenu { Name = "TackleMenu", Driver = _driver, Router = _router, OpenLedger = () => _ledger.Toggle(), OpenShop = () => _shop.Open(), OpenTravel = () => _travel.Open(), OpenStory = () => _story.Open() };
 
         _reelHud = new Label { AnchorLeft = 1f, AnchorRight = 1f, OffsetLeft = -420f, OffsetRight = -16f, OffsetTop = 12f, HorizontalAlignment = HorizontalAlignment.Right, GrowHorizontal = Control.GrowDirection.Begin };
         _reelHud.AddThemeFontSizeOverride("font_size", 22);
@@ -150,6 +154,16 @@ public partial class Main : Node2D
         _reelHud.AddThemeConstantOverride("outline_size", 4);
         hud.AddChild(_reelHud);
 
+        _radio = new Label
+        {
+            AnchorLeft = 0.5f, AnchorRight = 0.5f, OffsetLeft = -480f, OffsetRight = 480f, OffsetTop = 170f,
+            HorizontalAlignment = HorizontalAlignment.Center, AutowrapMode = TextServer.AutowrapMode.WordSmart,
+        };
+        _radio.AddThemeFontSizeOverride("font_size", 21);
+        _radio.AddThemeColorOverride("font_color", new Color(0.85f, 0.95f, 0.85f));
+        _radio.AddThemeColorOverride("font_outline_color", Colors.Black);
+        _radio.AddThemeConstantOverride("outline_size", 5);
+        hud.AddChild(_radio);
         _toast = new Label { AnchorLeft = 0.5f, AnchorRight = 0.5f, OffsetLeft = -400f, OffsetRight = 400f, OffsetTop = 110f, HorizontalAlignment = HorizontalAlignment.Center };
         _toast.AddThemeFontSizeOverride("font_size", 34);
         _toast.AddThemeColorOverride("font_outline_color", Colors.Black);
@@ -168,6 +182,7 @@ public partial class Main : Node2D
         hud.AddChild(_menu);
         hud.AddChild(_shop);
         hud.AddChild(_travel);
+        hud.AddChild(_story);
     }
 
     private void Toast(string text, double seconds = 2.5)
@@ -223,9 +238,10 @@ public partial class Main : Node2D
                 LedgerStore.Add(new LedgerEntry
                 {
                     Species = c.Species.Id, CommonName = c.Species.CommonName, LengthCm = c.LengthCm, WeightKg = c.WeightKg,
-                    Kept = kept, Lure = w.Anglers[0].Rig.Line.Terminal.Name, GameHour = c.Hour,
+                    Kept = kept, Lure = w.Anglers[0].Rig.Line.Terminal.Name, GameHour = c.Hour, Spot = _driver.Info.Id,
                     When = DateTime.Now.ToString("yyyy-MM-dd HH:mm"),
                 });
+                if (!_automated && Story.CurrentComplete) StoryMoment(Story.Advance());
                 int keptCount = w.Catches.Count(k => k.Kept);
                 _card.Text = CatchLine(c) + $"\n{(kept ? "Kept" : "Released")}.   This session: {w.Catches.Count(k => !k.Pending)} landed, {keptCount} kept.   Ledger: {LedgerStore.Entries.Count}";
                 _cardTime = 5;
@@ -321,6 +337,27 @@ public partial class Main : Node2D
         _ = line;
     }
 
+    private void StoryBriefing()
+    {
+        var s = Story.Current;
+        Radio(s.Giver, s.Intro, 12);
+    }
+
+    /// <summary>Someone on the radio: a few lines across the top of the screen for a while.</summary>
+    private void Radio(string who, string text, double seconds = 9)
+    {
+        _radio.Text = $"{who} (radio):  {text}";
+        _radioTime = seconds;
+    }
+
+    /// <summary>A story step finished: the giver's sign-off, a new page, then the next step's brief.</summary>
+    private void StoryMoment(StoryStep done)
+    {
+        Radio(done.Giver, done.Done + (done.Page != null ? "   [New page of Wren's in your Field notes: Tab]" : ""), 12);
+        Toast($"{done.Title}: complete", 3);
+        GetTree().CreateTimer(13.0).Timeout += () => { var n = Story.Current; if (n.Id != done.Id) Radio(n.Giver, n.Intro, 12); };
+    }
+
     /// <summary>Keeps the calendar going between sessions: the date and time are saved on quit (and on travel).</summary>
     public override void _Notification(int what)
     {
@@ -390,7 +427,9 @@ public partial class Main : Node2D
     {
         _router.ShoulderPx = SimSpace.ToPx(_driver.World.Anglers[0].Shoulder);
         _router.RodAngle = _driver.World.Anglers[0].Hands.Angle;
-        bool panel = _menu.Visible || _shop.Visible || _travel.Visible;
+        bool panel = _menu.Visible || _shop.Visible || _travel.Visible || _story.Visible;
+        _radioTime -= delta;
+        _radio.Visible = _radioTime > 0;
         _router.MouseRodEnabled = !_tuning.MouseOver && !panel;
         // The mouse is captured (hidden) while fishing; any menu or panel gives the cursor back.
         bool wantCapture = !_automated && !panel && !_ledger.Visible && !_tuning.IsOpen
