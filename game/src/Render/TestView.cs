@@ -197,16 +197,35 @@ public partial class TestView : Node2D
     private static readonly Color DogShade = new(0.66f, 0.49f, 0.27f);
     private static readonly Color Nose = new(0.15f, 0.11f, 0.09f);
 
-    private Vector2[]? _terrainPx;
+    private Vector2[]? _terrainPx, _deepPx;
 
     public override void _Process(double delta) => QueueRedraw();
 
     public override void _Draw()
     {
         float t = (float)Time.GetTicksMsec() * 0.001f;
-        _terrainPx ??= TestPond.Terrain.Select(SimSpace.ToPx).ToArray();
+        if (_terrainPx == null)
+        {
+            // The spot's cross-section, closed off below; a darker layer follows the bottom 0.7 m down.
+            var spot = Driver.World.Spot;
+            var pts = new List<Vector2>();
+            var deep = new List<Vector2>();
+            for (int i = 0; i < spot.PointCount; i++)
+            {
+                var p = spot.Point(i);
+                pts.Add(SimSpace.ToPx(p.X, p.Y));
+                deep.Add(SimSpace.ToPx(p.X, p.Y - 0.7f));
+            }
+            var last = spot.Point(spot.PointCount - 1);
+            pts.Add(SimSpace.ToPx(last.X, -12f));
+            pts.Add(SimSpace.ToPx(spot.Point(0).X, -12f));
+            deep.Add(SimSpace.ToPx(last.X, -12f));
+            deep.Add(SimSpace.ToPx(spot.Point(0).X, -12f));
+            _terrainPx = pts.ToArray();
+            _deepPx = deep.ToArray();
+        }
         DrawColoredPolygon(_terrainPx, Bottom);
-        Lp.Poly(this, BottomDeep, new Vector2(4.5f, -3.6f), new Vector2(20f, -3.9f), new Vector2(60f, -3.8f), new Vector2(60f, -12f), new Vector2(-40f, -12f), new Vector2(-40f, -1.5f));
+        DrawColoredPolygon(_deepPx!, BottomDeep);
         // Bank: soil, a sandy lip down to the water, grass on top with tufts.
         Lp.Poly(this, Soil, new Vector2(-40f, 0.45f), new Vector2(-1.25f, 0.45f), new Vector2(-0.24f, -0.1f), new Vector2(0.2f, -0.45f), new Vector2(-40f, -0.6f));
         Lp.Poly(this, Sand, new Vector2(-1.35f, 0.5f), new Vector2(-1.15f, 0.6f), new Vector2(0.4f, -0.4f), new Vector2(0.1f, -0.45f), new Vector2(-0.3f, -0.05f));

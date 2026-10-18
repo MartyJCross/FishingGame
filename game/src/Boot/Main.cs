@@ -27,6 +27,7 @@ public partial class Main : Node2D
     private LedgerPanel _ledger = null!;
     private TheLedger.Ui.TackleMenu _menu = null!;
     private TheLedger.Ui.ShopPanel _shop = null!;
+    private TheLedger.Ui.TravelPanel _travel = null!;
     private CanvasModulate _daylight = null!;
     private double _toastTime, _cardTime;
     private double _benchTime, _benchWorst;
@@ -79,6 +80,8 @@ public partial class Main : Node2D
         AddChild(_router);
 
         _driver = new SimDriver { Name = "SimDriver" };
+        if (_args.Spot != null) _driver.SpotId = _args.Spot;
+        else if (!_automated) _driver.SpotId = ProfileStore.Current.Spot;
         _driver.Setup(config, _args);
         _driver.Routers.Add(_router);
         _driver.MouseWorldPx = () => _worldRoot.GetGlobalMousePosition();
@@ -89,7 +92,11 @@ public partial class Main : Node2D
         _daylight = new CanvasModulate { Name = "Daylight" };
         AddChild(_daylight);
         _worldRoot.AddChild(new TestSky { Name = "Sky", ZIndex = -10 });
-        _worldRoot.AddChild(new WaterRenderer { Name = "Water", Driver = _driver, WaterStartX = TestPond.WaterlineX, ZIndex = 0 });
+        _worldRoot.AddChild(new WaterRenderer
+        {
+            Name = "Water", Driver = _driver, WaterStartX = _driver.Info.Spot.WaterlineX, ZIndex = 0,
+            Shallow = _driver.Info.WaterShallow with { A = 0.96f }, Deep = _driver.Info.WaterDeep,
+        });
         _worldRoot.AddChild(new FishRenderer { Name = "Fish", Driver = _driver, ZIndex = 1 });
         _worldRoot.AddChild(new TestView { Name = "TestView", Driver = _driver, ZIndex = 10 });
         var tackle = new TackleRenderer { Name = "Tackle", Driver = _driver, ZIndex = 11 };
@@ -127,7 +134,8 @@ public partial class Main : Node2D
         hud.AddChild(new TheLedger.Ui.LureCam { Name = "LureCam", Driver = _driver });
         hud.AddChild(new TheLedger.Ui.ControlsHud { Name = "Controls", Driver = _driver, Router = _router });
         _shop = new TheLedger.Ui.ShopPanel { Name = "Shop", Driver = _driver };
-        _menu = new TheLedger.Ui.TackleMenu { Name = "TackleMenu", Driver = _driver, Router = _router, OpenLedger = () => _ledger.Toggle(), OpenShop = () => _shop.Open() };
+        _travel = new TheLedger.Ui.TravelPanel { Name = "Travel", Driver = _driver };
+        _menu = new TheLedger.Ui.TackleMenu { Name = "TackleMenu", Driver = _driver, Router = _router, OpenLedger = () => _ledger.Toggle(), OpenShop = () => _shop.Open(), OpenTravel = () => _travel.Open() };
 
         _reelHud = new Label { AnchorLeft = 1f, AnchorRight = 1f, OffsetLeft = -420f, OffsetRight = -16f, OffsetTop = 12f, HorizontalAlignment = HorizontalAlignment.Right, GrowHorizontal = Control.GrowDirection.Begin };
         _reelHud.AddThemeFontSizeOverride("font_size", 22);
@@ -152,6 +160,7 @@ public partial class Main : Node2D
         hud.AddChild(_ledger);
         hud.AddChild(_menu);
         hud.AddChild(_shop);
+        hud.AddChild(_travel);
     }
 
     private void Toast(string text, double seconds = 2.5)
@@ -355,9 +364,10 @@ public partial class Main : Node2D
     {
         _router.ShoulderPx = SimSpace.ToPx(_driver.World.Anglers[0].Shoulder);
         _router.RodAngle = _driver.World.Anglers[0].Hands.Angle;
-        _router.MouseRodEnabled = !_tuning.MouseOver && !_menu.Visible && !_shop.Visible;
+        bool panel = _menu.Visible || _shop.Visible || _travel.Visible;
+        _router.MouseRodEnabled = !_tuning.MouseOver && !panel;
         // The mouse is captured (hidden) while fishing; any menu or panel gives the cursor back.
-        bool wantCapture = !_automated && !_menu.Visible && !_shop.Visible && !_ledger.Visible && !_tuning.IsOpen
+        bool wantCapture = !_automated && !panel && !_ledger.Visible && !_tuning.IsOpen
                            && DisplayServer.WindowIsFocused();
         var mode = wantCapture ? Input.MouseModeEnum.Captured : Input.MouseModeEnum.Visible;
         if (Input.MouseMode != mode) Input.MouseMode = mode;

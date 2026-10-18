@@ -1,5 +1,58 @@
 {
   "id": "station_pond",
+  "name": "Station Pond",
+  "place": "A borrow pit behind the old fire station, Citrus County. Home water.",
+  "travelCost": 0,
+  "scenery": "pond",
+  "waterShallow": [
+    0.26,
+    0.6,
+    0.64
+  ],
+  "waterDeep": [
+    0.07,
+    0.27,
+    0.36
+  ],
+  "profile": [
+    [
+      -40,
+      0.6
+    ],
+    [
+      -1.2,
+      0.6
+    ],
+    [
+      0.4,
+      -0.4
+    ],
+    [
+      2.0,
+      -2.5
+    ],
+    [
+      4.5,
+      -3.0
+    ],
+    [
+      20,
+      -3.3
+    ],
+    [
+      40,
+      -3.0
+    ],
+    [
+      60,
+      -3.2
+    ]
+  ],
+  "anglerStart": [
+    -2,
+    0.6
+  ],
+  "waterlineX": -0.24,
   "visibilityM": 1.8,
   "rangeX": [
     1.0,

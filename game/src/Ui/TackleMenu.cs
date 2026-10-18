@@ -14,6 +14,7 @@ public partial class TackleMenu : PanelContainer
     public InputRouter Router { get; set; } = null!;
     public Action OpenLedger { get; set; } = () => { };
     public Action OpenShop { get; set; } = () => { };
+    public Action OpenTravel { get; set; } = () => { };
 
     private Button _lure = null!, _rod = null!;
     private Label _note = null!, _title = null!;
@@ -33,6 +34,7 @@ public partial class TackleMenu : PanelContainer
         _lure = MakeButton(box, () => Router.PulseRig = true);
         _rod = MakeButton(box, () => Router.PulseRack = true);
         MakeButton(box, () => { Visible = false; OpenShop(); }).Text = "Bait & tackle shop";
+        MakeButton(box, () => { Visible = false; OpenTravel(); }).Text = "Travel";
         MakeButton(box, () => { Visible = false; OpenLedger(); }).Text = "The Ledger (catch log)";
         var sens = new Label { Text = $"Rod sensitivity  {Router.MouseSensitivity:0.00}" };
         box.AddChild(sens);
@@ -73,6 +75,6 @@ public partial class TackleMenu : PanelContainer
         _rod.Disabled |= a.Rack.Count < 2;
         _note.Text = reeledIn ? "" : "Reel in to change lure or rod";
         var p = ProfileStore.Current;
-        _title.Text = $"Tackle      ${p.Money:0.00}      cooler: {p.Cooler.Count}";
+        _title.Text = $"{Driver.Info.Name}\n${p.Money:0.00}      cooler: {p.Cooler.Count}";
     }
 }

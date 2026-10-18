@@ -18,6 +18,8 @@ public sealed class Profile
     public List<string> Lures { get; set; } = new();
     public List<string> Outfits { get; set; } = new();
     public List<CoolerFish> Cooler { get; set; } = new();
+    /// <summary>Where the angler is fishing (data/spots id).</summary>
+    public string Spot { get; set; } = "station_pond";
 }
 
 /// <summary>Shop prices and the fish market (game/data/shop.json).</summary>

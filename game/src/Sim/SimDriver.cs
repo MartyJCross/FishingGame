@@ -75,7 +75,8 @@ public partial class SimDriver : Node
             GD.Print($"Replaying {args.ReplayPath}: {_replay.TickCount} ticks, {anglers} angler(s), seed {_replay.Seed}");
         }
         ulong seed = _replay?.Seed ?? args.Seed;
-        World = new SimWorld(config, seed, anglers);
+        Info = SpotInfo.Load(SpotId);
+        World = new SimWorld(config, seed, anglers, Info.Spot);
         PopulateFish(args);
         AllOutfits = LoadOutfits();
         AllLures = LoadTerminals();
@@ -112,7 +113,13 @@ public partial class SimDriver : Node
         }
     }
 
-    /// <summary>Stocks the spot from data/spots/station_pond.json with the species in data/species (--no-fish skips).</summary>
+    /// <summary>Which spot to load (data/spots/{id}.json); set before Setup. Automated runs keep the station pond.</summary>
+    public string SpotId { get; set; } = "station_pond";
+
+    /// <summary>The loaded spot: its sim cross-section and its look.</summary>
+    public SpotInfo Info { get; private set; } = null!;
+
+    /// <summary>Stocks the spot from its data file with the species in data/species (--no-fish skips).</summary>
     private void PopulateFish(CommandLine args)
     {
         if (args.NoFish) return;
@@ -124,15 +131,16 @@ public partial class SimDriver : Node
             r => Godot.FileAccess.FileExists($"{dir}/{r}") ? Godot.FileAccess.GetFileAsString($"{dir}/{r}") : null,
             errors);
         foreach (string e in errors) GD.Print($"Species: {e}");
-        var stock = TheLedger.Sim.Fish.SpotStock.Load(Godot.FileAccess.GetFileAsString("res://data/spots/station_pond.json"));
+        var stock = TheLedger.Sim.Fish.SpotStock.Load(Info.Json);
         World.Populate(stock, species);
-        GD.Print($"Station Pond: {World.Fish.Count} fish of {stock.Stock.Count} species");
+        GD.Print($"{Info.Name}: {World.Fish.Count} fish of {stock.Stock.Count} species");
     }
 
-    /// <summary>Rod/reel/line outfits from data/gear/combos (in file-name order), resolved against rods, reels, lines.</summary>
     /// <summary>Every outfit and lure in the game data (the shop's catalogue).</summary>
     public List<TheLedger.Sim.Angler.Outfit> AllOutfits { get; private set; } = new();
     public List<TheLedger.Sim.Tackle.TerminalSpec> AllLures { get; private set; } = new();
+
+    /// <summary>Rod/reel/line outfits from data/gear/combos (in file-name order), resolved against rods, reels, lines.</summary>
 
     private static List<TheLedger.Sim.Angler.Outfit> LoadOutfits()
     {
@@ -249,4 +257,40 @@ public partial class SimDriver : Node
             GD.Print($"Recorded {_recording.TickCount} ticks to {path}");
         }
     }
+}
+
+/// <summary>A fishing spot from game/data/spots/{id}.json: name, travel cost, its cross-section for the sim and its look.</summary>
+public sealed class SpotInfo
+{
+    public string Id = "", Name = "", Place = "", Scenery = "pond", Json = "";
+    public float TravelCost;
+    public Godot.Color WaterShallow = new(0.26f, 0.60f, 0.64f), WaterDeep = new(0.07f, 0.27f, 0.36f);
+    public TheLedger.Sim.World.Spot Spot = null!;
+
+    public static SpotInfo Load(string id)
+    {
+        string path = $"res://data/spots/{id}.json";
+        if (!Godot.FileAccess.FileExists(path)) { GD.PushWarning($"No spot {id}; using the station pond"); path = "res://data/spots/station_pond.json"; }
+        string json = Godot.FileAccess.GetFileAsString(path);
+        using var doc = System.Text.Json.JsonDocument.Parse(json);
+        var r = doc.RootElement;
+        static Vec2 V(System.Text.Json.JsonElement e) => new(e[0].GetSingle(), e[1].GetSingle());
+        static Godot.Color C(System.Text.Json.JsonElement e) => new(e[0].GetSingle(), e[1].GetSingle(), e[2].GetSingle());
+        var info = new SpotInfo
+        {
+            Id = r.GetProperty("id").GetString()!, Name = r.GetProperty("name").GetString()!, Place = r.GetProperty("place").GetString()!,
+            Scenery = r.GetProperty("scenery").GetString()!, TravelCost = r.GetProperty("travelCost").GetSingle(), Json = json,
+            WaterShallow = C(r.GetProperty("waterShallow")), WaterDeep = C(r.GetProperty("waterDeep")),
+        };
+        var profile = r.GetProperty("profile").EnumerateArray().Select(V).ToList();
+        info.Spot = new TheLedger.Sim.World.Spot(info.Id, profile)
+        {
+            AnglerStart = V(r.GetProperty("anglerStart")), WaterlineX = r.GetProperty("waterlineX").GetSingle(),
+        };
+        return info;
+    }
+
+    /// <summary>All spots in data/spots, home first.</summary>
+    public static List<SpotInfo> All() => DirAccess.GetFilesAt("res://data/spots").Where(f => f.EndsWith(".json"))
+        .Select(f => Load(f[..^5])).OrderBy(s => s.TravelCost).ToList();
 }

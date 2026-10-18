@@ -1,0 +1,99 @@
+{
+  "id": "kings_bay",
+  "name": "Kings Bay, Crystal River",
+  "place": "Spring-fed bay at the head of the Crystal River. Clear water, a sandy shelf, then a drop to the spring run.",
+  "travelCost": 6,
+  "scenery": "springs",
+  "waterShallow": [
+    0.24,
+    0.7,
+    0.68
+  ],
+  "waterDeep": [
+    0.04,
+    0.33,
+    0.42
+  ],
+  "profile": [
+    [
+      -40,
+      0.6
+    ],
+    [
+      -1.2,
+      0.6
+    ],
+    [
+      0.4,
+      -0.4
+    ],
+    [
+      1.5,
+      -1.1
+    ],
+    [
+      6.0,
+      -1.5
+    ],
+    [
+      9.0,
+      -4.4
+    ],
+    [
+      25,
+      -5.0
+    ],
+    [
+      40,
+      -4.3
+    ],
+    [
+      60,
+      -4.8
+    ]
+  ],
+  "anglerStart": [
+    -2,
+    0.6
+  ],
+  "waterlineX": -0.24,
+  "visibilityM": 4.5,
+  "rangeX": [
+    1.0,
+    40.0
+  ],
+  "stock": [
+    {
+      "species": "striped_mullet",
+      "count": 8
+    },
+    {
+      "species": "bluegill",
+      "count": 6
+    },
+    {
+      "species": "spotted_sunfish",
+      "count": 4
+    },
+    {
+      "species": "redear_sunfish",
+      "count": 3
+    },
+    {
+      "species": "florida_bass",
+      "count": 2
+    },
+    {
+      "species": "common_snook",
+      "count": 2
+    },
+    {
+      "species": "sheepshead",
+      "count": 3
+    },
+    {
+      "species": "atlantic_needlefish",
+      "count": 4
+    }
+  ]
+}
