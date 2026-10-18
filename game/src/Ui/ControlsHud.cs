@@ -89,6 +89,15 @@ public partial class ControlsHud : Control
         string bail = r.BailOpen ? (r.Spec.IsBaitcaster ? "Free spool" : "Bail OPEN") : "Bail closed";
         DrawString(font, new Vector2(x, y + 16f), bail, HorizontalAlignment.Left, -1, (int)(17 + 5 * _bailPop),
                    r.BailOpen ? Lit : Dim.Lerp(Lit, _bailPop));
+        if (r.Spec.IsBaitcaster)
+        {
+            // Baitcaster: brake setting ([ / ]) and how much loose line the spool has overrun (a bird's nest at full).
+            DrawString(font, new Vector2(x + 130f, y + 16f), $"Brake {r.BrakeClick}/{r.Spec.BrakeClicks}  [ / ]", HorizontalAlignment.Left, -1, 15, Dim);
+            float over = Math.Clamp(r.Loose / r.Spec.BacklashLooseM, 0f, 1f);
+            var ob = new Rect2(x + 300f, y + 5f, 140f, 10f);
+            DrawRect(ob, BarBack);
+            DrawRect(new Rect2(ob.Position, new Vector2(ob.Size.X * over, ob.Size.Y)), over < 0.6f ? Lit : new Color(1f, 0.3f, 0.25f));
+        }
         y += 28f;
 
         // Key chips, two rows; a chip lights while its key is held.

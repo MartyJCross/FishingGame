@@ -96,8 +96,7 @@ public partial class ShopPanel : PanelContainer
         {
             if (!shop.Outfits.TryGetValue(o.Id, out float price)) continue;
             bool owned = p.Outfits.Contains(o.Id);
-            bool parked = o.Reel.IsBaitcaster;
-            Row(o.Name, owned ? "Owned" : parked ? "Coming soon" : $"Buy  ${price:0.00}", !owned && !parked && p.Money >= price, () =>
+            Row(o.Name, owned ? "Owned" : $"Buy  ${price:0.00}", !owned && p.Money >= price, () =>
             {
                 p.Money -= price;
                 p.Outfits.Add(o.Id);

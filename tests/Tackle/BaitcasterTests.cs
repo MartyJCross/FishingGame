@@ -77,10 +77,14 @@ public class BaitcasterTests
         Assert.True(backlashes >= 1);
     }
 
-    [Fact(Skip = "Baitcaster parked until plan step 10: its scripted thumbing needs retuning for the new arms (2026-10-18)")]
-    public void BrakeAndThumbMakeACleanCast()
+    [Theory]
+    [InlineData(3)]
+    [InlineData(5)]
+    [InlineData(7)]
+    [InlineData(9)]
+    public void BrakeAndThumbMakeACleanCast(int brake)
     {
-        var (_, backlashes, dist) = Cast(5, skilled: true);
+        var (_, backlashes, dist) = Cast(brake, skilled: true);
         Assert.Equal(0, backlashes);
         Assert.True(dist > 4f, "a thumbed baitcaster cast should still go out");
     }

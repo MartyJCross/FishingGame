@@ -37,7 +37,7 @@ public sealed class ReelSpec
     /// <summary>Bearing friction torque, N·m.</summary>
     public float BearingTorque { get; set; } = 1.5e-5f;
     /// <summary>Magnetic brake torque per rad/s at full setting, N·m·s.</summary>
-    public float MagBrakeMax { get; set; } = 4.0e-6f;
+    public float MagBrakeMax { get; set; } = 8.0e-7f;
     /// <summary>Brake knob clicks.</summary>
     public int BrakeClicks { get; set; } = 10;
     /// <summary>Loose line on the spool that becomes a bird's nest, m.</summary>

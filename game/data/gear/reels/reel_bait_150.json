@@ -13,7 +13,7 @@
   "massKg": 0.21,
   "spoolInertia": 1e-06,
   "bearingTorque": 1.5e-05,
-  "magBrakeMax": 4e-06,
+  "magBrakeMax": 8e-07,
   "brakeClicks": 10,
   "backlashLooseM": 1.0,
   "price": 80
