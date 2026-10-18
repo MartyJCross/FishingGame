@@ -18,6 +18,7 @@ public partial class Main : Node2D
     private InputRouter _router = null!;
     private DebugOverlay _overlay = null!;
     private TuningPanel _tuning = null!;
+    private bool _automated;
     private Camera2D _camera = null!;
     private Node2D _worldRoot = null!;
     private Label _reelHud = null!;
@@ -43,7 +44,7 @@ public partial class Main : Node2D
         _args = CommandLine.Parse(OS.GetCmdlineUserArgs());
         foreach (string e in _args.Errors) GD.PushWarning($"Command line: {e}");
 
-        bool automated = _args.Background || _args.ScreenshotPath != null || _args.SmokeSeconds != null;
+        bool automated = _automated = _args.Background || _args.ScreenshotPath != null || _args.SmokeSeconds != null;
         if (!automated) DisplayServer.WindowSetMode(DisplayServer.WindowMode.Fullscreen); // F11 toggles
         if (_args.Background)
         {
@@ -344,6 +345,11 @@ public partial class Main : Node2D
     {
         _router.ShoulderPx = SimSpace.ToPx(_driver.World.Anglers[0].Shoulder);
         _router.MouseRodEnabled = !_tuning.MouseOver && !_menu.Visible;
+        // The mouse is captured (hidden) while fishing; any menu or panel gives the cursor back.
+        bool wantCapture = !_automated && !_menu.Visible && !_ledger.Visible && !_tuning.IsOpen
+                           && DisplayServer.WindowIsFocused();
+        var mode = wantCapture ? Input.MouseModeEnum.Captured : Input.MouseModeEnum.Visible;
+        if (Input.MouseMode != mode) Input.MouseMode = mode;
         UpdateReelHud();
         UpdateDaylight();
         Rumble(delta);

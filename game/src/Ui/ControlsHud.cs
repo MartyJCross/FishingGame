@@ -29,6 +29,7 @@ public partial class ControlsHud : Control
         ("LMB", "hold line", () => Input.IsActionPressed(InputActions.LineHold)),
         ("RMB / wheel", "reel", () => Input.IsActionPressed(InputActions.Crank)),
         ("Q / E", "drag", () => Input.IsActionPressed(InputActions.DragLooser) || Input.IsActionPressed(InputActions.DragTighter)),
+        ("Mouse ←→", "rod back / forward", () => false),
         ("Shift", "fine rod", () => Input.IsKeyPressed(Key.Shift)),
         ("F", "land", () => Input.IsActionPressed(InputActions.Land)),
         ("R", "keep", () => Input.IsActionPressed(InputActions.Keep)),

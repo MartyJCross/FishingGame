@@ -40,22 +40,11 @@ public partial class InputRouter : Node
     public float HoldRampSeconds = 0.25f;
 
     private float _rodTarget = 0.6f;
-    private bool _fine;
-    private float _fineAnchor, _fineAim;
 
     /// <summary>The arm's reach in rod angle (matches SimConfig HandMinAngle / HandMaxAngle).</summary>
     public float ArmMin = -1.2f, ArmMax = 3.1f;
 
-    /// <summary>
-    /// Mouse angle into the arm's range. Pointing down and behind the angler is out of reach: the rod stays at
-    /// whichever limit it was nearer to, so it never flips from "down in front" to "flat behind" (or back) on a
-    /// tiny mouse move. It only goes behind when the cursor actually comes round above.
-    /// </summary>
-    private float Aim(float a, float previous)
-    {
-        if (a >= ArmMin) return MathF.Min(a, ArmMax);
-        return previous - ArmMin < ArmMax - previous ? ArmMin : ArmMax;
-    }
+
     private float _reach = 0.5f;
     private float _lineHold;
     private float _pendingWheelTurns;
@@ -65,6 +54,42 @@ public partial class InputRouter : Node
 
     /// <summary>The left stick must be pushed at least this far for its rotation to count as cranking.</summary>
     public float StickCrankDeadzone = 0.55f;
+
+    /// <summary>Rod radians per pixel of mouse movement at sensitivity 1 (a full swing is about 800 px).</summary>
+    public const float RadiansPerPixel = 0.0055f;
+
+    /// <summary>Owner's sensitivity multiplier (Tab menu slider), saved in user://settings.cfg.</summary>
+    public float MouseSensitivity { get; private set; } = 1f;
+
+    private const string SettingsPath = "user://settings.cfg";
+
+    public override void _Ready()
+    {
+        var cfg = new ConfigFile();
+        if (cfg.Load(SettingsPath) == Error.Ok) MouseSensitivity = (float)cfg.GetValue("controls", "mouse_sensitivity", 1f);
+    }
+
+    public void SetMouseSensitivity(float s)
+    {
+        MouseSensitivity = Mathf.Clamp(s, 0.2f, 3f);
+        var cfg = new ConfigFile();
+        cfg.Load(SettingsPath);
+        cfg.SetValue("controls", "mouse_sensitivity", MouseSensitivity);
+        cfg.Save(SettingsPath);
+    }
+
+    /// <summary>
+    /// The mouse moves the rod like a handle (owner, 2026-10-18): left (away from the water) swings it back, right
+    /// swings it forward, by a fixed amount per pixel. The cursor is hidden and captured, so where it is never matters.
+    /// </summary>
+    public override void _Input(InputEvent e)
+    {
+        if (e is InputEventMouseMotion mm && MouseRodEnabled && Input.MouseMode == Input.MouseModeEnum.Captured)
+        {
+            float k = RadiansPerPixel * MouseSensitivity * (Input.IsKeyPressed(Key.Shift) ? 0.25f : 1f);
+            _rodTarget = Mathf.Clamp(_rodTarget - mm.Relative.X * k, ArmMin, ArmMax);
+        }
+    }
 
     public override void _UnhandledInput(InputEvent e)
     {
@@ -115,19 +140,7 @@ public partial class InputRouter : Node
         }
         else if (ActiveDevice == Device.MouseKeyboard && MouseRodEnabled)
         {
-            Vector2 d = mouseWorldPx - ShoulderPx;
-            // Ignore the cursor right next to the shoulder, where a pixel is a big angle.
-            if (d.LengthSquared() > 80f * 80f)
-            {
-                float aim = Aim(Mathf.Atan2(-d.Y, d.X), _rodTarget);
-                // Shift: fine control. The rod moves a quarter as far as the mouse, from where it was when Shift went down.
-                if (Input.IsKeyPressed(Key.Shift))
-                {
-                    if (!_fine) { _fine = true; _fineAnchor = _rodTarget; _fineAim = aim; }
-                    _rodTarget = _fineAnchor + (aim - _fineAim) * 0.25f;
-                }
-                else { _fine = false; _rodTarget = aim; }
-            }
+            // The rod target itself moves in _Input (relative mouse); here only the arms' reach follows it.
             // Arms reach on their own: up and out as the rod goes overhead and back, relaxed when it's low.
             _reach = Mathf.Clamp(0.35f + 0.5f * Mathf.Max(0f, Mathf.Sin(_rodTarget)), 0f, 1f);
         }

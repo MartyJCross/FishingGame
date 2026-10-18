@@ -32,6 +32,11 @@ public partial class TackleMenu : PanelContainer
         _lure = MakeButton(box, () => Router.PulseRig = true);
         _rod = MakeButton(box, () => Router.PulseRack = true);
         MakeButton(box, () => { Visible = false; OpenLedger(); }).Text = "The Ledger (catch log)";
+        var sens = new Label { Text = $"Rod sensitivity  {Router.MouseSensitivity:0.00}" };
+        box.AddChild(sens);
+        var slider = new HSlider { MinValue = 0.2, MaxValue = 3, Step = 0.05, Value = Router.MouseSensitivity, FocusMode = FocusModeEnum.None };
+        slider.ValueChanged += v => { Router.SetMouseSensitivity((float)v); sens.Text = $"Rod sensitivity  {v:0.00}"; };
+        box.AddChild(slider);
         _note = new Label { HorizontalAlignment = HorizontalAlignment.Center, Modulate = new Color(1f, 0.8f, 0.5f) };
         box.AddChild(_note);
         MakeButton(box, () => Visible = false).Text = "Close (Tab)";
