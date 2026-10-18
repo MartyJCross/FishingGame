@@ -154,34 +154,39 @@ Keep this section accurate as the real layout grows.
 
 Exact versions are pinned in `docs/02_TECH_STACK.md` §2 once installed; update them there if they change.
 
-**Tooling on this machine (2026-10-18):** .NET SDK 9.0.305 at `C:\Program Files\dotnet`; Python 3.11 (install
-Pillow/numpy if missing); Git Bash and PowerShell. A *standard* (non-.NET) Godot 4.4 exists at
-`C:\Users\matth\Desktop\Apps\` but this project needs the **.NET build** of Godot: download the latest stable
-Godot 4.x .NET for Windows into `C:\Users\matth\Desktop\Apps\` (see `docs/02_TECH_STACK.md` §2) and record its exact
-path here.
+**Tooling on this machine (2026-10-18):** .NET SDK 9.0.305 (runtimes 8.0.8 and 9.0.9) at `C:\Program Files\dotnet`;
+Python 3.11 (install Pillow/numpy if missing); Git Bash and PowerShell. **Godot 4.7.2 .NET** is installed at
+`C:\Users\matth\Desktop\Apps\Godot_v4.7.2-stable_mono_win64\`: use `Godot_v4.7.2-stable_mono_win64_console.exe` for
+command-line runs (it prints to the terminal and returns exit codes). Export templates are **not** installed locally
+(1.1 GB); CI exports the Windows build. (An old standard Godot 4.4 also sits in `Desktop\Apps`; don't use it.)
 
 ```
+GODOT="/c/Users/matth/Desktop/Apps/Godot_v4.7.2-stable_mono_win64/Godot_v4.7.2-stable_mono_win64_console.exe"
+
 # sim + data tests (fast, headless, no Godot)
 dotnet test tests/TheLedger.Sim.Tests.csproj
 
-# build the game's C# (Godot .NET project)
-dotnet build game/TheLedger.csproj
+# build the game's C# (Godot loads game/.godot/mono/temp/bin/Debug/TheLedger.dll, so build before running)
+dotnet build game/TheLedger.csproj -warnaserror
+
+# once after cloning or adding assets: import the project
+"$GODOT" --headless --path game --import
 
 # run the game
-<godot-mono-exe> --path game
+"$GODOT" --path game
 
-# headless smoke test: boots, runs N sim seconds on a test scene, exits non-zero on any error
-<godot-mono-exe> --headless --path game -- --smoke 30
+# headless smoke test: runs N sim seconds as fast as possible, exits 1 on any fault or exception
+"$GODOT" --headless --path game -- --smoke 30
 
-# screenshot harness (needs the GPU; quiet and light)
-<godot-mono-exe> --path game --resolution 1280x720 -- --light --screenshot out.png --scene pond_test
-    --time 18.5 --weather rain --seed 7 --frames 600 [--replay tests/replays/skip_cast.rec]
+# screenshot harness (needs the GPU; quiet and light). PATH may be absolute.
+"$GODOT" --path game --resolution 1280x720 -- --light --screenshot out.png --frames 90 --debug-overlay
 ```
 
-**The in-game command-line args (implement in M0, see the roadmap):** `--light` (mute, cap 30 FPS), `--screenshot
-PATH` (save PNG after `--frames N` sim-locked frames, then quit), `--scene NAME`, `--time HOURS`, `--weather NAME`,
-`--season NAME`, `--seed N`, `--replay FILE` (drive input from a recording), `--smoke SECONDS`, `--bench SECONDS`
-(only when the owner asks), `--debug-overlay` (sim debug drawing on).
+**In-game command-line args** (after `--`; parsed in `game/src/Boot/CommandLine.cs`): `--light` (mute, cap 30 FPS),
+`--screenshot PATH` (save PNG after `--frames N` sim-locked frames, then quit), `--seed N`, `--replay FILE` (drive
+input from a `.rec` recording), `--record FILE` (save this session's input on exit), `--smoke SECONDS`,
+`--debug-overlay`, `--anglers N`. Parsed but not used yet (wire them up as their systems arrive): `--scene NAME`,
+`--time HOURS`, `--weather NAME`, `--season NAME`, `--bench SECONDS` (only when the owner asks).
 
 **Verifying by kind of change:**
 
@@ -219,9 +224,15 @@ PATH` (save PNG after `--frames N` sim-locked frames, then quit), `--scene NAME`
 
 ## 7. Current state
 
-- 2026-10-18: Design and build plan written (`docs/`), then revised the same day with the owner's answers to all
-  15 design questions (real places, hardcore physics, co-op later, the name). No code yet. Next: Milestone M0 in
-  `docs/08_ROADMAP.md`.
+- **v0.1.0 (M0, 2026-10-18):** Godot 4.7.2 .NET project + pure C# sim library + xUnit tests + CI.
+  - `sim/`: `SimWorld` (N anglers, fixed 120 Hz tick, NaN guard, state hash), `Hands` (arm-limited rod driver),
+    `InputFrame` + `.rec` recordings, `SimConfig` with `[Tunable]` fields, PCG32 `SimRng`, `SimEventQueue`.
+  - `game/`: `Main` (harness args), `SimDriver` (fixed tick, interpolation, lockstep for screenshots/smoke,
+    record/replay), `InputRouter` + `InputActions` (mouse/keyboard + Xbox-layout pad), F1 `TuningPanel`, F3
+    `DebugOverlay`, `TestView` placeholder (stick-figure angler with a rigid rod).
+  - Tests: 18 (determinism, replay, zero allocation per tick, tuning file). CI: tests, build, smoke, export,
+    artifact `TheLedger-windows-x64` (~37 MB).
+  - Next: M1 water surface.
 
 (Replace this list with a short, accurate description of what exists as the game grows: systems, controls, data
 counts, known issues.)
@@ -232,7 +243,8 @@ counts, known issues.)
 
 Tick items as they land (commit hash + date). The full Definition of Done for each is in `docs/08_ROADMAP.md`.
 
-- [ ] M0 Foundations: repo skeleton, Godot .NET project, sim library, tests, CI, harness args, debug overlay
+- [x] M0 Foundations: repo skeleton, Godot .NET project, sim library, tests, CI, harness args, debug overlay
+  (2026-10-18, commits 49779c1..1ba3030, CI run 39103364556 green; owner still to confirm the GameSir shows in F3)
 - [ ] M1 Water surface sim + rendering (pond test scene)
 - [ ] M2 Rod + line sim driven by mouse and controller
 - [ ] M3 Reel, spool, casting (spinning + baitcaster), lure flight, water entry, skipping, snags
@@ -266,4 +278,12 @@ Tick items as they land (commit hash + date). The full Definition of Done for ea
   members need a rebuild (`dotnet build game/TheLedger.csproj`) before the editor/CLI sees them. Keep `.godot/`
   gitignored. Commit `.import` files only if assets need them.
 - **Screenshots:** the harness writes PNG directly; view it with the Read tool before describing it.
+- **Namespace traps (learned in M0):** game-side namespaces must not shadow Godot types. Use `TheLedger.Controls`
+  (not `.Input`, which hides `Godot.Input`), `TheLedger.SimGlue` (not `.Sim`, which clashes with the sim assembly's
+  `TheLedger.Sim`), `TheLedger.DebugTools` (not `.Debug`). The sim's world class is `SimWorld` (namespace
+  `TheLedger.Sim.World`). The Godot SDK needs `<ImplicitUsings>enable</ImplicitUsings>` set explicitly.
+- **Region settings:** the owner's PC formats decimals with commas. The game forces invariant culture at startup;
+  any tool or test that writes numbers must use `CultureInfo.InvariantCulture` too.
+- **Agents:** helper agents work in git worktrees under `.claude/worktrees/` (gitignored) on their own branches; the
+  lead merges their branches into `development`.
 - **Python:** run tools with `python tools/<name>.py`. Treat downloaded data as untrusted; run Python on it with `-I`.

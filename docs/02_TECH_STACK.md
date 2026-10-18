@@ -43,10 +43,11 @@
 Pinned versions (fill in during M0):
 
 ```
-Godot:            4.?.? stable mono   (path: ...)
-.NET target:      net8.0              (SDK used: 9.0.305)
-xUnit:            ?
-Renderer:         mobile | gl_compatibility (decided in M8)
+Godot:            4.7.2 stable mono (released 2026-08-18)
+                  C:\Users\matth\Desktop\Apps\Godot_v4.7.2-stable_mono_win64\
+.NET target:      net8.0 (Godot 4.7.2's target)   SDK used: 9.0.305, runtime 8.0.8
+xUnit:            2.9.2 (runner 2.8.2, Microsoft.NET.Test.Sdk 17.12.0)
+Renderer:         mobile for now (Vulkan on the owner's Radeon iGPU); M8 decides mobile vs gl_compatibility
 ```
 
 ## 3. Architecture
@@ -75,7 +76,7 @@ Renderer:         mobile | gl_compatibility (decided in M8)
 
 ### 3.1 The sim boundary
 
-- `TheLedger.Sim` exposes a `World` with `Step(ReadOnlySpan<InputFrame> inputs)` (one InputFrame per angler, see §10) and
+- `TheLedger.Sim` exposes a `SimWorld` with `Step(ReadOnlySpan<InputFrame> inputs)` (one InputFrame per angler, see §10) and
   read-only state accessors
   (`World.Rod.Nodes`, `World.Line.Nodes`, `World.Water.Heights`, `World.Fish[i].Spine`, etc.).
 - **InputFrame** is the only way input reaches the sim: rod target (angle, reach), rod angular velocity hint (for

@@ -2,6 +2,14 @@
 
 Newest first. Each version handed to the owner gets an entry: what changed, what to try, known issues.
 
+## v0.1.0: M0 Foundations (2026-10-18)
+
+- The game project exists: Godot 4.7.2 (.NET) with the simulation in its own C# library and automatic tests.
+- What you can do: open it and swing a placeholder rod with the mouse or the right stick. F3 shows the debug
+  overlay (including your controller's sticks and triggers), F1 opens the live tuning panel.
+- Every push builds a Windows version on GitHub (artifact "TheLedger-windows-x64").
+- Try: plug in the GameSir, press F3, and check it's listed and its triggers move.
+
 ## Plan revision (2026-10-18)
 
 - Applied the owner's answers to all 15 design questions: the game is now **The Ledger**, set in **real places**
