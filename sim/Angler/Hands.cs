@@ -54,7 +54,11 @@ public sealed class Hands
         // Reach eases toward its target; arms move in and out more slowly than they swing.
         float r = Math.Clamp(targetReach, 0f, 1f);
         Reach += (r - Reach) * MathF.Min(1f, 10f * dt);
-        GripOffset = new Vec2(0.25f + 0.35f * Reach, -0.15f + 0.25f * Reach);
+        // The arms swing with the rod: hands low in front when it points at the water, up by the head when it's
+        // vertical, and over and behind the shoulder on a full backswing (arm angle trails the rod angle).
+        float arm = 0.75f * Angle - 0.35f;
+        float len = 0.38f + 0.2f * Reach;
+        GripOffset = new Vec2(len * MathF.Cos(arm), len * MathF.Sin(arm) - 0.08f);
     }
 
     public static float WrapAngle(float a)
