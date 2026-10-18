@@ -31,6 +31,8 @@ public sealed class CommandLine
     public string? Lure;
     /// <summary>--spot ID: fish this spot (data/spots) instead of the saved one.</summary>
     public string? Spot;
+    /// <summary>--menu: show the title menu even in an automated run (screenshot checks).</summary>
+    public bool Menu;
     /// <summary>Start with this outfit (id from data/gear/combos).</summary>
     public string? Outfit;
     /// <summary>Start with an empty pond (tackle and water work).</summary>
@@ -83,6 +85,7 @@ public sealed class CommandLine
                 case "--debug-overlay": c.DebugOverlay = true; break;
                 case "--lure": c.Lure = Next(); break;
                 case "--spot": c.Spot = Next(); break;
+                case "--menu": c.Menu = true; break;
                 case "--outfit": c.Outfit = Next(); break;
                 case "--no-fish": c.NoFish = true; break;
                 case "--background": c.Background = true; break;

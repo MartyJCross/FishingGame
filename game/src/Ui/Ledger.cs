@@ -44,6 +44,13 @@ public static class LedgerStore
         }
     }
 
+    /// <summary>New game: an empty Ledger.</summary>
+    public static void Reset()
+    {
+        if (Godot.FileAccess.FileExists(Path)) DirAccess.RemoveAbsolute(ProjectSettings.GlobalizePath(Path));
+        _entries = null;
+    }
+
     public static void Add(LedgerEntry e)
     {
         _entries ??= Load();

@@ -18,7 +18,10 @@ public partial class Main : Node2D
     private InputRouter _router = null!;
     private DebugOverlay _overlay = null!;
     private TuningPanel _tuning = null!;
-    private bool _automated;
+    private bool _automated, _briefed;
+
+    /// <summary>A game panel (tackle, shop, travel, field notes) is open: Esc closes it rather than pausing.</summary>
+    public static bool PanelOpen { get; private set; }
     private TheLedger.SimGlue.WeatherDirector? _weather;
     private Camera2D _camera = null!;
     private Node2D _worldRoot = null!;
@@ -87,7 +90,14 @@ public partial class Main : Node2D
         if (_args.Spot != null) _driver.SpotId = _args.Spot;
         else if (!_automated) _driver.SpotId = ProfileStore.Current.Spot;
         _driver.Setup(config, _args);
-        if (!_automated) CallDeferred(nameof(StoryBriefing));
+        if (_args.Menu) ProcessMode = ProcessModeEnum.Always; // test runs: keep the screenshot counter going while paused
+        if (!_automated || _args.Menu)
+        {
+            GameMenu.ApplySaved();
+            var gm = new GameMenu { Name = "GameMenu", Router = _router, Version = Version };
+            AddChild(gm);
+            gm.CallDeferred(nameof(GameMenu.ShowTitleOnce));
+        }
         if (!_automated && _args.Weather == null)
         {
             _weather = new TheLedger.SimGlue.WeatherDirector { Name = "Weather", Driver = _driver };
@@ -453,7 +463,9 @@ public partial class Main : Node2D
     {
         _router.ShoulderPx = SimSpace.ToPx(_driver.World.Anglers[0].Shoulder);
         _router.RodAngle = _driver.World.Anglers[0].Hands.Angle;
-        bool panel = _menu.Visible || _shop.Visible || _travel.Visible || _story.Visible;
+        bool panel = _menu.Visible || _shop.Visible || _travel.Visible || _story.Visible || _ledger.Visible || GameMenu.IsOpen;
+        PanelOpen = _menu.Visible || _shop.Visible || _travel.Visible || _story.Visible;
+        if (!_briefed && !_automated && !GameMenu.IsOpen) { _briefed = true; StoryBriefing(); } // after the title
         _radioTime -= delta;
         _radio.Visible = _radioTime > 0;
         _router.MouseRodEnabled = !_tuning.MouseOver && !panel;

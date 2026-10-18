@@ -40,27 +40,6 @@ public partial class TackleMenu : PanelContainer
         MakeButton(box, () => { Visible = false; OpenTravel(); }).Text = "Travel";
         MakeButton(box, () => { Visible = false; OpenLedger(); }).Text = "The Ledger (catch log)";
         MakeButton(box, () => (GetTree().CurrentScene as TheLedger.Boot.Main)?.CallItADay()).Text = "Call it a day (sleep until 6 am)";
-        var dog = new CheckButton { Text = "Skiff comes along", ButtonPressed = TheLedger.Render.TestView.DogOn, FocusMode = FocusModeEnum.None };
-        dog.Toggled += on =>
-        {
-            TheLedger.Render.TestView.DogOn = on;
-            var cfg = new ConfigFile();
-            cfg.Load("user://settings.cfg");
-            cfg.SetValue("game", "dog", on);
-            cfg.Save("user://settings.cfg");
-        };
-        box.AddChild(dog);
-        var sens = new Label { Text = $"Rod sensitivity  {Router.MouseSensitivity:0.00}" };
-        box.AddChild(sens);
-        var slider = new HSlider { MinValue = 0.2, MaxValue = 3, Step = 0.05, Value = Router.MouseSensitivity, FocusMode = FocusModeEnum.None };
-        slider.ValueChanged += v => { Router.SetMouseSensitivity((float)v); sens.Text = $"Rod sensitivity  {v:0.00}"; };
-        box.AddChild(slider);
-        TheLedger.Audio.MusicEngine.LoadVolume();
-        var music = new Label { Text = $"Music  {TheLedger.Audio.MusicEngine.Volume * 100f:0}%" };
-        box.AddChild(music);
-        var mslider = new HSlider { MinValue = 0, MaxValue = 1, Step = 0.05, Value = TheLedger.Audio.MusicEngine.Volume, FocusMode = FocusModeEnum.None };
-        mslider.ValueChanged += v => { TheLedger.Audio.MusicEngine.SetVolume((float)v); music.Text = $"Music  {v * 100:0}%"; };
-        box.AddChild(mslider);
         _note = new Label { HorizontalAlignment = HorizontalAlignment.Center, Modulate = new Color(1f, 0.8f, 0.5f) };
         box.AddChild(_note);
         MakeButton(box, () => Visible = false).Text = "Close (Tab)";
@@ -79,7 +58,11 @@ public partial class TackleMenu : PanelContainer
     public override void _UnhandledInput(InputEvent e)
     {
         if (e is InputEventKey { Pressed: true, Echo: false, PhysicalKeycode: Key.Tab }) Visible = !Visible;
-        else if (Visible && e is InputEventKey { Pressed: true, Echo: false, PhysicalKeycode: Key.Escape }) Visible = false;
+        else if (Visible && e is InputEventKey { Pressed: true, Echo: false, PhysicalKeycode: Key.Escape })
+        {
+            Visible = false;
+            GetViewport().SetInputAsHandled();
+        }
     }
 
     public override void _Process(double delta)

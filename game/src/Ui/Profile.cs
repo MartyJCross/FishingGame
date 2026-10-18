@@ -74,6 +74,13 @@ public static class ProfileStore
         Money = Shop.StartMoney, Lures = new List<string>(Shop.StartLures), Outfits = new List<string>(Shop.StartOutfits),
     };
 
+    /// <summary>New game: forget the saved profile (the next read starts fresh).</summary>
+    public static void Reset()
+    {
+        if (Godot.FileAccess.FileExists(Path)) DirAccess.RemoveAbsolute(ProjectSettings.GlobalizePath(Path));
+        _p = null;
+    }
+
     public static void Save()
     {
         using var f = Godot.FileAccess.Open(Path, Godot.FileAccess.ModeFlags.Write);
