@@ -18,6 +18,8 @@ public static class InputActions
     public const string Bail = "bail";
     public const string Land = "land";
     public const string RigMenu = "rig_menu";
+    public const string Keep = "keep";
+    public const string ToggleLedger = "toggle_ledger";
     public const string MoveLeft = "move_left";
     public const string MoveRight = "move_right";
     public const string ReachUp = "reach_up";
@@ -40,6 +42,8 @@ public static class InputActions
         // Bail on LB so both thumbs stay on the sticks (owner, 2026-10-18); B still works.
         Add(Bail, 0.5f, KeyEv(Key.Space), Button(JoyButton.LeftShoulder), Button(JoyButton.B));
         Add(Land, 0.5f, KeyEv(Key.F), Button(JoyButton.RightShoulder), Button(JoyButton.A));
+        Add(Keep, 0.5f, KeyEv(Key.K), Button(JoyButton.Y));
+        Add(ToggleLedger, 0.5f, KeyEv(Key.L), Button(JoyButton.Start));
         Add(RigMenu, 0.5f, KeyEv(Key.R), Button(JoyButton.X), Button(JoyButton.DpadRight));
         Add(MoveLeft, 0.2f, KeyEv(Key.A)); // the left stick reels (rotate it)
         Add(MoveRight, 0.2f, KeyEv(Key.D));

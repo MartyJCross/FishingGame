@@ -37,11 +37,11 @@ public partial class FishRenderer : Node2D
         _pts.Clear(); _cols.Clear(); _idx.Clear();
         float alpha = Driver.Alpha;
         float light = 0.35f + 0.65f * Daylight(world.Hour);
-        foreach (var fish in world.Fish) AddFish(fish, alpha, light, world.Stock.VisibilityM);
+        foreach (var fish in world.Fish) if (fish.State < FishState.InHand) AddFish(fish, alpha, light, world.Stock.VisibilityM);
         if (_idx.Count > 0)
             RenderingServer.CanvasItemAddTriangleArray(GetCanvasItem(), _idx.ToArray(), _pts.ToArray(), _cols.ToArray());
         // Eyes on top (small circles).
-        foreach (var fish in world.Fish) DrawEye(fish, alpha, light, world.Stock.VisibilityM);
+        foreach (var fish in world.Fish) if (fish.State < FishState.InHand) DrawEye(fish, alpha, light, world.Stock.VisibilityM);
     }
 
     private static float Daylight(float h) =>

@@ -5,10 +5,10 @@ using TheLedger.Sim.World;
 
 namespace TheLedger.Sim.Fish;
 
-public enum FishState : byte { Cruise, Investigate, Follow, Strike, Hold, Flee, Hooked }
+public enum FishState : byte { Cruise, Investigate, Follow, Strike, Hold, Flee, Hooked, InHand, Kept }
 
 /// <summary>What a hooked fish is doing (species data fight.styles).</summary>
-public enum FightMove : byte { Run, Dive, Shake, Circle, Sulk }
+public enum FightMove : byte { Run, Dive, Shake, Circle, Sulk, Jump }
 
 /// <summary>How a fish takes the bait or lure (species data feeding.biteStyles).</summary>
 public enum BiteStyle : byte { Inhale, Nibble, Run, PickupDrop, Sip }
@@ -150,6 +150,13 @@ public sealed class Fish
     /// <summary>Anaerobic (bursts) and aerobic (sustained) stamina, 0..1 (docs/04 §9.3).</summary>
     public float StaminaA = 1f, StaminaB = 1f;
     public FightMove Move;
+    /// <summary>Out of the water (a jump): gravity and air, no thrust.</summary>
+    public bool Airborne { get; private set; }
+    /// <summary>Left / re-entered the water on the last tick (the world splashes and raises FishJumped).</summary>
+    public bool BreachedOut, SplashedIn;
+    /// <summary>Speed at the last breach or re-entry, m/s.</summary>
+    public float SplashSpeed;
+
     /// <summary>The hook pulled out on the last tick.</summary>
     public bool HookPulledOut;
     /// <summary>Whose line it threw the hook from (valid when <see cref="HookPulledOut"/>).</summary>
@@ -425,6 +432,11 @@ public sealed class Fish
                 _desired = new Vec2(away.X * 0.2f, MathF.Sin(StateTime * 25f));
                 _effort = 0.6f;
                 break;
+            case FightMove.Jump:
+                // Rise hard for the surface and go through it.
+                _desired = new Vec2(away.X * 0.3f, 1f);
+                _effort = 1f;
+                break;
             case FightMove.Circle:
                 // Sunfish turn their flat side to the pull and plane sideways: across the line, alternating.
                 _desired = new Vec2(-away.Y, away.X) * (MathF.Sin(StateTime * 1.3f) > 0f ? 1f : -1f) + away * 0.5f;
@@ -439,7 +451,7 @@ public sealed class Fish
 
         // Stamina: bursts drain the anaerobic pool fast; it recovers from the aerobic pool when easing off.
         float use = _effort * (0.25f + 0.75f * StaminaA);
-        StaminaA = Math.Clamp(StaminaA - use * dt / 7f + (1f - _effort) * StaminaB * dt * 0.04f, 0f, 1f);
+        StaminaA = Math.Clamp(StaminaA - use * dt / 12f + (1f - _effort) * StaminaB * dt * 0.04f, 0f, 1f);
         StaminaB = Math.Clamp(StaminaB - use * dt / 90f, 0f, 1f);
 
         // Hook hold: slack lets it work loose (fast if barbless), headshakes worry it, and too much pull tears a soft mouth.
@@ -447,6 +459,9 @@ public sealed class Fish
         bool barbless = HeldTerminal?.Barbless ?? false;
         if (t < 0.15f) HookHold -= dt * (barbless ? 0.25f : 0.008f);
         if (Move == FightMove.Shake && t > 0.5f) HookHold -= dt * 0.015f * (1.2f - hard);
+        // Head-shaking in the air: on a slack line the lure's weight swings free and the hook comes out (the classic
+        // reason to keep the rod low and the line tight when a bass jumps). Tight line: it mostly holds.
+        if (Airborne) HookHold -= dt * (t < 0.4f ? 0.9f : 0.08f) * (1.2f - hard);
         float tear = 4f + 26f * hard;
         if (t > tear) HookHold -= (t - tear) / tear * dt * 2f;
         if (HookHold <= 0f)
@@ -477,13 +492,28 @@ public sealed class Fish
             {
                 "run" or "structureDash" => FightMove.Run,
                 "dive" or "bulldog" => FightMove.Dive,
-                "headshake" or "jump" or "roll" => FightMove.Shake,
+                "jump" => FightMove.Jump,
+                "headshake" or "roll" => FightMove.Shake,
                 "circle" => FightMove.Circle,
                 _ => FightMove.Sulk,
             };
         }
         return FightMove.Run;
     }
+
+    /// <summary>Landed: out of the water in the angler's hands until they keep or release it.</summary>
+    public void TakeInHand()
+    {
+        LureAngler = -1;
+        HookDepth = 0f;
+        HookHold = 0f;
+        HeldTerminal = null;
+        LineForce = Vec2.Zero;
+        SetState(FishState.InHand);
+    }
+
+    /// <summary>Into the keep bucket: gone from the spot for this session.</summary>
+    public void Keep() => SetState(FishState.Kept);
 
     /// <summary>Landed and let go: back in the water a little way out, tired and wary, not biting for a while.</summary>
     public void ReleaseAfterCatch(Vec2 at)
@@ -590,7 +620,7 @@ public sealed class Fish
             for (int i = 0; i < ctx.All.Count; i++)
             {
                 var o = ctx.All[i];
-                if (o == this || o.Species != Species) continue;
+                if (o == this || o.Species != Species || o.State >= FishState.InHand) continue;
                 Vec2 d = new Vec2(o.HeadX, o.HeadY) - head;
                 float dist = d.Length;
                 if (dist > 3f) continue;
@@ -607,9 +637,11 @@ public sealed class Fish
     /// <summary>One tick: think, steer (thrust), integrate the head, keep it in the water, drag the body behind.</summary>
     public void Step(SimConfig c, float dt, in FishContext ctx)
     {
+        if (State is FishState.InHand or FishState.Kept) return; // out of the water
         for (int i = 0; i < Count; i++) { PX[i] = X[i]; PY[i] = Y[i]; }
         PrevYaw = Yaw;
         HookPulledOut = false;
+        BreachedOut = SplashedIn = false;
         Think(dt, ctx);
 
         // Desired velocity → thrust (P-control on velocity, capped by the muscle limit).
@@ -659,20 +691,54 @@ public sealed class Fish
         if (fx * FacingSign < 0f) fx *= 0.15f;
         fx *= 0.3f + 0.7f * facing;
 
-        // Integrate: thrust + line + drag; neutrally buoyant (swim bladder).
-        VX += (fx + LineForce.X) / MassKg * dt;
-        VY += (fy + LineForce.Y) / MassKg * dt;
-        float sp = MathF.Sqrt(VX * VX + VY * VY);
-        float damp = 1f / (1f + _dragK / MassKg * sp * dt);
-        VX *= damp; VY *= damp;
-        HeadX += VX * dt;
-        HeadY += VY * dt;
-
-        // Stay in the water and above the bottom (hooked fish may breach later: M6 jumps).
         float surface = ctx.Water.Height(HeadX, ctx.Time);
-        float ground = ctx.Spot.GroundHeight(HeadX);
         float half = 0.1f * LengthM;
-        if (HeadY > surface - half) { HeadY = surface - half; if (VY > 0f) VY = 0f; }
+        if (Airborne)
+        {
+            // Out of the water: gravity, the line, a little air drag; no thrust.
+            VX += LineForce.X / MassKg * dt;
+            VY += (LineForce.Y / MassKg - c.Gravity) * dt;
+            float spA = MathF.Sqrt(VX * VX + VY * VY);
+            float dampA = 1f / (1f + 0.02f * _dragK / MassKg * spA * dt);
+            VX *= dampA; VY *= dampA;
+            HeadX += VX * dt;
+            HeadY += VY * dt;
+            surface = ctx.Water.Height(HeadX, ctx.Time);
+            if (HeadY < surface && VY < 0f)
+            {
+                Airborne = false;
+                SplashedIn = true;
+                SplashSpeed = MathF.Sqrt(VX * VX + VY * VY);
+                _moveTime = 0f;
+            }
+        }
+        else
+        {
+            // Integrate: thrust + line + drag; neutrally buoyant (swim bladder).
+            VX += (fx + LineForce.X) / MassKg * dt;
+            VY += (fy + LineForce.Y) / MassKg * dt;
+            float sp0 = MathF.Sqrt(VX * VX + VY * VY);
+            float damp = 1f / (1f + _dragK / MassKg * sp0 * dt);
+            VX *= damp; VY *= damp;
+            HeadX += VX * dt;
+            HeadY += VY * dt;
+            surface = ctx.Water.Height(HeadX, ctx.Time);
+
+            // A hooked fish driving up hard enough goes clean out (a jump); everyone else stays under the surface.
+            bool jumping = State == FishState.Hooked && Move == FightMove.Jump && StaminaA > 0.15f;
+            if (jumping && HeadY > surface - half && VY > 0.25f * BurstSpeed)
+            {
+                Airborne = true;
+                BreachedOut = true;
+                // Tail-walk power: the last strokes throw it about a third to a half of a body length clear.
+                VY = MathF.Max(VY, MathF.Sqrt(2f * c.Gravity * (0.25f + 0.5f * StaminaA) * MathF.Max(LengthM, 0.15f) * 2f));
+                SplashSpeed = VY;
+                StaminaA = MathF.Max(0f, StaminaA - 0.04f);
+            }
+            else if (HeadY > surface - half) { HeadY = surface - half; if (VY > 0f) VY = 0f; }
+        }
+        float ground = ctx.Spot.GroundHeight(HeadX);
+        float sp = MathF.Sqrt(VX * VX + VY * VY);
         if (HeadY < ground + half) { HeadY = ground + half; if (VY < 0f) VY = 0f; }
         var range = ctx.Stock.RangeX;
         if (!Holding)

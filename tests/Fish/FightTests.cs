@@ -75,6 +75,7 @@ public class FightTests
 
         var frames = new InputFrame[1];
         bool landed = false, broke = false;
+        int jumps = 0;
         float drag = a.Reel.DragForce;
         int t;
         for (t = 0; t < 120 * 300 && !landed && !broke; t++)
@@ -92,6 +93,7 @@ public class FightTests
             while (world.Events.TryPop(out var e))
             {
                 if (e.Type == SimEventType.FishLanded) landed = true;
+                if (e.Type == SimEventType.FishJumped) jumps++;
                 if (e.Type is SimEventType.LineBroke or SimEventType.RodBroke or SimEventType.HookPulled)
                 {
                     broke = true;
@@ -99,11 +101,36 @@ public class FightTests
                 }
             }
         }
-        _out.WriteLine($"{fish.MassKg:0.00} kg bass ({lenCm:0} cm), drag {drag:0.0} N: landed {landed} after {t / 120f:0} s, " +
+        _out.WriteLine($"{fish.MassKg:0.00} kg bass ({lenCm:0} cm), drag {drag:0.0} N: landed {landed} after {t / 120f:0} s, {jumps} jumps, " +
                        $"failure {broke}, stamina {fish.StaminaA:0.00}/{fish.StaminaB:0.00}, faults {world.FaultCount}");
         Assert.Equal(0, world.FaultCount);
         Assert.False(broke);
         Assert.True(landed);
         Assert.InRange(t / 120f, 15f, 300f); // a real fight, not an instant winch
+
+        // In hand: keep it (a 44 cm bass is legal, bag 5).
+        Assert.True(world.PendingCatch(0) >= 0);
+        bool kept = false;
+        for (int k = 0; k < 4 && !kept; k++)
+        {
+            frames[0] = new InputFrame { RodTargetAngle = 1.05f, RodReach = 0.5f, Buttons = k == 1 ? InputButtons.Interact : InputButtons.None };
+            world.Step(frames);
+            while (world.Events.TryPop(out var e)) if (e.Type == SimEventType.FishKept) kept = true;
+        }
+        Assert.True(kept);
+        Assert.Equal(FishState.Kept, fish.State);
+        Assert.True(world.Catches[^1].Kept);
+    }
+
+    [Fact]
+    public void KeepRulesFollowTheRegulations()
+    {
+        var species = FishTests.LoadSpecies();
+        var world = new SimWorld(new SimConfig(), 1);
+        Catch Make(string id, float cm) => new() { Angler = 0, Species = species.Single(s => s.Id == id), LengthCm = cm, Terminal = "" };
+        Assert.Equal(1, world.KeepRule(0, Make("sheepshead", 20f)));   // under the 30.5 cm minimum
+        Assert.Equal(0, world.KeepRule(0, Make("sheepshead", 40f)));
+        Assert.Equal(3, world.KeepRule(0, Make("grass_carp", 90f)));   // bag limit 0: always released
+        Assert.Equal(0, world.KeepRule(0, Make("bluegill", 18f)));
     }
 }

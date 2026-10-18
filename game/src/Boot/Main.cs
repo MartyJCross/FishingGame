@@ -3,6 +3,7 @@ using TheLedger.DebugTools;
 using TheLedger.Controls;
 using TheLedger.Render;
 using TheLedger.SimGlue;
+using TheLedger.Ui;
 
 namespace TheLedger.Boot;
 
@@ -22,6 +23,7 @@ public partial class Main : Node2D
     private Label _reelHud = null!;
     private Label _toast = null!;
     private Label _card = null!;
+    private LedgerPanel _ledger = null!;
     private CanvasModulate _daylight = null!;
     private double _toastTime, _cardTime;
     private double _benchTime, _benchWorst;
@@ -140,6 +142,9 @@ public partial class Main : Node2D
         _card.AddThemeColorOverride("font_outline_color", Colors.Black);
         _card.AddThemeConstantOverride("outline_size", 6);
         hud.AddChild(_card);
+
+        _ledger = new LedgerPanel { Name = "Ledger" };
+        hud.AddChild(_ledger);
     }
 
     private void Toast(string text, double seconds = 2.5)
@@ -165,12 +170,44 @@ public partial class Main : Node2D
             case TheLedger.Sim.Core.SimEventType.FishLanded:
             {
                 var c = w.Catches[^1];
-                _card.Text = $"{c.Species.CommonName}  ({c.Species.ScientificName})\n{c.LengthCm:0.0} cm   {c.WeightKg * 1000f:0} g " +
-                             $"({c.WeightKg * 2.20462f:0.00} lb)   on {w.Anglers[0].Rig.Line.Terminal.Name}\nReleased.   Catches this session: {w.Catches.Count}";
-                _cardTime = 7;
+                int rule = w.KeepRule(0, c);
+                string pad = _router.ActiveDevice == InputRouter.Device.Gamepad ? "Y" : "K";
+                string rel = _router.ActiveDevice == InputRouter.Device.Gamepad ? "RB / A" : "F";
+                string choice = rule switch
+                {
+                    1 => $"Must go back: under the {c.Species.Regulations.MinLengthCm:0.#} cm minimum.   Release: {rel}",
+                    2 => $"Bag limit reached for {c.Species.CommonName} today.   Release: {rel}",
+                    3 => $"Must be released here.   Release: {rel}",
+                    _ => $"Keep: {pad}     Release: {rel}",
+                };
+                _card.Text = CatchLine(c) + $"\n[ {choice} ]";
+                _cardTime = 1e9;
                 _toast.Text = "";
                 break;
             }
+            case TheLedger.Sim.Core.SimEventType.FishKept:
+            case TheLedger.Sim.Core.SimEventType.FishReleased:
+            {
+                bool kept = e.Type == TheLedger.Sim.Core.SimEventType.FishKept;
+                var c = w.Catches.Last(k => k.FishId == e.Id);
+                LedgerStore.Add(new LedgerEntry
+                {
+                    Species = c.Species.Id, CommonName = c.Species.CommonName, LengthCm = c.LengthCm, WeightKg = c.WeightKg,
+                    Kept = kept, Lure = w.Anglers[0].Rig.Line.Terminal.Name, GameHour = c.Hour,
+                    When = DateTime.Now.ToString("yyyy-MM-dd HH:mm"),
+                });
+                int keptCount = w.Catches.Count(k => k.Kept);
+                _card.Text = CatchLine(c) + $"\n{(kept ? "Kept" : "Released")}.   This session: {w.Catches.Count(k => !k.Pending)} landed, {keptCount} kept.   Ledger: {LedgerStore.Entries.Count}";
+                _cardTime = 5;
+                if (_ledger.Visible) _ledger.Refresh();
+                break;
+            }
+            case TheLedger.Sim.Core.SimEventType.KeepRefused:
+                Toast(e.Value switch { 1f => "Too short to keep: it has to go back", 2f => "That's your bag limit for this species", _ => "This one must be released" }, 2.5);
+                break;
+            case TheLedger.Sim.Core.SimEventType.FishJumped:
+                Toast("It jumped! Keep the line tight", 1.5);
+                break;
         }
     }
 
@@ -192,6 +229,10 @@ public partial class Main : Node2D
         if (weak < 0.03f && strong < 0.05f) return;
         Input.StartJoyVibration(Input.GetConnectedJoypads()[0], weak, strong, 0.12f);
     }
+
+    private static string CatchLine(TheLedger.Sim.World.Catch c) =>
+        $"{c.Species.CommonName}  ({c.Species.ScientificName})\n{c.LengthCm:0.0} cm ({c.LengthCm / 2.54f:0.0} in)   " +
+        $"{LedgerPanel.Weight(c.WeightKg)} ({c.WeightKg * 2.20462f:0.00} lb)";
 
     /// <summary>Night falls through a canvas tint: deep blue at night, warm at dawn and dusk.</summary>
     private void UpdateDaylight()
@@ -253,6 +294,7 @@ public partial class Main : Node2D
             bool full = DisplayServer.WindowGetMode() is DisplayServer.WindowMode.Fullscreen or DisplayServer.WindowMode.ExclusiveFullscreen;
             DisplayServer.WindowSetMode(full ? DisplayServer.WindowMode.Windowed : DisplayServer.WindowMode.Fullscreen);
         }
+        if (e.IsActionPressed(InputActions.ToggleLedger)) _ledger.Toggle();
         if (e.IsActionPressed(InputActions.ToggleTuning)) _tuning.Toggle();
         if (e.IsActionPressed(InputActions.ToggleDebug)) _overlay.Toggle();
         if (e is InputEventKey { Pressed: true, Echo: false, PhysicalKeycode: Key.F4 })

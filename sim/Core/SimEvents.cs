@@ -28,6 +28,13 @@ public enum SimEventType : byte
     FishSpit,
     /// <summary>Tried to land a fish that wasn't ready or close enough (Id = fish id).</summary>
     LandFailed,
+    /// <summary>A landed fish went in the keep bucket (Id = fish id).</summary>
+    FishKept,
+    /// <summary>A landed fish was let go (Id = fish id).</summary>
+    FishReleased,
+    /// <summary>Tried to keep a fish the rules say must go back (Id = fish id, Value = reason: 1 under the minimum
+    /// length, 2 bag limit reached, 3 must be released).</summary>
+    KeepRefused,
 }
 
 /// <summary>One event. Plain data, no references, so the buffer never allocates.</summary>

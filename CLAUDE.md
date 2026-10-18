@@ -262,6 +262,11 @@ input from a `.rec` recording), `--record FILE` (save this session's input on ex
 - **v0.4.6 audio pass 1:** `game/src/Audio/SoundEngine.cs`, all synthesised into one AudioStreamGenerator (no sample
   files): ambience by wind and hour (birds / crickets / frogs), reel clicks, bail, drag ratchet by slip speed, cast
   hiss, rod swish, splashes/plops/pops by energy and distance, line and rod snaps. M mutes.
+- **v0.4.7:** hooked fish jump (`FightMove.Jump` from species fight styles: breach, gravity flight, headshake throws
+  the hook fast on a slack line, splash in/out → FishJumped + Splash Id 3). Landed fish stay `InHand` until keep (K / Y,
+  `InputButtons.Interact`) or release (land button); `SimWorld.KeepRule` = min length, daily bag per species, bag 0 =
+  must release; kept fish leave the spot (`FishState.Kept`). The Ledger: `game/src/Ui/Ledger.cs` appends every
+  decision to `user://ledger.json`; L / Start shows per-species records and the latest catches.
 - **Owner ideas backlog:** `docs/IDEAS.md` (check it when planning a milestone; add new owner ideas there).
 - **M2 done (2026-10-18, v0.3.0):** `sim/Tackle/`: `Rod` (XPBD chain, EI taper,
   strength taper, moments), `Line` (variable length, pay-out/merge, solver mass floor), `TackleSolver` (direct banded

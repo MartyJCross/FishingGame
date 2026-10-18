@@ -136,6 +136,7 @@ public partial class InputRouter : Node
         if (Input.IsActionPressed(InputActions.Bail)) b |= InputButtons.Bail;
         if (Input.IsActionPressed(InputActions.Land)) b |= InputButtons.Land;
         if (Input.IsActionPressed(InputActions.RigMenu)) b |= InputButtons.RigMenu;
+        if (Input.IsActionPressed(InputActions.Keep)) b |= InputButtons.Interact;
         f.Buttons = b;
         return f;
     }

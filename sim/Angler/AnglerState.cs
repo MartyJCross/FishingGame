@@ -40,7 +40,10 @@ public sealed class AnglerState
     public List<TerminalSpec> TackleBox { get; } = new() { TerminalSpec.HalfOunceSinker() };
     public int TackleIndex;
     private bool _rigHeld;
-    private bool _landHeld;
+    private bool _landHeld, _keepHeld;
+
+    /// <summary>The keep button (K / Y) went down this tick.</summary>
+    public bool KeepPressed { get; private set; }
 
     /// <summary>The land button went down this tick (net / grip / swing).</summary>
     public bool LandPressed { get; private set; }
@@ -68,6 +71,9 @@ public sealed class AnglerState
         bool land = input.Has(InputButtons.Land);
         LandPressed = land && !_landHeld;
         _landHeld = land;
+        bool keep = input.Has(InputButtons.Interact);
+        KeepPressed = keep && !_keepHeld;
+        _keepHeld = keep;
 
         bool rigButton = input.Has(InputButtons.RigMenu);
         if (rigButton && !_rigHeld && TackleBox.Count > 1 && Rig.Line.LineOut <= c.RetieMaxLineOut)

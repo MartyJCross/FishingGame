@@ -102,6 +102,8 @@ public partial class ControlsHud : Control
         string rod = Pad ? "right stick" : "mouse";
         string help = $"   [color=#8a9aa0]{K("H", "View")} all controls[/color]";
 
+        if (w.PendingCatch(0) >= 0)
+            return $"[b]In hand.[/b] Keep it {K("K", "Y")} or let it go {K("F", "RB / A")}." + help;
         if (on != null && on.State == FishState.Hooked)
         {
             float surface = w.Water.Height(on.HeadX, w.Time);
@@ -139,7 +141,8 @@ public partial class ControlsHud : Control
                $"{K("Hold LMB", "Hold LT")}   finger on the line (release to cast; feather to slow it)\n" +
                $"{K("RMB / wheel up", "RT / circle left stick")}   crank (closes the bail){(Pad ? "" : $"   {K("Z / C", "")} steady crank speed")}\n" +
                $"{K("Q / E", "D-pad down / up")}   drag looser / tighter\n" +
-               $"{K("F", "RB")}   land the fish (net / lip)\n" +
+               $"{K("F", "RB")}   land the fish (net / lip), then {K("K", "Y")} keep or {K("F", "RB")} release\n" +
+               $"{K("L", "Start")}   the Ledger (your catch log)\n" +
                $"{K("R", "X / D-pad right")}   change lure (when reeled in)\n" +
                (Pad ? "" : $"{K("A / D", "")}   (walk: later)\n") +
                $"{K("F11", "F11")} fullscreen   {K("M", "M")} mute   {K("F3", "F3")} rod and line loads   {K("F4", "F4")} rain   {K("F1", "F1")} tuning   {K("Middle click", "-")} splash\n" +

@@ -217,6 +217,16 @@ public sealed class SimWorld
                 Events.Push(new SimEvent { Type = SimEventType.Bite, Tick = Tick, Angler = fish.LureAngler, Id = fish.Id, Position = fish.Mouth });
             if (fish.State == FishState.Hooked && before != FishState.Hooked)
                 Events.Push(new SimEvent { Type = SimEventType.HookSet, Tick = Tick, Angler = fish.LureAngler, Id = fish.Id, Position = fish.Mouth });
+            if (fish.BreachedOut || fish.SplashedIn)
+            {
+                float x = fish.HeadX;
+                float energy = Water.Splash(Config, x, fish.SplashSpeed, fish.MassKg, 0.15f * fish.LengthM, fish.VX);
+                if (_splashCount < _splashViews.Length)
+                    _splashViews[_splashCount++] = new SplashView { Pos = new Vec2(x, Water.Height(x, Time)), Energy = energy };
+                Events.Push(new SimEvent { Type = SimEventType.Splash, Tick = Tick, Angler = fish.LureAngler, Id = 3, Position = new Vec2(x, Water.Height(x, Time)), Value = energy });
+                if (fish.BreachedOut)
+                    Events.Push(new SimEvent { Type = SimEventType.FishJumped, Tick = Tick, Angler = fish.LureAngler, Id = fish.Id, Position = fish.Mouth, Value = fish.MassKg });
+            }
             if (fish.HookPulledOut)
                 Events.Push(new SimEvent { Type = SimEventType.HookPulled, Tick = Tick, Angler = fish.PulledFrom, Id = fish.Id, Position = fish.Mouth });
             if (before == FishState.Hold && fish.State != FishState.Hold && fish.State != FishState.Hooked)
@@ -250,6 +260,7 @@ public sealed class SimWorld
         for (int k = 0; k < _fish.Count; k++)
         {
             var fish = _fish[k];
+            if (fish.State is FishState.InHand or FishState.Kept) continue;
             float r = 0.12f * fish.LengthM;
             Body(fish.HeadX, fish.HeadY, fish.VX, fish.VY, r, (Tick + k) % 14 == 0);
         }
@@ -305,6 +316,12 @@ public sealed class SimWorld
         for (int i = 0; i < _anglers.Length; i++)
         {
             var a = _anglers[i];
+            int pending = PendingCatch(i);
+            if (pending >= 0)
+            {
+                Decide(i, pending, a);
+                continue;
+            }
             if (!a.LandPressed) continue;
             var fish = FishOn(i);
             if (fish == null || fish.State != FishState.Hooked) continue;
@@ -321,12 +338,70 @@ public sealed class SimWorld
                 Catches.Add(new Catch
                 {
                     Angler = i, Species = fish.Species, LengthCm = fish.LengthM * 100f, WeightKg = fish.MassKg,
-                    Hour = Hour, Terminal = a.Rig.Line.Terminal.Id, Tick = Tick, FishId = fish.Id,
+                    Hour = Hour, Terminal = a.Rig.Line.Terminal.Id, Tick = Tick, FishId = fish.Id, Pending = true,
                 });
             Events.Push(new SimEvent { Type = SimEventType.FishLanded, Tick = Tick, Angler = i, Id = fish.Id, Value = fish.MassKg, Position = fish.Mouth });
-            float x = Math.Clamp(fish.HeadX + 3f, Stock.RangeX[0], Stock.RangeX[1]);
-            fish.ReleaseAfterCatch(new Vec2(x, MathF.Max(Spot.GroundHeight(x) + 0.3f, Water.Height(x, Time) - 0.8f)));
+            fish.TakeInHand();
             a.RetrieveToTip(Config, 0f);
+        }
+    }
+
+    /// <summary>Index into <see cref="Catches"/> of the fish this angler is holding, or −1.</summary>
+    public int PendingCatch(int angler)
+    {
+        for (int k = Catches.Count - 1; k >= 0; k--)
+            if (Catches[k].Angler == angler && Catches[k].Pending) return k;
+        return -1;
+    }
+
+    /// <summary>
+    /// Why the rules forbid keeping this fish now: 0 = it may be kept, 1 = under the minimum length, 2 = the day's bag
+    /// limit for the species is reached, 3 = must be released (protected, or a bag limit of zero). Real-style rules from
+    /// the species file, simplified (docs/OPEN_QUESTIONS: regulations real-style, frozen).
+    /// </summary>
+    public int KeepRule(int angler, Catch c)
+    {
+        var reg = c.Species.Regulations;
+        if (reg.BagLimit is 0) return 3;
+        if (reg.MinLengthCm is float min && c.LengthCm < min) return 1;
+        if (reg.BagLimit is int bag)
+        {
+            int kept = 0;
+            foreach (var k in Catches) if (k.Angler == angler && k.Kept && k.Species == c.Species) kept++;
+            if (kept >= bag) return 2;
+        }
+        return 0;
+    }
+
+    private void Decide(int angler, int index, AnglerState a)
+    {
+        var c = Catches[index];
+        Fish.Fish? fish = null;
+        foreach (var f in _fish) if (f.Id == c.FishId) { fish = f; break; }
+        if (a.KeepPressed)
+        {
+            int rule = KeepRule(angler, c);
+            if (rule != 0)
+            {
+                Events.Push(new SimEvent { Type = SimEventType.KeepRefused, Tick = Tick, Angler = angler, Id = c.FishId, Value = rule });
+                return;
+            }
+            c.Pending = false;
+            c.Kept = true;
+            Catches[index] = c;
+            fish?.Keep();
+            Events.Push(new SimEvent { Type = SimEventType.FishKept, Tick = Tick, Angler = angler, Id = c.FishId, Value = c.WeightKg });
+        }
+        else if (a.LandPressed)
+        {
+            c.Pending = false;
+            Catches[index] = c;
+            if (fish != null)
+            {
+                float x = Math.Clamp(a.Position.X + 3f, Stock.RangeX[0], Stock.RangeX[1]);
+                fish.ReleaseAfterCatch(new Vec2(x, MathF.Max(Spot.GroundHeight(x) + 0.3f, Water.Height(x, Time) - 0.8f)));
+            }
+            Events.Push(new SimEvent { Type = SimEventType.FishReleased, Tick = Tick, Angler = angler, Id = c.FishId, Value = c.WeightKg });
         }
     }
 

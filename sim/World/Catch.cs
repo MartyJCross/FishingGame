@@ -11,4 +11,7 @@ public struct Catch
     public string Terminal;
     public long Tick;
     public int FishId;
+    /// <summary>Still in the angler's hands, waiting for keep or release.</summary>
+    public bool Pending;
+    public bool Kept;
 }
