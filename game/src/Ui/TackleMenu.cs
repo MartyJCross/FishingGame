@@ -44,6 +44,12 @@ public partial class TackleMenu : PanelContainer
         var slider = new HSlider { MinValue = 0.2, MaxValue = 3, Step = 0.05, Value = Router.MouseSensitivity, FocusMode = FocusModeEnum.None };
         slider.ValueChanged += v => { Router.SetMouseSensitivity((float)v); sens.Text = $"Rod sensitivity  {v:0.00}"; };
         box.AddChild(slider);
+        TheLedger.Audio.MusicEngine.LoadVolume();
+        var music = new Label { Text = $"Music  {TheLedger.Audio.MusicEngine.Volume * 100f:0}%" };
+        box.AddChild(music);
+        var mslider = new HSlider { MinValue = 0, MaxValue = 1, Step = 0.05, Value = TheLedger.Audio.MusicEngine.Volume, FocusMode = FocusModeEnum.None };
+        mslider.ValueChanged += v => { TheLedger.Audio.MusicEngine.SetVolume((float)v); music.Text = $"Music  {v * 100:0}%"; };
+        box.AddChild(mslider);
         _note = new Label { HorizontalAlignment = HorizontalAlignment.Center, Modulate = new Color(1f, 0.8f, 0.5f) };
         box.AddChild(_note);
         MakeButton(box, () => Visible = false).Text = "Close (Tab)";
