@@ -13,9 +13,10 @@ public partial class TackleMenu : PanelContainer
     public SimDriver Driver { get; set; } = null!;
     public InputRouter Router { get; set; } = null!;
     public Action OpenLedger { get; set; } = () => { };
+    public Action OpenShop { get; set; } = () => { };
 
     private Button _lure = null!, _rod = null!;
-    private Label _note = null!;
+    private Label _note = null!, _title = null!;
 
     public override void _Ready()
     {
@@ -26,11 +27,12 @@ public partial class TackleMenu : PanelContainer
         var box = new VBoxContainer { CustomMinimumSize = new Vector2(380, 0) };
         box.AddThemeConstantOverride("separation", 10);
         AddChild(box);
-        var title = new Label { Text = "Tackle", HorizontalAlignment = HorizontalAlignment.Center };
+        var title = _title = new Label { Text = "Tackle", HorizontalAlignment = HorizontalAlignment.Center };
         title.AddThemeFontSizeOverride("font_size", 26);
         box.AddChild(title);
         _lure = MakeButton(box, () => Router.PulseRig = true);
         _rod = MakeButton(box, () => Router.PulseRack = true);
+        MakeButton(box, () => { Visible = false; OpenShop(); }).Text = "Bait & tackle shop";
         MakeButton(box, () => { Visible = false; OpenLedger(); }).Text = "The Ledger (catch log)";
         var sens = new Label { Text = $"Rod sensitivity  {Router.MouseSensitivity:0.00}" };
         box.AddChild(sens);
@@ -55,6 +57,7 @@ public partial class TackleMenu : PanelContainer
     public override void _UnhandledInput(InputEvent e)
     {
         if (e is InputEventKey { Pressed: true, Echo: false, PhysicalKeycode: Key.Tab }) Visible = !Visible;
+        else if (Visible && e is InputEventKey { Pressed: true, Echo: false, PhysicalKeycode: Key.Escape }) Visible = false;
     }
 
     public override void _Process(double delta)
@@ -69,5 +72,7 @@ public partial class TackleMenu : PanelContainer
         _lure.Disabled = _rod.Disabled = !reeledIn;
         _rod.Disabled |= a.Rack.Count < 2;
         _note.Text = reeledIn ? "" : "Reel in to change lure or rod";
+        var p = ProfileStore.Current;
+        _title.Text = $"Tackle      ${p.Money:0.00}      cooler: {p.Cooler.Count}";
     }
 }

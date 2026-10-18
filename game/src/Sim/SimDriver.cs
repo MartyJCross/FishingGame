@@ -77,10 +77,14 @@ public partial class SimDriver : Node
         ulong seed = _replay?.Seed ?? args.Seed;
         World = new SimWorld(config, seed, anglers);
         PopulateFish(args);
-        var outfits = LoadOutfits();
-        // The baitcaster stays off the rack until the spinning cast feels right (owner, 2026-10-18); --outfit still picks it.
-        if (args.Outfit == null || !args.Outfit.StartsWith("baitcaster")) outfits.RemoveAll(o => o.Reel.IsBaitcaster);
-        var lures = LoadTerminals();
+        AllOutfits = LoadOutfits();
+        AllLures = LoadTerminals();
+        // Only what the angler owns (profile; the shop sells the rest). --outfit / --lure still pick anything.
+        var profile = TheLedger.Ui.ProfileStore.Current;
+        var outfits = AllOutfits.Where(o => o.Id == args.Outfit || profile.Outfits.Contains(o.Id)).ToList();
+        if (outfits.Count == 0) outfits.Add(AllOutfits[0]);
+        var lures = AllLures.Where(l => l.Id == args.Lure || profile.Lures.Contains(l.Id)).ToList();
+        if (lures.Count == 0) lures.Add(AllLures[0]);
         foreach (var a in World.Anglers)
         {
             a.TackleBox.Clear();
@@ -126,6 +130,10 @@ public partial class SimDriver : Node
     }
 
     /// <summary>Rod/reel/line outfits from data/gear/combos (in file-name order), resolved against rods, reels, lines.</summary>
+    /// <summary>Every outfit and lure in the game data (the shop's catalogue).</summary>
+    public List<TheLedger.Sim.Angler.Outfit> AllOutfits { get; private set; } = new();
+    public List<TheLedger.Sim.Tackle.TerminalSpec> AllLures { get; private set; } = new();
+
     private static List<TheLedger.Sim.Angler.Outfit> LoadOutfits()
     {
         var list = new List<TheLedger.Sim.Angler.Outfit>();

@@ -1,0 +1,39 @@
+{
+  "startMoney": 40,
+  "startLures": ["sinker_half_oz", "bait_worm_bobber"],
+  "startOutfits": ["spinning_medium"],
+  "lures": {
+    "sinker_half_oz": 1,
+    "bait_worm_bobber": 4,
+    "spinner_eighth_oz": 6,
+    "jig_quarter_oz": 7,
+    "texas_worm_7in": 6,
+    "popper_2in": 9,
+    "crankbait_square_2in": 11
+  },
+  "outfits": {
+    "spinning_medium": 60,
+    "ultralight": 55,
+    "baitcaster_mh": 140
+  },
+  "market": {
+    "_note": "US$ per kg paid at the bait shop. 0 = can't be sold (Florida game fish or protected): it only counts for the Ledger. Simplified, frozen regs.",
+    "channel_catfish": 3.5,
+    "brown_bullhead": 2.5,
+    "striped_mullet": 4.0,
+    "sheepshead": 5.0,
+    "american_eel": 9.0,
+    "bowfin": 1.5,
+    "florida_gar": 1.0,
+    "golden_shiner": 6.0,
+    "atlantic_needlefish": 1.0,
+    "florida_bass": 0,
+    "black_crappie": 0,
+    "bluegill": 0,
+    "redear_sunfish": 0,
+    "spotted_sunfish": 0,
+    "warmouth": 0,
+    "common_snook": 0,
+    "grass_carp": 0
+  }
+}

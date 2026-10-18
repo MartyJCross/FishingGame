@@ -26,6 +26,7 @@ public partial class Main : Node2D
     private Label _card = null!;
     private LedgerPanel _ledger = null!;
     private TheLedger.Ui.TackleMenu _menu = null!;
+    private TheLedger.Ui.ShopPanel _shop = null!;
     private CanvasModulate _daylight = null!;
     private double _toastTime, _cardTime;
     private double _benchTime, _benchWorst;
@@ -125,7 +126,8 @@ public partial class Main : Node2D
 
         hud.AddChild(new TheLedger.Ui.LureCam { Name = "LureCam", Driver = _driver });
         hud.AddChild(new TheLedger.Ui.ControlsHud { Name = "Controls", Driver = _driver, Router = _router });
-        _menu = new TheLedger.Ui.TackleMenu { Name = "TackleMenu", Driver = _driver, Router = _router, OpenLedger = () => _ledger.Toggle() };
+        _shop = new TheLedger.Ui.ShopPanel { Name = "Shop", Driver = _driver };
+        _menu = new TheLedger.Ui.TackleMenu { Name = "TackleMenu", Driver = _driver, Router = _router, OpenLedger = () => _ledger.Toggle(), OpenShop = () => _shop.Open() };
 
         _reelHud = new Label { AnchorLeft = 1f, AnchorRight = 1f, OffsetLeft = -420f, OffsetRight = -16f, OffsetTop = 12f, HorizontalAlignment = HorizontalAlignment.Right, GrowHorizontal = Control.GrowDirection.Begin };
         _reelHud.AddThemeFontSizeOverride("font_size", 22);
@@ -149,6 +151,7 @@ public partial class Main : Node2D
         _ledger = new LedgerPanel { Name = "Ledger" };
         hud.AddChild(_ledger);
         hud.AddChild(_menu);
+        hud.AddChild(_shop);
     }
 
     private void Toast(string text, double seconds = 2.5)
@@ -194,6 +197,13 @@ public partial class Main : Node2D
             {
                 bool kept = e.Type == TheLedger.Sim.Core.SimEventType.FishKept;
                 var c = w.Catches.Last(k => k.FishId == e.Id);
+                if (kept && !_automated)
+                {
+                    ProfileStore.Current.Cooler.Add(new CoolerFish { Species = c.Species.Id, CommonName = c.Species.CommonName, WeightKg = c.WeightKg });
+                    ProfileStore.Save();
+                    float price = ProfileStore.Shop.PricePerKg(c.Species.Id) * c.WeightKg;
+                    Toast(price > 0f ? $"In the cooler: worth about ${price:0.00} at the shop" : "In the cooler (game fish: not for sale)", 2.5);
+                }
                 LedgerStore.Add(new LedgerEntry
                 {
                     Species = c.Species.Id, CommonName = c.Species.CommonName, LengthCm = c.LengthCm, WeightKg = c.WeightKg,
@@ -345,9 +355,9 @@ public partial class Main : Node2D
     {
         _router.ShoulderPx = SimSpace.ToPx(_driver.World.Anglers[0].Shoulder);
         _router.RodAngle = _driver.World.Anglers[0].Hands.Angle;
-        _router.MouseRodEnabled = !_tuning.MouseOver && !_menu.Visible;
+        _router.MouseRodEnabled = !_tuning.MouseOver && !_menu.Visible && !_shop.Visible;
         // The mouse is captured (hidden) while fishing; any menu or panel gives the cursor back.
-        bool wantCapture = !_automated && !_menu.Visible && !_ledger.Visible && !_tuning.IsOpen
+        bool wantCapture = !_automated && !_menu.Visible && !_shop.Visible && !_ledger.Visible && !_tuning.IsOpen
                            && DisplayServer.WindowIsFocused();
         var mode = wantCapture ? Input.MouseModeEnum.Captured : Input.MouseModeEnum.Visible;
         if (Input.MouseMode != mode) Input.MouseMode = mode;
