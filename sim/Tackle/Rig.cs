@@ -63,6 +63,34 @@ public sealed class Rig
     }
 
     private readonly TackleSolver _solver;
+
+    // Water sampled once per tick per node (the wave field is a sum of many components and barely changes within a
+    // tick); refreshed if line nodes are inserted or merged mid-tick.
+    private float[] _lSurf = Array.Empty<float>(), _lUx = Array.Empty<float>(), _lUy = Array.Empty<float>();
+    private float[] _rSurf = Array.Empty<float>(), _rUx = Array.Empty<float>(), _rUy = Array.Empty<float>();
+    private int _cachedLineCount = -1;
+
+    private void SampleWater(in TackleEnvironment env, double t)
+    {
+        var l = Line;
+        if (_lSurf.Length < l.Capacity) { _lSurf = new float[l.Capacity]; _lUx = new float[l.Capacity]; _lUy = new float[l.Capacity]; }
+        if (_rSurf.Length < Rod.Count) { _rSurf = new float[Rod.Count]; _rUx = new float[Rod.Count]; _rUy = new float[Rod.Count]; }
+        for (int k = 0; k < l.Count; k++)
+        {
+            float surf = env.Water.Height(l.X[k], t);
+            _lSurf[k] = surf;
+            Vec2 u = l.Y[k] < surf + 0.05f ? env.Water.WaveVelocity(l.X[k], l.Y[k], t) : Vec2.Zero;
+            _lUx[k] = u.X; _lUy[k] = u.Y;
+        }
+        for (int i = 0; i < Rod.Count; i++)
+        {
+            float surf = env.Water.Height(Rod.X[i], t);
+            _rSurf[i] = surf;
+            Vec2 u = Rod.Y[i] < surf + 0.05f ? env.Water.WaveVelocity(Rod.X[i], Rod.Y[i], t) : Vec2.Zero;
+            _rUx[i] = u.X; _rUy[i] = u.Y;
+        }
+        _cachedLineCount = l.Count;
+    }
     public TackleSolver Solver => _solver;
 
     public Rod Rod { get; }
@@ -121,6 +149,7 @@ public sealed class Rig
         {
             float f = (s + 1) / (float)n;
             double t = env.Time + f * dt;
+            if (s == 0 || Line.Count != _cachedLineCount) SampleWater(env, t);
             IntegrateRod(c, h, env, t);
             IntegrateLine(c, h, env, t, f, dt);
             Rod.DriveHandle(f, h);
@@ -196,10 +225,10 @@ public sealed class Rig
             r.FX[i] = 0f; r.FY[i] = 0f;
 
             // Drag on the blank (cylinder across the flow), air or water.
-            float surface = env.Water.Height(r.X[i], t);
+            float surface = _rSurf[i];
             bool wet = r.Y[i] < surface;
             float rho = wet ? env.Water.Density : AirDensity;
-            Vec2 u = wet ? env.Water.WaveVelocity(r.X[i], r.Y[i], t) : env.Wind;
+            Vec2 u = wet ? new Vec2(_rUx[i], _rUy[i]) : env.Wind;
             float segLen = 0.5f * (r.RestLen[i - 1] + (i < r.Count - 1 ? r.RestLen[i] : 0f));
             float k = 0.5f * rho * 1.2f * r.Diameter[i] * segLen * r.W[i];
             Drag(ref vx, ref vy, u, k, h);
@@ -235,11 +264,11 @@ public sealed class Rig
             float vx = l.VX[k], vy = l.VY[k];
             vy -= c.Gravity * h;
 
-            float surface = env.Water.Height(l.X[k], t);
+            float surface = _lSurf[k];
             bool wet = l.Y[k] < surface;
             l.Submerged[k] = wet;
             float rho = wet ? env.Water.Density : AirDensity;
-            Vec2 u = wet ? env.Water.WaveVelocity(l.X[k], l.Y[k], t) : env.Wind;
+            Vec2 u = wet ? new Vec2(_lUx[k], _lUy[k]) : env.Wind;
 
             float segAround = 0.5f * ((k == 0 ? l.FirstRest : l.Rest[k - 1]) + (k < l.Count - 1 ? l.Rest[k] : 0f));
             float w = l.W[k];

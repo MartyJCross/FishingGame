@@ -15,10 +15,11 @@ public class ReelTests
     /// A scripted overhead cast with the half-ounce sinker: open the bail, finger on the line, rod back, sweep forward,
     /// let go at about 10 o'clock. Returns the world after it has landed and settled.
     /// </summary>
-    internal static SimWorld Cast(float releaseAngle, out float lineBefore, InputRecording? rec = null)
+    internal static SimWorld Cast(float releaseAngle, out float lineBefore, InputRecording? rec = null, float lip = -1f)
     {
         var c = new SimConfig();
         var world = new SimWorld(c, 1);
+        if (lip >= 0f) world.Anglers[0].Reel.Spec.LipFrictionN = lip;
         var frame = new InputFrame { RodTargetAngle = 2.5f, RodReach = 0.6f };
         var frames = new InputFrame[1];
         lineBefore = world.Anglers[0].Reel.LineOnSpool + world.Anglers[0].Rig.Line.LineOut;

@@ -150,7 +150,7 @@ public sealed class SimConfig
     public float PatchSpacing = 0.05f;
 
     [Tunable("Water", 64, 2048, Help = "Columns per simulated patch (applies to new worlds)")]
-    public int PatchColumns = 512;
+    public int PatchColumns = 1024;
 
     [Tunable("Water", 4, 300, Help = "Absorbing columns at each patch edge")]
     public int SpongeColumns = 48;
@@ -166,6 +166,9 @@ public sealed class SimConfig
 
     [Tunable("Water", 0f, 1000f, Help = "Droplets thrown per joule of impact (max 64 per splash)")]
     public float DropletsPerJoule = 150f;
+
+    [Tunable("Water", 0f, 0.3f, Help = "Wake: how hard a body moving at the surface pushes the water, per tick")]
+    public float WakeGain = 0.05f;
 
     [Tunable("Water", 0f, 1f, Help = "Surface tap when a droplet falls back, m/s")]
     public float DropletTapImpulse = 0.05f;

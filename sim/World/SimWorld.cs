@@ -174,6 +174,7 @@ public sealed class SimWorld
         }
 
         LineForcesOnFish();
+        Wakes();
         Failures();
         Landing();
 
@@ -230,6 +231,37 @@ public sealed class SimWorld
             var line = _anglers[i].Rig.Line;
             if (holder != null) line.Pin(holder.Mouth);
             else line.Unpin();
+        }
+    }
+
+    /// <summary>Lures, floats and fish near the surface push the water as they move (docs/04 §7.1).</summary>
+    private void Wakes()
+    {
+        bool ringTick = Tick % 10 == 0;
+        for (int i = 0; i < _anglers.Length; i++)
+        {
+            var l = _anglers[i].Rig.Line;
+            int t = l.TerminalIndex;
+            float r = 0.5f * MathF.Max(l.Terminal.DiameterM, l.Terminal.LengthM * 0.4f);
+            Body(l.X[t], l.Y[t], l.VX[t], l.VY[t], r, ringTick);
+            int f = l.FloatIndex;
+            if (f >= 0 && f < t) Body(l.X[f], l.Y[f], l.VX[f], l.VY[f], 0.5f * l.Terminal.FloatDiameterM, ringTick);
+        }
+        for (int k = 0; k < _fish.Count; k++)
+        {
+            var fish = _fish[k];
+            float r = 0.12f * fish.LengthM;
+            Body(fish.HeadX, fish.HeadY, fish.VX, fish.VY, r, (Tick + k) % 14 == 0);
+        }
+
+        void Body(float x, float y, float vx, float vy, float r, bool ring)
+        {
+            float depth = Water.Height(x, Time) - y;
+            float reach = 2.5f * r + 0.03f;
+            if (depth < -r || depth > reach) return;
+            float near = 1f - Math.Clamp(depth, 0f, reach) / reach;
+            float speed = MathF.Sqrt(vx * vx + vy * vy);
+            Water.Disturb(Config, x, vx, vy, r, near, ring && speed > 0.25f);
         }
     }
 

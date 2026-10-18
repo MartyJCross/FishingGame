@@ -40,6 +40,13 @@ public partial class Main : Node2D
         _args = CommandLine.Parse(OS.GetCmdlineUserArgs());
         foreach (string e in _args.Errors) GD.PushWarning($"Command line: {e}");
 
+        if (_args.Background)
+        {
+            // Automated runs stay out of the owner's way: never take focus, sit off-screen (pair with
+            // --position -4000,-4000 on the Godot command line so the window is never shown on screen at all).
+            DisplayServer.WindowSetFlag(DisplayServer.WindowFlags.NoFocus, true);
+            DisplayServer.WindowSetPosition(new Vector2I(-4000, -4000));
+        }
         if (_args.Light)
         {
             Engine.MaxFps = 30;
@@ -109,17 +116,8 @@ public partial class Main : Node2D
         version.AddThemeConstantOverride("outline_size", 4);
         hud.AddChild(version);
 
-        var hint = new Label
-        {
-            Text = "Cast: Space/B opens the bail, hold LMB/LT (finger on line), swing back and forward, let go  ·  " +
-                   "crank: RMB/RT/wheel  ·  set the hook: sweep the rod  ·  land: F/A  ·  drag: Q/E  ·  F3 loads",
-            AnchorLeft = 0f, AnchorRight = 1f, AnchorTop = 1f, AnchorBottom = 1f,
-            OffsetTop = -44f, OffsetBottom = -12f, OffsetLeft = 16f,
-        };
-        hint.AddThemeFontSizeOverride("font_size", 18);
-        hint.AddThemeColorOverride("font_outline_color", Colors.Black);
-        hint.AddThemeConstantOverride("outline_size", 4);
-        hud.AddChild(hint);
+        hud.AddChild(new TheLedger.Ui.LureCam { Name = "LureCam", Driver = _driver });
+        hud.AddChild(new TheLedger.Ui.ControlsHud { Name = "Controls", Driver = _driver, Router = _router });
 
         _reelHud = new Label { AnchorLeft = 1f, AnchorRight = 1f, OffsetLeft = -420f, OffsetRight = -16f, OffsetTop = 12f, HorizontalAlignment = HorizontalAlignment.Right, GrowHorizontal = Control.GrowDirection.Begin };
         _reelHud.AddThemeFontSizeOverride("font_size", 22);
@@ -171,6 +169,25 @@ public partial class Main : Node2D
                 break;
             }
         }
+    }
+
+    private float _lastTension;
+
+    /// <summary>
+    /// Controller rumble from the line: sudden tension changes (taps, a bite, a head shake) buzz the light motor,
+    /// sustained load on a fish works the heavy one. Pure information from the sim, like feeling the rod.
+    /// </summary>
+    private void Rumble(double delta)
+    {
+        if (_router.ActiveDevice != InputRouter.Device.Gamepad || Input.GetConnectedJoypads().Count == 0) return;
+        var line = _driver.World.Anglers[0].Rig.Line;
+        float t = line.TipTension;
+        float change = MathF.Abs(t - _lastTension) / MathF.Max((float)delta, 1e-3f);
+        _lastTension = t;
+        float weak = Mathf.Clamp(change * 0.03f, 0f, 0.7f);
+        float strong = Mathf.Clamp(t / (line.Spec.BreakingForceN * 0.8f), 0f, 1f) * (line.Pinned ? 1f : 0.3f);
+        if (weak < 0.03f && strong < 0.05f) return;
+        Input.StartJoyVibration(Input.GetConnectedJoypads()[0], weak, strong, 0.12f);
     }
 
     /// <summary>Night falls through a canvas tint: deep blue at night, warm at dawn and dusk.</summary>
@@ -273,6 +290,7 @@ public partial class Main : Node2D
         _router.MouseRodEnabled = !_tuning.MouseOver;
         UpdateReelHud();
         UpdateDaylight();
+        Rumble(delta);
         _toastTime -= delta;
         _cardTime -= delta;
         if (_toastTime <= 0) _toast.Text = "";

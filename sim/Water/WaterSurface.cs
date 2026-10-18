@@ -114,6 +114,27 @@ public sealed class WaterSurface
     }
 
     /// <summary>Displacement into whichever patch covers x (floating bodies, boats).</summary>
+    /// <summary>
+    /// A body moving at or just under the surface pushes the water every tick: down where it moves down, and a bow
+    /// wave and trough from moving along (wakes, a bobbing float, a fish boiling near the top). <paramref name="near"/>
+    /// is 1 at the surface, 0 once it's deep enough not to disturb it. <paramref name="ring"/> also logs a ripple
+    /// ring (callers throttle it).
+    /// </summary>
+    public void Disturb(SimConfig c, float x, float vx, float vy, float radius, float near, bool ring)
+    {
+        if (near <= 0f) return;
+        var p = PatchAt(x);
+        if (p == null) return;
+        float size = MathF.Min(3f, MathF.Max(radius, 0.005f) / 0.015f);
+        float push = c.WakeGain * near * MathF.Sqrt(size) * (0.8f * MathF.Abs(vx) + MathF.Max(0f, -vy) - 0.4f * MathF.Max(0f, vy));
+        if (MathF.Abs(push) < 1e-5f) return;
+        float r = MathF.Max(radius * 1.5f, 0.03f);
+        p.AddImpulse(x, push, r);
+        // The bow wave runs ahead of the body.
+        if (MathF.Abs(vx) > 0.15f) p.AddImpulse(x + MathF.Sign(vx) * r * 2f, -0.5f * push, r);
+        if (ring) Impacts.Add(x, Time, MathF.Min(0.6f, push * 6f), r);
+    }
+
     public void DisplaceAt(float x, float deltaArea, float halfWidth) => PatchAt(x)?.AddDisplacement(x, deltaArea, halfWidth);
 
     /// <summary>
@@ -129,7 +150,8 @@ public sealed class WaterSurface
         float impulse = c.SplashImpulseScale * 3f * MathF.Tanh(momentum / 0.15f) * MathF.Min(1f, speed / 2f + 0.2f);
         ImpulseAt(x, impulse, MathF.Max(radius, 0.03f));
 
-        int drops = Math.Min(64, (int)(c.DropletsPerJoule * energy));
+        // Small fast bodies still throw a visible crown of spray.
+        int drops = Math.Min(64, (int)(c.DropletsPerJoule * energy + 120f * MathF.Max(radius, 0.005f) * speed));
         float y = Height(x, Time);
         for (int i = 0; i < drops; i++)
         {

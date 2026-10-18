@@ -181,7 +181,9 @@ dotnet build game/TheLedger.csproj -warnaserror
 "$GODOT" --headless --path game -- --smoke 30
 
 # screenshot harness (needs the GPU; quiet and light). PATH may be absolute.
-"$GODOT" --path game --resolution 1280x720 -- --light --screenshot out.png --frames 90 --debug-overlay
+"$GODOT" --path game --position -4000,-4000 --resolution 1280x720 -- --background --light --screenshot out.png --frames 90 --debug-overlay
+# ALWAYS use --position -4000,-4000 and --background for windowed runs (screenshots, --bench): the owner does not want
+# windows popping up on their screen. dotnet test and --headless smoke runs never open a window.
 ```
 
 **In-game command-line args** (after `--`; parsed in `game/src/Boot/CommandLine.cs`): `--light` (mute, cap 30 FPS),
@@ -296,7 +298,8 @@ input from a `.rec` recording), `--record FILE` (save this session's input on ex
   Land (F / A): fish within `LandReach` of the angler's feet, near the surface, and tired (`LandStamina`) or small
   (`SwingInKg`) → `Catch` in `SimWorld.Catches`, `FishLanded`, released back out. Game: toasts (no bite alerts:
   watch the float), catch card, tension and rod-load bars, clock, `CanvasModulate` day/night, `--time H`,
-  `--bench N` (real-time FPS report). Bench: 174 fps at 1280x720 on the owner's AMD iGPU, sim 0.7 ms/tick.
+  `--bench N` (real-time FPS report). Bench: 174 fps at 1280x720 on the owner's AMD iGPU, sim 0.7 ms/tick. **Perf numbers from Godot runs are the Debug
+  build (~2.5x slower than the exported Release build)**: a 20 m cast with 31 fish is ~0.6 ms/tick in Release.
   Tests: hookset on a real take (not a nibble), a 2 kg bass on 10 lb mono at ~25% drag lands in ~25 s.
   - Not in the demo yet (from the M6 DoD): audio, the spincast and baitcaster rods, jumps, keep/bucket, saved log.
   - **Next after the owner's feedback:** M7 (HUD/menus/Ledger) or whatever the demo shows is weakest.

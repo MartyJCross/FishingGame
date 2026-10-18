@@ -25,7 +25,7 @@ public sealed class ReelSpec
     /// <summary>Static / kinetic drag ratio: 1.02-1.08 smooth, 1.3-1.5 sticky and jerky.</summary>
     public float DragStickRatio { get; set; } = 1.1f;
     /// <summary>Resistance of line peeling off a full spool's lip during a cast, N (rises as the spool empties).</summary>
-    public float LipFrictionN { get; set; } = 0.06f;
+    public float LipFrictionN { get; set; } = 0.012f;
     /// <summary>How hard a finger pressed on the line at the spool can hold it, N.</summary>
     public float FingerHoldN { get; set; } = 25f;
     public float MassKg { get; set; } = 0.25f;

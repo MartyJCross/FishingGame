@@ -31,6 +31,8 @@ public sealed class CommandLine
     public string? Lure;
     /// <summary>Start with an empty pond (tackle and water work).</summary>
     public bool NoFish;
+    /// <summary>Automated run: the window stays off-screen and never takes focus.</summary>
+    public bool Background;
     /// <summary>Debug camera: centre x, y (m) and zoom, e.g. --look 6,-1,4 (screenshots of small things).</summary>
     public float[]? Look;
 
@@ -77,6 +79,7 @@ public sealed class CommandLine
                 case "--debug-overlay": c.DebugOverlay = true; break;
                 case "--lure": c.Lure = Next(); break;
                 case "--no-fish": c.NoFish = true; break;
+                case "--background": c.Background = true; break;
                 case "--look":
                 {
                     var parts = (Next() ?? "").Split(',');
