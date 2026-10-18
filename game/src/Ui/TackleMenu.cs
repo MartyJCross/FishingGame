@@ -19,9 +19,6 @@ public partial class TackleMenu : PanelContainer
 
     public override void _Ready()
     {
-        SetAnchorsPreset(LayoutPreset.Center);
-        GrowHorizontal = GrowDirection.Both;
-        GrowVertical = GrowDirection.Both;
         var sb = new StyleBoxFlat { BgColor = new Color(0.04f, 0.07f, 0.09f, 0.9f) };
         sb.SetCornerRadiusAll(10);
         sb.SetContentMarginAll(18);
@@ -58,6 +55,7 @@ public partial class TackleMenu : PanelContainer
     public override void _Process(double delta)
     {
         if (!Visible) return;
+        Position = ((GetViewportRect().Size - Size) * 0.5f).Floor(); // centred (anchors don't apply under a CanvasLayer)
         var w = Driver.World;
         var a = w.Anglers[0];
         bool reeledIn = a.Rig.Line.LineOut <= w.Config.RetieMaxLineOut;

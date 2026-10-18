@@ -100,7 +100,8 @@ public partial class WaterRenderer : Node2D
         Transform2D inv = GetCanvasTransform().AffineInverse();
         float left = (inv * view.Position).X / SimSpace.PixelsPerMetre;
         float right = (inv * view.End).X / SimSpace.PixelsPerMetre;
-        float x0 = MathF.Max(WaterStartX, left - 0.5f);
+        // Start a few metres under the bank (drawn in front) so no sky shows between the bank slope and the far-water band.
+        float x0 = MathF.Max(WaterStartX - 4f, left - 0.5f);
         float x1 = MathF.Min(WaterEndX, right + 0.5f);
         if (x1 <= x0) return;
 
