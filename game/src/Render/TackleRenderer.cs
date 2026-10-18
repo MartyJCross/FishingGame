@@ -134,7 +134,9 @@ public partial class TackleRenderer : Node2D
             float tension = k < m ? line.Tension[Math.Min(k, m - 1)] : 0f;
             _lineCols[k] = loads ? LoadColor(tension / breakN) : lineColor;
         }
-        if (m >= 1) DrawPolylineColors(_linePts.AsSpan(0, m + 1).ToArray(), _lineCols.AsSpan(0, m + 1).ToArray(), loads ? 2.5f : 1.5f, true);
+        // Constant on-screen width whatever the camera zoom (a sub-pixel line breaks up into dashes).
+        float px = 1f / MathF.Max(GetViewport().GetCanvasTransform().X.Length(), 0.05f);
+        if (m >= 1) DrawPolylineColors(_linePts.AsSpan(0, m + 1).ToArray(), _lineCols.AsSpan(0, m + 1).ToArray(), (loads ? 2.5f : 1.6f) * px, true);
 
         // Terminal: a lead sinker (teardrop as a low-poly diamond) until lures exist.
         Vector2 term = _linePts[m];

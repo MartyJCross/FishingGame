@@ -26,6 +26,13 @@ public readonly struct TackleEnvironment
 /// One angler's rod + line + terminal tackle, stepped together with XPBD substeps (docs/04_PHYSICS_SPEC.md §2).
 /// Order per substep: forces → predict → drive handle → solve rod → solve line (direct) → contacts → velocities.
 /// </summary>
+/// <summary>The terminal hitting the water: an entry or a skip.</summary>
+public struct WaterContact
+{
+    public float X, VX, VY, Mass, Radius;
+    public bool Skipped;
+}
+
 public sealed class Rig
 {
     public const float AirDensity = 1.2f;
@@ -53,13 +60,35 @@ public sealed class Rig
         Line.Reset(Rod.TipPos, new Vec2(0f, -1f), lineOut);
     }
 
-    /// <summary>Advances the rig one tick. The handle moves from its last target to (grip, angle) over the tick.</summary>
-    public void Step(SimConfig c, float dt, in TackleEnvironment env, Vec2 grip, float angle, float payOutDelta)
+    /// <summary>Line that left the reel during the last tick (slip force exceeded), m.</summary>
+    public float SlippedThisTick { get; private set; }
+    /// <summary>Line actually taken in during the last tick, m (≥ 0).</summary>
+    public float TakenThisTick { get; private set; }
+
+    /// <summary>The terminal's water entries and skips during the last tick (at most a few).</summary>
+    public readonly WaterContact[] Entries = new WaterContact[4];
+    public int EntryCount { get; private set; }
+    private bool _terminalWet = true;
+
+    /// <summary>
+    /// Advances the rig one tick. The handle moves from its last target to (grip, angle) over the tick.
+    /// <paramref name="payOutDelta"/> changes the line out directly (negative = cranked in); above
+    /// <paramref name="slipForce"/> at the rod the reel gives line (open bail, drag).
+    /// </summary>
+    public void Step(SimConfig c, float dt, in TackleEnvironment env, Vec2 grip, float angle, float payOutDelta,
+        float slipForce = float.PositiveInfinity)
     {
+        SlippedThisTick = 0f;
+        TakenThisTick = 0f;
+        EntryCount = 0;
         Rod.SetHandleTarget(grip, angle);
         Line.SetSolverMassFloor(MathF.Max(c.LineNodeMinMassKg, Line.Terminal.MassKg / MathF.Max(c.LineMassRatioLimit, 1f)));
         if (payOutDelta != 0f)
+        {
+            float before = Line.LineOut;
             Line.PayOut(payOutDelta, c.MinLineOut, Rod.TipPos, new Vec2(Rod.VX[Rod.Tip], Rod.VY[Rod.Tip]));
+            TakenThisTick = MathF.Max(0f, before - Line.LineOut);
+        }
 
         int n = Math.Max(1, c.TackleSubsteps);
         float h = dt / n;
@@ -73,10 +102,16 @@ public sealed class Rig
             IntegrateLine(c, h, env, t);
             Rod.DriveHandle(f, h);
 
-            _solver.Solve(Rod, Line, h, Rod.Spec.MaterialDamping * 0.001f, c.RodStretchCompliance, c.TackleIterations);
+            _solver.Solve(Rod, Line, h, Rod.Spec.MaterialDamping * 0.001f, c.RodStretchCompliance, c.TackleIterations, slipForce);
+            if (_solver.SlipDistance > 0f)
+            {
+                SlippedThisTick += _solver.SlipDistance;
+                Line.PayOut(_solver.SlipDistance, c.MinLineOut, Rod.TipPos, new Vec2(Rod.VX[Rod.Tip], Rod.VY[Rod.Tip]));
+            }
 
             Contacts(c, env);
             UpdateVelocities(c, h);
+            WaterEntry(c, env, t);
             Rod.AccumulateMoments(h, n);
             Line.AccumulateTension(h, n);
             if (GuideLineForces) ApplyGuideForces();
@@ -175,6 +210,36 @@ public sealed class Rig
             l.X[k] += vx * h;
             l.Y[k] += vy * h;
         }
+    }
+
+    /// <summary>
+    /// The terminal crossing the surface from above (docs/04 §6.3): skip if it's flat and fast enough and the angle is
+    /// shallow (Clanet et al.), otherwise enter. Either way it's recorded for the world to splash and tell the fish.
+    /// </summary>
+    private void WaterEntry(SimConfig c, in TackleEnvironment env, double t)
+    {
+        var l = Line;
+        int k = l.TerminalIndex;
+        float surface = env.Water.Height(l.X[k], t);
+        bool wet = l.Y[k] < surface;
+        if (wet && !_terminalWet)
+        {
+            float vx = l.VX[k], vy = l.VY[k];
+            float speed = MathF.Sqrt(vx * vx + vy * vy);
+            float angleDeg = MathF.Atan2(-vy, MathF.Abs(vx)) * (180f / MathF.PI);
+            float planing = l.Terminal.Planing;
+            bool skip = vy < 0f && planing > 0f && speed > c.SkipMinSpeed && angleDeg < c.SkipMaxAngleDeg * planing;
+            if (skip)
+            {
+                l.Y[k] = surface;
+                l.VY[k] = -vy * c.SkipRestitution;
+                l.VX[k] = vx * (1f - c.SkipSpeedLoss);
+                wet = false;
+            }
+            if (EntryCount < Entries.Length)
+                Entries[EntryCount++] = new WaterContact { X = l.X[k], VX = vx, VY = vy, Mass = l.Terminal.MassKg, Radius = 0.5f * l.Terminal.DiameterM, Skipped = skip };
+        }
+        _terminalWet = wet;
     }
 
     /// <summary>Implicit quadratic drag toward the medium velocity u: v ← u + (v−u)/(1 + k·h·|v−u|).</summary>

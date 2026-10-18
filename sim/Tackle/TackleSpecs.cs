@@ -117,6 +117,8 @@ public sealed class TerminalSpec
     /// <summary>Effective diameter for drag, m.</summary>
     public float DiameterM { get; set; } = 0.012f;
     public float DragCoefficient { get; set; } = 0.5f;
+    /// <summary>How well it planes on the water, 0..1 (skirted jigs, soft plastics high; sinkers, crankbaits low).</summary>
+    public float Planing { get; set; } = 0.15f;
 
     public static TerminalSpec HalfOunceSinker() => new();
 }

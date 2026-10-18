@@ -27,7 +27,8 @@ public sealed class TackleSolver
     private readonly int[] _n0, _n1, _n2;
     private readonly double[] _rest, _alpha, _gamma, _lambda, _c;
     private readonly double[] _g;           // gradients: 6 per constraint (node 0, 1, 2)
-    private readonly bool[] _active, _unilateral;
+    private readonly bool[] _active, _unilateral, _disabled;
+    private readonly double[] _x0, _y0;
     private readonly int[] _ownerIndex;     // rod joint j (bend), rod segment j (stretch), or line segment s
     private int _count;
 
@@ -44,14 +45,21 @@ public sealed class TackleSolver
         _kind = new byte[c]; _n0 = new int[c]; _n1 = new int[c]; _n2 = new int[c];
         _rest = new double[c]; _alpha = new double[c]; _gamma = new double[c]; _lambda = new double[c]; _c = new double[c];
         _g = new double[c * 6];
-        _active = new bool[c]; _unilateral = new bool[c];
+        _active = new bool[c]; _unilateral = new bool[c]; _disabled = new bool[c];
+        _x0 = new double[p]; _y0 = new double[p];
         _ownerIndex = new int[c];
         _band = new double[c * (B + 1)];
         _rhs = new double[c]; _dl = new double[c]; _tmp = new double[c];
     }
 
     /// <summary>Solves rod and line constraints for one substep; writes positions, rod bend λ and line λ back.</summary>
-    public void Solve(Rod rod, Line line, float h, float rodGammaTime, float rodStretchCompliance, int iterations)
+    /// <summary>
+    /// One solve. With a finite <paramref name="slipForce"/>, the line's first segment (rod tip → first node) is the
+    /// reel: if holding it would take more than that force, the solve is redone with that segment replaced by exactly
+    /// the slip force, and <see cref="SlipDistance"/> reports how much line had to leave the spool to allow it.
+    /// </summary>
+    public void Solve(Rod rod, Line line, float h, float rodGammaTime, float rodStretchCompliance, int iterations,
+        float slipForce = float.PositiveInfinity)
     {
         int R = rod.Count, L = line.Count;
         int nP = R + L;
@@ -78,14 +86,34 @@ public sealed class TackleSolver
             Add(0, a, b, -1, rest, rest * invEA / h2, 0.0, true, s);
         }
         for (int p = 0; p < _count; p++) _lambda[p] = 0.0;
+        for (int i = 0; i < nP; i++) { _x0[i] = _x[i]; _y0[i] = _y[i]; }
 
-        for (int it = 0; it < Math.Max(1, iterations); it++)
+        Iterate(nP, iterations);
+
+        SlipDistance = 0f;
+        bool slipping = false;
+        double slipImpulse = slipForce * h2;
+        if (L > 0 && float.IsFinite(slipForce) && _active[lineStart] && -_lambda[lineStart] > slipImpulse)
         {
-            Linearize(nP);
-            Assemble();
-            if (!Factor()) break;
-            SolveBand();
-            Apply();
+            // The reel gives: start again from the predicted positions with the first segment replaced by the slip force.
+            slipping = true;
+            for (int i = 0; i < nP; i++) { _x[i] = _x0[i]; _y[i] = _y0[i]; }
+            int a = R - 1, b = R;
+            double dx = _x[b] - _x[a], dy = _y[b] - _y[a];
+            double len = Math.Sqrt(dx * dx + dy * dy);
+            if (len > 1e-9)
+            {
+                double nx = dx / len, ny = dy / len;
+                _x[a] += _w[a] * nx * slipImpulse; _y[a] += _w[a] * ny * slipImpulse;
+                _x[b] -= _w[b] * nx * slipImpulse; _y[b] -= _w[b] * ny * slipImpulse;
+            }
+            _disabled[lineStart] = true;
+            for (int p = 0; p < _count; p++) _lambda[p] = 0.0;
+            Iterate(nP, iterations);
+            _disabled[lineStart] = false;
+            double ex = _x[b] - _x[a], ey = _y[b] - _y[a];
+            double after = Math.Sqrt(ex * ex + ey * ey);
+            SlipDistance = (float)Math.Max(0.0, after - _rest[lineStart] * (1.0 + slipForce * invEA));
         }
 
         // Diagnostics: worst remaining violation after the solve (line stretch beyond rest, rod stretch, rod bend).
@@ -107,7 +135,23 @@ public sealed class TackleSolver
             if (_kind[p] == 1) rod.BendLambda[_ownerIndex[p]] = (float)_lambda[p];
         for (int p = lineStart; p < _count; p++)
             line.Lambda[_ownerIndex[p]] = _active[p] ? (float)_lambda[p] : 0f;
+        if (slipping) line.Lambda[0] = (float)-slipImpulse;
     }
+
+    private void Iterate(int nP, int iterations)
+    {
+        for (int it = 0; it < Math.Max(1, iterations); it++)
+        {
+            Linearize(nP);
+            Assemble();
+            if (!Factor()) break;
+            SolveBand();
+            Apply();
+        }
+    }
+
+    /// <summary>Line that left the reel in the last solve (slip force exceeded), m.</summary>
+    public float SlipDistance { get; private set; }
 
     /// <summary>Largest line over-stretch left after the last solve, m (diagnostic).</summary>
     public double LastLineResidual { get; private set; }
@@ -117,7 +161,7 @@ public sealed class TackleSolver
     {
         int p = _count++;
         _kind[p] = kind; _n0[p] = a; _n1[p] = b; _n2[p] = c;
-        _rest[p] = rest; _alpha[p] = alphaTilde; _gamma[p] = gamma; _unilateral[p] = unilateral;
+        _disabled[p] = false; _rest[p] = rest; _alpha[p] = alphaTilde; _gamma[p] = gamma; _unilateral[p] = unilateral;
         _ownerIndex[p] = owner;
     }
 
@@ -134,7 +178,7 @@ public sealed class TackleSolver
                 double len = Math.Sqrt(dx * dx + dy * dy);
                 _c[p] = len - _rest[p];
                 bool usable = len > 1e-12 && (_w[a] > 0 || _w[b] > 0);
-                _active[p] = usable && (!_unilateral[p] || _c[p] > 0);
+                _active[p] = usable && !_disabled[p] && (!_unilateral[p] || _c[p] > 0);
                 if (!_active[p]) { _g[g] = _g[g + 1] = _g[g + 2] = _g[g + 3] = _g[g + 4] = _g[g + 5] = 0; continue; }
                 double nx = dx / len, ny = dy / len;
                 _g[g] = -nx; _g[g + 1] = -ny; _g[g + 2] = nx; _g[g + 3] = ny; _g[g + 4] = 0; _g[g + 5] = 0;

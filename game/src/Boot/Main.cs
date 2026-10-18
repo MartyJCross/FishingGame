@@ -19,6 +19,7 @@ public partial class Main : Node2D
     private TuningPanel _tuning = null!;
     private Camera2D _camera = null!;
     private Node2D _worldRoot = null!;
+    private Label _reelHud = null!;
     private int _frame;
     private bool _capturing;
 
@@ -99,14 +100,46 @@ public partial class Main : Node2D
 
         var hint = new Label
         {
-            Text = "Move the mouse or right stick to swing the rod  ·  middle-click: splash  ·  F4 rain  ·  F1 tuning  ·  F3 debug",
+            Text = "Cast: Space/B opens the bail, hold LMB/LT (finger on line), swing back and forward, let go  ·  " +
+                   "crank: RMB/RT/wheel  ·  drag: Q/E, Shift+wheel  ·  F1 tuning  ·  F3 loads",
             AnchorLeft = 0f, AnchorRight = 1f, AnchorTop = 1f, AnchorBottom = 1f,
             OffsetTop = -44f, OffsetBottom = -12f, OffsetLeft = 16f,
         };
-        hint.AddThemeFontSizeOverride("font_size", 20);
+        hint.AddThemeFontSizeOverride("font_size", 18);
         hint.AddThemeColorOverride("font_outline_color", Colors.Black);
         hint.AddThemeConstantOverride("outline_size", 4);
         hud.AddChild(hint);
+
+        _reelHud = new Label { AnchorLeft = 1f, AnchorRight = 1f, OffsetLeft = -420f, OffsetRight = -16f, OffsetTop = 12f, HorizontalAlignment = HorizontalAlignment.Right };
+        _reelHud.AddThemeFontSizeOverride("font_size", 22);
+        _reelHud.AddThemeColorOverride("font_outline_color", Colors.Black);
+        _reelHud.AddThemeConstantOverride("outline_size", 4);
+        hud.AddChild(_reelHud);
+    }
+
+    /// <summary>Keeps the angler and the end of the line in view, zooming out for long casts (smoothed).</summary>
+    private void FollowCamera(double delta)
+    {
+        var a = _driver.World.Anglers[0];
+        float left = a.Position.X - 2.5f;
+        float right = MathF.Max(a.Position.X + 6f, a.Rig.Line.TerminalPos.X + 3f);
+        float span = right - left;
+        float zoom = Math.Clamp(15f / span, 0.35f, 1f);
+        var target = SimSpace.ToPx(0.5f * (left + right), 0.5f + 1.5f * (1f - zoom));
+        float k = 1f - MathF.Exp(-3f * (float)delta);
+        _camera.Position = _camera.Position.Lerp(target, k);
+        _camera.Zoom = _camera.Zoom.Lerp(new Vector2(zoom, zoom), k);
+    }
+
+    /// <summary>Reel readout until the M7 HUD: bail, drag, line out, tension.</summary>
+    private void UpdateReelHud()
+    {
+        var a = _driver.World.Anglers[0];
+        var r = a.Reel;
+        var line = a.Rig.Line;
+        _reelHud.Text = $"Bail {(r.BailOpen ? "OPEN" : "closed")}   drag {r.DragForce / 9.81f:0.0} kg ({r.DragClick}/{r.Spec.DragDetents})\n" +
+                        $"line out {line.LineOut:0.0} m   spool {r.LineOnSpool:0} m\n" +
+                        $"tension {line.TipTension:0.0} N{(r.DragSlipping ? "   DRAG SLIPPING" : "")}";
     }
 
     public override void _UnhandledInput(InputEvent e)
@@ -156,6 +189,8 @@ public partial class Main : Node2D
     {
         _router.ShoulderPx = SimSpace.ToPx(_driver.World.Anglers[0].Shoulder);
         _router.MouseRodEnabled = !_tuning.MouseOver;
+        UpdateReelHud();
+        FollowCamera(delta);
 
         if (_args.SmokeSeconds is float smoke)
         {

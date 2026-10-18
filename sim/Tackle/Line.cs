@@ -200,7 +200,7 @@ public sealed class Line
         Count--;
     }
 
-    public void BeginTick() => Array.Clear(_tensionAccum, 0, Count + 1);
+    public void BeginTick() => Array.Clear(_tensionAccum);
 
     /// <summary>Adds this substep's segment tensions (−λ/h², pulling only) to the tick average.</summary>
     public void AccumulateTension(float h, int substeps)

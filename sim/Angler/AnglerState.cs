@@ -14,18 +14,20 @@ public sealed class AnglerState
     {
         Index = index;
         Position = PrevPosition = position;
-        SetTackle(config, RodSpec.MediumSpinning(), LineSpec.Mono10(), TerminalSpec.HalfOunceSinker(), 1.2f);
+        SetTackle(config, RodSpec.MediumSpinning(), ReelSpec.Spinning2500(), LineSpec.Mono10(), TerminalSpec.HalfOunceSinker(), 1.2f);
     }
 
     /// <summary>This angler's rod, line and terminal tackle.</summary>
     public Rig Rig { get; private set; } = null!;
+    public Reel Reel { get; private set; } = null!;
 
     /// <summary>Where the hands hold the rod, world space.</summary>
     public Vec2 Grip => Shoulder + Hands.GripOffset;
 
     /// <summary>Replaces the tackle (allocates: setup and gear changes only).</summary>
-    public void SetTackle(SimConfig config, RodSpec rod, LineSpec line, TerminalSpec terminal, float lineOut)
+    public void SetTackle(SimConfig config, RodSpec rod, ReelSpec reel, LineSpec line, TerminalSpec terminal, float lineOut)
     {
+        Reel = new Reel(reel, reel.CapacityM - lineOut);
         Rig = new Rig(rod, line, terminal, config.MaxLineNodes);
         Rig.Line.SegmentLength = config.LineSegmentLength;
         Hands.Step(config, 0f, Hands.Angle, Hands.Reach);
@@ -54,13 +56,10 @@ public sealed class AnglerState
         PrevPosition = Position;
         Hands.Step(c, dt, input.RodTargetAngle, input.RodReach);
 
-        // TEMP until the reel exists (M3): Bail pays line out, cranking retrieves it.
-        float payOut = 0f;
-        if (input.Has(InputButtons.Bail)) payOut += c.TempPayOutSpeed * dt;
-        if (input.CrankRate > 0f) payOut -= input.CrankRate * c.TempRetrievePerTurn * dt;
-
-        Rig.Line.SegmentLength = c.LineSegmentLength;
-        Rig.Step(c, dt, env, Grip, Hands.Angle, payOut);
+        Reel.BeginTick(c, dt, input, Rig.Line.Spec, Rig.Line.TipTension);
+        Rig.Line.SegmentLength = MathF.Max(c.LineSegmentLength, Rig.Line.LineOut / MathF.Max(c.LineNodesTarget, 1f));
+        Rig.Step(c, dt, env, Grip, Hands.Angle, Reel.Retrieve, Reel.SlipForce);
+        Reel.EndTick(dt, Rig.SlippedThisTick, Rig.TakenThisTick);
     }
 
     public void Hash(ref StateHasher h)
@@ -68,6 +67,7 @@ public sealed class AnglerState
         h.Add(Position);
         Hands.Hash(ref h);
         Rig.Hash(ref h);
+        Reel.Hash(ref h);
     }
 
     public bool IsFinite => Position.IsFinite && Hands.IsFinite && Rig.IsFinite();

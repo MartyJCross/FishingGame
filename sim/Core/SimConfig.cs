@@ -81,11 +81,23 @@ public sealed class SimConfig
     [Tunable("Line", 0f, 1f, Help = "Ground friction for line and rod nodes (0 = ice, 1 = sticks)")]
     public float GroundFriction = 0.6f;
 
-    [Tunable("Line", 0.05f, 1f, Help = "TEMP until the reel (M3): metres retrieved per crank turn")]
-    public float TempRetrievePerTurn = 0.25f;
+    [Tunable("Line", 50f, 400f, Help = "Line nodes target: spacing grows to line out / this (long casts stay affordable)")]
+    public float LineNodesTarget = 110f;
 
-    [Tunable("Line", 0f, 5f, Help = "TEMP until the reel (M3): pay-out speed while Bail is held, m/s")]
-    public float TempPayOutSpeed = 1.0f;
+    [Tunable("Reel", 0.5f, 8f, Help = "Most torque a hand puts on the reel handle, N·m (sets the cranking stall force)")]
+    public float HandCrankTorque = 3f;
+
+    [Tunable("Water entry", 2f, 15f, Help = "Slowest entry that can skip, m/s")]
+    public float SkipMinSpeed = 6f;
+
+    [Tunable("Water entry", 5f, 60f, Help = "Steepest skip angle for a perfectly planing body, degrees")]
+    public float SkipMaxAngleDeg = 24f;
+
+    [Tunable("Water entry", 0f, 0.8f, Help = "Vertical bounce kept on a skip")]
+    public float SkipRestitution = 0.35f;
+
+    [Tunable("Water entry", 0f, 0.8f, Help = "Horizontal speed lost per skip")]
+    public float SkipSpeedLoss = 0.2f;
 
     [Tunable("Hands", 1f, 60f, Help = "Fastest the arms can swing the rod, rad/s")]
     public float HandMaxAngularSpeed = 18f;

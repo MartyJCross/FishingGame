@@ -252,7 +252,17 @@ input from a `.rec` recording), `--record FILE` (save this session's input on ex
   - Perf: sim step mean 0.39 ms (≈5% of a core at 120 Hz); the old "7 ms worst step" was JIT warm-up (now skipped).
     V-Sync is off in project.godot (the owner's AMD iGPU driver has no Mailbox, so vsync pinned 60 fps);
     `--max-fps N` caps. **Owner wants high FPS: check it whenever visuals are added.**
-  - **Next: M3** (reel, spool, casting, lure flight, water entry, skipping, snags).
+- **M3 in progress (2026-10-18):** `sim/Tackle/Reel.cs` (`ReelSpec` + `Reel`: spool radius from line on it, bail
+  toggle, drag clicks, static/kinetic drag, crank retrieve = turns × gear × 2πr with a hand-torque stall, finger hold).
+  The reel works as a **tension limit at the rod tip**: `TackleSolver.Solve(..., slipForce)` redoes the solve with the
+  tip→first-node segment replaced by exactly the slip force when holding would need more, and reports `SlipDistance`
+  (the lure keeps its momentum; the tip feels the lip friction or drag). Open bail = lip friction (rises as the spool
+  empties) + finger; closed = drag. Line node spacing grows with line out (`LineNodesTarget`). Terminal water entry
+  and skipping (`Rig.WaterEntry`, `TerminalSpec.Planing`) → `SimWorld` splashes + Splash events (Id 1 = skip).
+  Follow camera zooms out for long casts. Reel HUD top right. Replay `game/data/replays/cast_overhead.rec` (written
+  by `ReelTests`): a 14 g sinker flies ~22 m. Controls: Space/B bail, LMB/LT finger, RMB/RT/wheel crank, Q/E drag.
+  - Cost mode: baitcaster (M3.3), snags/wear (M3.5) and the casting lawn (M3.6) are deferred until after the demo.
+  - **Next:** lures (M4: 2-node lure body, a few lures as data), then fish (M5) and the fight (M6) = the demo.
   - **Species data agent (stopped by a usage limit):** partial work is in the git worktree
     `.claude/worktrees/agent-a2366193d8b0027c9` on branch `worktree-agent-a2366193d8b0027c9` (it was writing redear,
     Florida bass, black crappie). Check what it committed or left uncommitted there, finish the tier-S species, and

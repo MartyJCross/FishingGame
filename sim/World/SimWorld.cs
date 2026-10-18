@@ -101,7 +101,21 @@ public sealed class SimWorld
         float dt = Config.Dt;
         var env = new TackleEnvironment(Water, Spot, Wind, Time);
         for (int i = 0; i < _anglers.Length; i++)
+        {
             _anglers[i].Step(Config, dt, inputs[i], env);
+            var rig = _anglers[i].Rig;
+            for (int e = 0; e < rig.EntryCount; e++)
+            {
+                // Lure/sinker entries and skips splash the surface; fish will hear these (docs/05 §3.4).
+                var w = rig.Entries[e];
+                float energy = Water.Splash(Config, w.X, MathF.Abs(w.VY), w.Mass, MathF.Max(w.Radius, 0.01f), w.VX);
+                Events.Push(new SimEvent
+                {
+                    Type = SimEventType.Splash, Tick = Tick, Angler = i, Id = w.Skipped ? 1 : 0,
+                    Position = new Vec2(w.X, Water.Height(w.X, Time)), Value = energy,
+                });
+            }
+        }
 
         if (ConditionsFromDebugConfig) Water.Conditions = ConditionsFromConfig();
         Water.Step(Config, dt, Time);
