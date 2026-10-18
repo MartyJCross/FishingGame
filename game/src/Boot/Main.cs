@@ -78,6 +78,7 @@ public partial class Main : Node2D
         _driver.Routers.Add(_router);
         _driver.MouseWorldPx = () => _worldRoot.GetGlobalMousePosition();
         _driver.EventRaised += OnSimEvent;
+        AddChild(new TheLedger.Audio.SoundEngine { Name = "Sound", Driver = _driver, Router = _router });
         AddChild(_driver);
 
         _daylight = new CanvasModulate { Name = "Daylight" };
@@ -245,6 +246,8 @@ public partial class Main : Node2D
 
     public override void _UnhandledInput(InputEvent e)
     {
+        if (e is InputEventKey { Pressed: true, Echo: false, PhysicalKeycode: Key.M })
+            AudioServer.SetBusMute(0, !AudioServer.IsBusMute(0));
         if (e is InputEventKey { Pressed: true, Echo: false, PhysicalKeycode: Key.F11 })
         {
             bool full = DisplayServer.WindowGetMode() is DisplayServer.WindowMode.Fullscreen or DisplayServer.WindowMode.ExclusiveFullscreen;

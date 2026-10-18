@@ -259,6 +259,9 @@ input from a `.rec` recording), `--record FILE` (save this session's input on ex
   during a cast's loading and cut the scripted cast from 21 m to 13 m. Controller: LB bail (B too), RB / A land,
   D-pad up/down drag, X / D-pad right lure, rotate the left stick clockwise to reel (`InputRouter.StickCrank`).
   Hands: critically damped follow (stiffness 100, damping 20), speed limits unchanged (slower arms cut casts to 12 m).
+- **v0.4.6 audio pass 1:** `game/src/Audio/SoundEngine.cs`, all synthesised into one AudioStreamGenerator (no sample
+  files): ambience by wind and hour (birds / crickets / frogs), reel clicks, bail, drag ratchet by slip speed, cast
+  hiss, rod swish, splashes/plops/pops by energy and distance, line and rod snaps. M mutes.
 - **Owner ideas backlog:** `docs/IDEAS.md` (check it when planning a milestone; add new owner ideas there).
 - **M2 done (2026-10-18, v0.3.0):** `sim/Tackle/`: `Rod` (XPBD chain, EI taper,
   strength taper, moments), `Line` (variable length, pay-out/merge, solver mass floor), `TackleSolver` (direct banded

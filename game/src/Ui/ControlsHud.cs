@@ -142,7 +142,7 @@ public partial class ControlsHud : Control
                $"{K("F", "RB")}   land the fish (net / lip)\n" +
                $"{K("R", "X / D-pad right")}   change lure (when reeled in)\n" +
                (Pad ? "" : $"{K("A / D", "")}   (walk: later)\n") +
-               $"{K("F11", "F11")} fullscreen   {K("F3", "F3")} rod and line loads   {K("F4", "F4")} rain   {K("F1", "F1")} tuning   {K("Middle click", "-")} splash\n" +
+               $"{K("F11", "F11")} fullscreen   {K("M", "M")} mute   {K("F3", "F3")} rod and line loads   {K("F4", "F4")} rain   {K("F1", "F1")} tuning   {K("Middle click", "-")} splash\n" +
                $"[color=#8a9aa0]{rod} sets where the rod points; the rod and line are simulated, so speed matters.[/color]";
     }
 }
