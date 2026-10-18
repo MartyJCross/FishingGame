@@ -52,8 +52,25 @@ public partial class ControlsHud : Control
         _lastBail = r.BailOpen;
         _dragPop = MathF.Max(0f, _dragPop - (float)delta * 2.5f);
         _bailPop = MathF.Max(0f, _bailPop - (float)delta * 2.5f);
-        QueueRedraw();
+        // Redraw only when something shown changes (re-laying out text every frame cost ~15% of the frame rate).
+        int held = 0;
+        for (int i = 0; i < Chips.Length; i++) if (Chips[i].held()) held |= 1 << i;
+        var a = Driver.World.Anglers[0];
+        var line = a.Rig.Line;
+        int fishKey = 0;
+        foreach (var f in Driver.World.Fish)
+            if (f.State == TheLedger.Sim.Fish.FishState.Hooked && f.LureAngler == 0)
+            {
+                fishKey = HashCode.Combine((int)(f.StaminaA * 50f), (int)(f.HeadX * 10f), (int)(f.HeadY * 10f));
+                break;
+            }
+        int key = HashCode.Combine((int)(line.TipTension * 4f), r.DragClick, (int)(line.LineOut * 10f), r.BailOpen, r.DragSlipping,
+                                   HashCode.Combine(held, (int)(_dragPop * 20f), (int)(_bailPop * 20f), fishKey, (int)(r.Loose * 50f), r.BrakeClick,
+                                                    (int)GetViewportRect().Size.Y));
+        if (key != _drawnKey) { _drawnKey = key; QueueRedraw(); }
     }
+
+    private int _drawnKey;
 
     public override void _Draw()
     {

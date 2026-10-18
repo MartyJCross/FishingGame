@@ -53,7 +53,7 @@ public partial class Main : Node2D
         _args = CommandLine.Parse(OS.GetCmdlineUserArgs());
         foreach (string e in _args.Errors) GD.PushWarning($"Command line: {e}");
 
-        bool automated = _automated = _args.Background || _args.ScreenshotPath != null || _args.SmokeSeconds != null;
+        bool automated = _automated = _args.Background || _args.ScreenshotPath != null || _args.SmokeSeconds != null || _args.BenchSeconds != null;
         if (!automated) DisplayServer.WindowSetMode(DisplayServer.WindowMode.Fullscreen); // F11 toggles
         if (_args.Background)
         {
@@ -114,12 +114,14 @@ public partial class Main : Node2D
         _daylight = new CanvasModulate { Name = "Daylight" };
         AddChild(_daylight);
         _worldRoot.AddChild(new TestSky { Name = "Sky", ZIndex = -10 });
+        _worldRoot.AddChild(new SkyClouds { Name = "Clouds", ZIndex = -9 });
         _worldRoot.AddChild(new WaterRenderer
         {
             Name = "Water", Driver = _driver, WaterStartX = _driver.Info.Spot.WaterlineX, ZIndex = 0,
             Shallow = _driver.Info.WaterShallow with { A = 0.96f }, Deep = _driver.Info.WaterDeep,
         });
         _worldRoot.AddChild(new FishRenderer { Name = "Fish", Driver = _driver, ZIndex = 1 });
+        _worldRoot.AddChild(new PondBank { Name = "Bank", Driver = _driver, ZIndex = 10 });
         _worldRoot.AddChild(new TestView { Name = "TestView", Driver = _driver, ZIndex = 10 });
         var tackle = new TackleRenderer { Name = "Tackle", Driver = _driver, ZIndex = 11 };
         _worldRoot.AddChild(tackle);
@@ -197,6 +199,12 @@ public partial class Main : Node2D
         hud.AddChild(_travel);
         hud.AddChild(_story);
         hud.AddChild(_guide);
+        if (_args.Hide != null)
+            foreach (var n in _args.Hide.Split(','))
+            {
+                if (_worldRoot.GetNodeOrNull<CanvasItem>(n) is { } wn) wn.Visible = false;
+                else if (GetNodeOrNull<CanvasLayer>(n) is { } layer) layer.Visible = false;
+            }
         if (_args.Panel == "guide") _guide.CallDeferred(nameof(SpeciesGuide.Open));
         if (_args.Panel?.StartsWith("guide:") == true) _guide.CallDeferred(nameof(SpeciesGuide.OpenSpecies), _args.Panel[6..]);
         if (_args.Panel == "notes") _story.CallDeferred(nameof(StoryPanel.Open));
@@ -365,11 +373,18 @@ public partial class Main : Node2D
     }
 
     /// <summary>Reel readout until the M7 HUD: bail, drag, line out, tension.</summary>
+    private int _reelHudKey;
+
     private void UpdateReelHud()
     {
         var a = _driver.World.Anglers[0];
         var r = a.Reel;
         var line = a.Rig.Line;
+        // Built only when the shown minute (or state) changes: re-setting a label's text re-lays it out.
+        int minute = (int)(_driver.World.Hour * 60f);
+        int hudKey = HashCode.Combine(minute, r.Backlashed, (int)(r.ClearProgress * 10f), _weather?.Now, (int)(_driver.World.WaterTempC * 10f));
+        if (hudKey == _reelHudKey) return;
+        _reelHudKey = hudKey;
         _reelHud.Text = r.Backlashed ? $"BIRD'S NEST - hold R / Y to pick it out {Bar(r.ClearProgress)}"
                       : $"{char.ToUpper(_driver.World.Season[0])}{_driver.World.Season[1..]}, day {_driver.World.DayOfSeason + 1}   " +
                         $"{(int)_driver.World.Hour:00}:{(int)(_driver.World.Hour % 1f * 60f):00}   water {_driver.World.WaterTempC:0.0} °C" +

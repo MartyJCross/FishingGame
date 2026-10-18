@@ -125,16 +125,43 @@ public partial class TestSky : Node2D
         _far = list.ToArray();
     }
 
-    public override void _Process(double delta) => QueueRedraw();
-
+    // Drawn once: nothing here moves (Godot keeps the draw list until QueueRedraw). Clouds are SkyClouds.
     public override void _Draw()
     {
-        float t = (float)Time.GetTicksMsec() * 0.001f;
         DrawPolygon(new[] { Lp.P(-40f, 25f), Lp.P(60f, 25f), Lp.P(60f, -1f), Lp.P(-40f, -1f) },
                     new[] { Top, Top, Horizon, Horizon });
         Lp.Ngon(this, new Color(1f, 0.97f, 0.85f, 0.35f), new Vector2(-14f, 13f), 1.6f, 12);
         Lp.Ngon(this, new Color(1f, 0.98f, 0.9f), new Vector2(-14f, 13f), 1.0f, 12);
 
+        // Distant hammock: a soft hill line, then trees (palms, cypress, oaks) standing on the far shore.
+        Lp.Poly(this, HillFar, new Vector2(-40f, 0.3f), new Vector2(-40f, 1.7f), new Vector2(-10f, 2.0f), new Vector2(15f, 1.7f),
+                new Vector2(35f, 2.1f), new Vector2(60f, 1.8f), new Vector2(60f, 0.3f));
+        foreach (var (x, h, kind) in _far)
+        {
+            var b = new Vector2(x, 0.9f);
+            switch (kind)
+            {
+                case 0: Lp.Palm(this, b, h * 1.1f, 0.15f * h, TreesFar, TreesFar, 0f); break;
+                case 1: Lp.Cypress(this, b, h * 1.2f, TreesFar); break;
+                default: Lp.Ngon(this, TreesFar, b + new Vector2(0f, h * 0.4f), h * 0.42f, 7, x); break;
+            }
+        }
+        Lp.Poly(this, TreesNear, new Vector2(-40f, 0.3f), new Vector2(-40f, 1.3f), new Vector2(-20f, 1.15f), new Vector2(0f, 1.25f),
+                new Vector2(20f, 1.1f), new Vector2(40f, 1.3f), new Vector2(60f, 1.15f), new Vector2(60f, 0.3f));
+    }
+}
+
+/// <summary>The slow clouds (the only moving part of the sky, so only they redraw each frame).</summary>
+public partial class SkyClouds : Node2D
+{
+    private static readonly Color Cloud = new(0.97f, 0.98f, 1f, 0.92f);
+    private static readonly Color CloudShade = new(0.85f, 0.89f, 0.94f, 0.92f);
+
+    public override void _Process(double delta) => QueueRedraw();
+
+    public override void _Draw()
+    {
+        float t = (float)Time.GetTicksMsec() * 0.001f;
         // Slow low-poly clouds.
         for (int i = 0; i < 6; i++)
         {
@@ -146,25 +173,75 @@ public partial class TestSky : Node2D
                     new Vector2(x + 0.9f * s, y + 1.0f * s), new Vector2(x + 1.6f * s, y + 0.4f * s));
         }
 
-        // Distant hammock: a soft hill line, then trees (palms, cypress, oaks) standing on the far shore.
-        Lp.Poly(this, HillFar, new Vector2(-40f, 0.3f), new Vector2(-40f, 1.7f), new Vector2(-10f, 2.0f), new Vector2(15f, 1.7f),
-                new Vector2(35f, 2.1f), new Vector2(60f, 1.8f), new Vector2(60f, 0.3f));
-        foreach (var (x, h, kind) in _far)
-        {
-            var b = new Vector2(x, 0.9f);
-            switch (kind)
-            {
-                case 0: Lp.Palm(this, b, h * 1.1f, 0.15f * h, TreesFar, TreesFar, MathF.Sin(t * 0.6f + x) * 0.3f); break;
-                case 1: Lp.Cypress(this, b, h * 1.2f, TreesFar); break;
-                default: Lp.Ngon(this, TreesFar, b + new Vector2(0f, h * 0.4f), h * 0.42f, 7, x); break;
-            }
-        }
-        Lp.Poly(this, TreesNear, new Vector2(-40f, 0.3f), new Vector2(-40f, 1.3f), new Vector2(-20f, 1.15f), new Vector2(0f, 1.25f),
-                new Vector2(20f, 1.1f), new Vector2(40f, 1.3f), new Vector2(60f, 1.15f), new Vector2(60f, 0.3f));
     }
 }
 
-/// <summary>Bank, pond bottom, near trees, cattails, the angler and the dog (in front of the water).</summary>
+/// <summary>The bank, the pond bottom and the shade trees: none of it moves, so it's drawn once.</summary>
+public partial class PondBank : Node2D
+{
+    public SimDriver Driver { get; set; } = null!;
+
+    private static readonly Color Bottom = new(0.24f, 0.22f, 0.15f);
+    private static readonly Color BottomDeep = new(0.16f, 0.15f, 0.11f);
+    private static readonly Color Soil = new(0.36f, 0.27f, 0.17f);
+    private static readonly Color Sand = new(0.72f, 0.64f, 0.46f);
+    private static readonly Color Grass = new(0.36f, 0.50f, 0.22f);
+    private static readonly Color GrassDark = new(0.27f, 0.40f, 0.17f);
+    private static readonly Color Trunk = new(0.33f, 0.26f, 0.19f);
+    private static readonly Color Palm = new(0.30f, 0.46f, 0.24f);
+    private static readonly Color OakLeaf = new(0.24f, 0.36f, 0.20f);
+    private static readonly Color Moss = new(0.62f, 0.66f, 0.56f, 0.9f);
+
+    private Vector2[]? _terrainPx, _deepPx;
+
+    public override void _Draw()
+    {
+        if (_terrainPx == null)
+        {
+            // The spot's cross-section, closed off below; a darker layer follows the bottom 0.7 m down.
+            var spot = Driver.World.Spot;
+            var pts = new List<Vector2>();
+            var deep = new List<Vector2>();
+            for (int i = 0; i < spot.PointCount; i++)
+            {
+                var p = spot.Point(i);
+                pts.Add(SimSpace.ToPx(p.X, p.Y));
+                deep.Add(SimSpace.ToPx(p.X, p.Y - 0.7f));
+            }
+            var last = spot.Point(spot.PointCount - 1);
+            pts.Add(SimSpace.ToPx(last.X, -12f));
+            pts.Add(SimSpace.ToPx(spot.Point(0).X, -12f));
+            deep.Add(SimSpace.ToPx(last.X, -12f));
+            deep.Add(SimSpace.ToPx(spot.Point(0).X, -12f));
+            _terrainPx = pts.ToArray();
+            _deepPx = deep.ToArray();
+        }
+        DrawColoredPolygon(_terrainPx, Bottom);
+        DrawColoredPolygon(_deepPx!, BottomDeep);
+        DrawColoredPolygon(_terrainPx, Bottom);
+        DrawColoredPolygon(_deepPx!, BottomDeep);
+
+        // Bank: soil, a sandy lip down to the water, grass on top with tufts.
+        Lp.Poly(this, Soil, new Vector2(-40f, 0.45f), new Vector2(-1.25f, 0.45f), new Vector2(-0.24f, -0.1f), new Vector2(0.2f, -0.45f), new Vector2(-40f, -0.6f));
+        Lp.Poly(this, Sand, new Vector2(-1.35f, 0.5f), new Vector2(-1.15f, 0.6f), new Vector2(0.4f, -0.4f), new Vector2(0.1f, -0.45f), new Vector2(-0.3f, -0.05f));
+        Lp.Poly(this, Grass, new Vector2(-40f, 0.6f), new Vector2(-1.2f, 0.6f), new Vector2(-1.4f, 0.45f), new Vector2(-40f, 0.42f));
+        for (int i = 0; i < 40; i++)
+        {
+            float x = -30f + i * 0.73f + 0.2f * MathF.Sin(i * 3.1f);
+            if (x > -1.3f) break;
+            float h = 0.12f + 0.07f * MathF.Abs(MathF.Sin(i * 1.9f));
+            const float s = 0f;
+            Lp.Poly(this, i % 3 == 0 ? GrassDark : Grass, new Vector2(x - 0.07f, 0.58f), new Vector2(x + 0.07f, 0.58f), new Vector2(x + 0.02f + s, 0.6f + h));
+        }
+
+        // Shade trees behind the angler.
+        Lp.Oak(this, new Vector2(-8.5f, 0.55f), 3.6f, Trunk, OakLeaf, Moss);
+        Lp.Palm(this, new Vector2(-4.2f, 0.55f), 3.8f, 0.4f, Trunk, Palm, 0f);
+
+    }
+}
+
+/// <summary>The moving things in front of the water: cover (pads, weeds), cattails, the angler and the dog.</summary>
 public partial class TestView : Node2D
 {
     public SimDriver Driver { get; set; } = null!;
@@ -251,53 +328,12 @@ public partial class TestView : Node2D
     /// <summary>A bark happened (the sound engine listens for this).</summary>
     public static event Action? Barked;
 
-    private Vector2[]? _terrainPx, _deepPx;
-
     public override void _Process(double delta) => QueueRedraw();
 
     public override void _Draw()
     {
         float t = (float)Time.GetTicksMsec() * 0.001f;
-        if (_terrainPx == null)
-        {
-            // The spot's cross-section, closed off below; a darker layer follows the bottom 0.7 m down.
-            var spot = Driver.World.Spot;
-            var pts = new List<Vector2>();
-            var deep = new List<Vector2>();
-            for (int i = 0; i < spot.PointCount; i++)
-            {
-                var p = spot.Point(i);
-                pts.Add(SimSpace.ToPx(p.X, p.Y));
-                deep.Add(SimSpace.ToPx(p.X, p.Y - 0.7f));
-            }
-            var last = spot.Point(spot.PointCount - 1);
-            pts.Add(SimSpace.ToPx(last.X, -12f));
-            pts.Add(SimSpace.ToPx(spot.Point(0).X, -12f));
-            deep.Add(SimSpace.ToPx(last.X, -12f));
-            deep.Add(SimSpace.ToPx(spot.Point(0).X, -12f));
-            _terrainPx = pts.ToArray();
-            _deepPx = deep.ToArray();
-        }
-        DrawColoredPolygon(_terrainPx, Bottom);
-        DrawColoredPolygon(_deepPx!, BottomDeep);
         foreach (var z in Driver.World.Spot.Structures) DrawStructure(z, t);
-
-        // Bank: soil, a sandy lip down to the water, grass on top with tufts.
-        Lp.Poly(this, Soil, new Vector2(-40f, 0.45f), new Vector2(-1.25f, 0.45f), new Vector2(-0.24f, -0.1f), new Vector2(0.2f, -0.45f), new Vector2(-40f, -0.6f));
-        Lp.Poly(this, Sand, new Vector2(-1.35f, 0.5f), new Vector2(-1.15f, 0.6f), new Vector2(0.4f, -0.4f), new Vector2(0.1f, -0.45f), new Vector2(-0.3f, -0.05f));
-        Lp.Poly(this, Grass, new Vector2(-40f, 0.6f), new Vector2(-1.2f, 0.6f), new Vector2(-1.4f, 0.45f), new Vector2(-40f, 0.42f));
-        for (int i = 0; i < 40; i++)
-        {
-            float x = -30f + i * 0.73f + 0.2f * MathF.Sin(i * 3.1f);
-            if (x > -1.3f) break;
-            float h = 0.12f + 0.07f * MathF.Abs(MathF.Sin(i * 1.9f));
-            float s = 0.03f * MathF.Sin(t * 1.3f + i);
-            Lp.Poly(this, i % 3 == 0 ? GrassDark : Grass, new Vector2(x - 0.07f, 0.58f), new Vector2(x + 0.07f, 0.58f), new Vector2(x + 0.02f + s, 0.6f + h));
-        }
-
-        // Shade trees behind the angler.
-        Lp.Oak(this, new Vector2(-8.5f, 0.55f), 3.6f, Trunk, OakLeaf, Moss);
-        Lp.Palm(this, new Vector2(-4.2f, 0.55f), 3.8f, 0.4f, Trunk, Palm, MathF.Sin(t * 0.7f) * 0.5f);
 
         // Cattails in the shallows at the foot of the bank.
         for (int i = 0; i < 9; i++)
