@@ -53,7 +53,7 @@ public partial class DebugOverlay : CanvasLayer
         if (!Shown) return;
         var w = _driver.World;
         _sb.Clear();
-        _sb.Append($"FPS {Engine.GetFramesPerSecond():0}   tick {w.Tick}   sim {w.Time:0.00}s   worst step {_driver.WorstStepMs:0.000} ms\n");
+        _sb.Append($"FPS {Engine.GetFramesPerSecond():0}   tick {w.Tick}   sim {w.Time:0.00}s   step mean {_driver.MeanStepMs:0.000} / worst {_driver.WorstStepMs:0.000} ms\n");
         _sb.Append($"Faults {w.FaultCount}   exceptions {_driver.ExceptionCount}   events dropped {w.Events.Dropped}\n");
         _sb.Append($"Input: {_router.ActiveDevice}   steady crank {_router.SteadyCrankRate:0.00} t/s\n");
         foreach (var a in w.Anglers)

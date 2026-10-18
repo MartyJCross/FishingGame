@@ -38,6 +38,10 @@ public partial class Main : Node2D
             Engine.MaxFps = 30;
             AudioServer.SetBusMute(0, true);
         }
+        else if (_args.MaxFps is int fps)
+        {
+            Engine.MaxFps = fps;
+        }
 
         InputActions.Register();
 
@@ -61,6 +65,8 @@ public partial class Main : Node2D
         _worldRoot.AddChild(new TestSky { Name = "Sky", ZIndex = -10 });
         _worldRoot.AddChild(new WaterRenderer { Name = "Water", Driver = _driver, WaterStartX = TestPond.WaterlineX, ZIndex = 0 });
         _worldRoot.AddChild(new TestView { Name = "TestView", Driver = _driver, ZIndex = 10 });
+        var tackle = new TackleRenderer { Name = "Tackle", Driver = _driver, ZIndex = 11 };
+        _worldRoot.AddChild(tackle);
         ApplyScene();
 
         _camera = new Camera2D { Name = "Camera", Position = SimSpace.ToPx(2.5f, 0.5f) };
@@ -72,6 +78,7 @@ public partial class Main : Node2D
         _overlay = new DebugOverlay { Name = "DebugOverlay" };
         AddChild(_overlay);
         _overlay.Setup(_driver, _router, _worldRoot, _args.DebugOverlay);
+        tackle.ShowLoads = () => _overlay.Shown;
 
         _tuning = new TuningPanel { Name = "TuningPanel" };
         AddChild(_tuning);
@@ -176,7 +183,7 @@ public partial class Main : Node2D
         var w = _driver.World;
         bool ok = w.FaultCount == 0 && _driver.ExceptionCount == 0;
         GD.Print($"SMOKE {(ok ? "OK" : "FAILED")}: {w.Tick} ticks ({w.Time:0.0} s), faults {w.FaultCount}, " +
-                 $"exceptions {_driver.ExceptionCount}, worst step {_driver.WorstStepMs:0.000} ms, hash {w.ComputeHash():X16}");
+                 $"exceptions {_driver.ExceptionCount}, step mean {_driver.MeanStepMs:0.000} / worst {_driver.WorstStepMs:0.000} ms, hash {w.ComputeHash():X16}");
         GetTree().Quit(ok ? 0 : 1);
         _args.SmokeSeconds = null;
     }

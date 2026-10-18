@@ -7,7 +7,7 @@ namespace TheLedger.Render;
 
 /// <summary>
 /// Placeholder pond pieces until the M8 art pass: the sky (behind the water) and the bank, pond bottom and a
-/// stick-figure angler holding a rigid rod (in front of the water). The flexing rod and line come in M2.
+/// stick-figure angler (in front of the water).
 /// </summary>
 public static class TestPond
 {
@@ -57,7 +57,6 @@ public partial class TestView : Node2D
     private static readonly Color Bank = new(0.30f, 0.36f, 0.20f);
     private static readonly Color Bottom = new(0.20f, 0.19f, 0.13f);
     private static readonly Color Figure = new(0.14f, 0.15f, 0.17f);
-    private static readonly Color RodColor = new(0.55f, 0.32f, 0.16f);
 
     private Vector2[]? _terrainPx;
 
@@ -87,15 +86,9 @@ public partial class TestView : Node2D
             DrawLine(SimSpace.ToPx(hip), SimSpace.ToPx(shoulder), Figure, 10f);
             DrawCircle(SimSpace.ToPx(head), 0.13f * SimSpace.PixelsPerMetre, Figure);
 
-            float angle = Mathf.LerpAngle(a.Hands.PrevAngle, a.Hands.Angle, alpha);
-            float reach = Mathf.Lerp(a.Hands.PrevReach, a.Hands.Reach, alpha);
-            Vec2 grip = shoulder + new Vec2(0.25f + 0.35f * reach, -0.15f + 0.25f * reach);
-            Vec2 dir = Vec2.FromAngle(angle);
-            Vec2 butt = grip - dir * 0.35f;
-            Vec2 tip = grip + dir * 1.75f;
+            // The arm reaches to the rod's grip node (the rod and line are drawn by TackleRenderer).
+            Vec2 grip = a.Rig.Rod.Node(1);
             DrawLine(SimSpace.ToPx(shoulder), SimSpace.ToPx(grip), Figure, 6f);
-            DrawLine(SimSpace.ToPx(butt), SimSpace.ToPx(tip), RodColor, 4f);
-            DrawLine(SimSpace.ToPx(butt), SimSpace.ToPx(grip), new Color(0.75f, 0.62f, 0.42f), 7f);
         }
     }
 }

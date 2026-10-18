@@ -56,6 +56,10 @@ public partial class SimDriver : Node
 
     /// <summary>Longest single Step, in milliseconds (perf budget check).</summary>
     public double WorstStepMs { get; private set; }
+    /// <summary>Mean Step time, in milliseconds.</summary>
+    public double MeanStepMs => _steps > 0 ? _totalStepMs / _steps : 0;
+    private double _totalStepMs;
+    private long _steps;
 
     public void Setup(SimConfig config, CommandLine args)
     {
@@ -132,7 +136,9 @@ public partial class SimDriver : Node
             GD.PushError($"Sim step failed at tick {World.Tick}: {ex}");
         }
         double ms = System.Diagnostics.Stopwatch.GetElapsedTime(start).TotalMilliseconds;
-        if (ms > WorstStepMs) WorstStepMs = ms;
+        if (ms > WorstStepMs && _steps > 120) WorstStepMs = ms; // skip JIT warm-up
+        _totalStepMs += ms;
+        _steps++;
 
         _recording?.AddTick(_frames);
 

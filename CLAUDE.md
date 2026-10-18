@@ -238,7 +238,7 @@ input from a `.rec` recording), `--record FILE` (save this session's input on ex
   tunables until weather exists. `game/src/Render/WaterRenderer.cs` (volume gradient, surface line, near band with
   ripple rings, droplets). `--weather calm|breeze|windy|rain|storm`, `--scene water_test`, middle-click splash, F4 rain.
   `tools/sync_tuning.py` keeps `sim.json` in step with `SimConfig`. 32 tests.
-- **M2 in progress (2026-10-18, sim side done, not yet rendered):** `sim/Tackle/`: `Rod` (XPBD chain, EI taper,
+- **M2 done (2026-10-18, v0.3.0):** `sim/Tackle/`: `Rod` (XPBD chain, EI taper,
   strength taper, moments), `Line` (variable length, pay-out/merge, solver mass floor), `TackleSolver` (direct banded
   Cholesky over rod stretch + bend + line, double precision, Rayleigh damping), `Rig` (substeps, drag, buoyancy,
   wind, ground contact, guide forces), `TackleSpecs` + data in `game/data/gear/{rods,lines}`, `Spot` terrain in the sim.
@@ -246,8 +246,13 @@ input from a `.rec` recording), `--record FILE` (save this session's input on ex
   independence, vibration, line stretch per material, slack sag, pay-out, floating vs sinking line.
   - Lessons: Gauss-Seidel made the rod far too soft (deflection depended on substeps); real-weight line nodes go
     chaotic next to heavy loads, so the solver uses a node mass floor (gravity/drag keep real mass).
-  - **Next (remaining M2 pieces):** RodRenderer + LineRenderer in `game/` (replace the rigid rod in `TestView`),
-    debug overlay for tension and moments, mouse relative mode, screenshots, then tick M2 and bump to v0.3.0.
+  - `game/src/Render/TackleRenderer.cs` draws the simulated rod (tapered two-tone strip at ~4x real width, cork,
+    reel, guides) and line (polyline through every node, sinker), interpolated between ticks; with F3 the blank is
+    coloured by moment/limit and the line by tension/breaking force. Mouse relative mode moved to M3 (casting).
+  - Perf: sim step mean 0.39 ms (≈5% of a core at 120 Hz); the old "7 ms worst step" was JIT warm-up (now skipped).
+    V-Sync is off in project.godot (the owner's AMD iGPU driver has no Mailbox, so vsync pinned 60 fps);
+    `--max-fps N` caps. **Owner wants high FPS: check it whenever visuals are added.**
+  - **Next: M3** (reel, spool, casting, lure flight, water entry, skipping, snags).
   - **Species data agent (stopped by a usage limit):** partial work is in the git worktree
     `.claude/worktrees/agent-a2366193d8b0027c9` on branch `worktree-agent-a2366193d8b0027c9` (it was writing redear,
     Florida bass, black crappie). Check what it committed or left uncommitted there, finish the tier-S species, and
@@ -267,7 +272,7 @@ Tick items as they land (commit hash + date). The full Definition of Done for ea
 - [x] M0 Foundations: repo skeleton, Godot .NET project, sim library, tests, CI, harness args, debug overlay
   (2026-10-18, commits 49779c1..1ba3030, CI run 39103364556 green; owner still to confirm the GameSir shows in F3)
 - [x] M1 Water surface sim + rendering (pond test scene) (2026-10-18, v0.2.0)
-- [ ] M2 Rod + line sim driven by mouse and controller
+- [x] M2 Rod + line sim driven by mouse and controller
 - [ ] M3 Reel, spool, casting (spinning + baitcaster), lure flight, water entry, skipping, snags
 - [ ] M4 Lure and rig hydrodynamics, retrieves, floats and bottom rigs
 - [ ] M5 Fish bodies (procedural mesh, spine bending, swimming modes) + perception + bite model, 6 pond species

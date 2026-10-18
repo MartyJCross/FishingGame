@@ -25,6 +25,8 @@ public sealed class CommandLine
     public float? BenchSeconds;
     public bool DebugOverlay;
     public int Anglers = 1;
+    /// <summary>Frame-rate cap (0 = uncapped). Default: uncapped with mailbox vsync (project.godot).</summary>
+    public int? MaxFps;
 
     public List<string> Errors { get; } = new();
 
@@ -67,6 +69,7 @@ public sealed class CommandLine
                 case "--smoke": c.SmokeSeconds = NextFloat(); break;
                 case "--bench": c.BenchSeconds = NextFloat(); break;
                 case "--debug-overlay": c.DebugOverlay = true; break;
+                case "--max-fps": c.MaxFps = Math.Max(0, (int)(NextFloat() ?? 0)); break;
                 case "--anglers": c.Anglers = Math.Clamp((int)(NextFloat() ?? 1), 1, 4); break;
                 default: c.Errors.Add($"Unknown argument '{a}'"); break;
             }
