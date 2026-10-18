@@ -1,6 +1,6 @@
 {
   "id": "sinker_half_oz",
-  "name": "Half-ounce bank sinker",
+  "name": "Bottom rig: nightcrawler on a half-ounce sinker",
   "kind": "sinker",
   "massKg": 0.014,
   "volumeM3": 1.24e-06,
@@ -9,7 +9,8 @@
   "lengthM": 0.025,
   "planing": 0.15,
   "price": 0.5,
-  "attractKey": "",
-  "hookEase": 0.0,
-  "balanceForward": 0.0
+  "attractKey": "nightcrawler",
+  "hookEase": 1.0,
+  "balanceForward": 0.0,
+  "natural": true
 }

@@ -27,7 +27,7 @@ public partial class FishPortrait : Control
         var sp = _species;
         var shape = sp.Shape;
         var pat = sp.Body.Pattern;
-        Color dorsal = Color.FromHtml(pat.Dorsal), flank = Color.FromHtml(pat.Flank), belly = Color.FromHtml(pat.Belly), eye = Color.FromHtml(pat.Eye);
+        Color dorsal = Color.FromHtml(pat.Dorsal).Darkened(0.22f), flank = Color.FromHtml(pat.Flank), belly = Color.FromHtml(pat.Belly).Lightened(0.22f), eye = Color.FromHtml(pat.Eye);
         bool Has(string t) => pat.Markings.Any(m => m.Type.Contains(t));
         bool bars = Has("bar"), stripe = Has("stripe") || Has("band"), ear = Has("opercular"), spots = Has("spot");
         if (Faded)

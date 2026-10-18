@@ -87,6 +87,25 @@ public partial class FishRenderer : Node2D
         return (_spine[i].Lerp(_spine[i + 1], k), len > 1e-4f ? t / len : Vector2.Left);
     }
 
+    /// <summary>
+    /// Each fish its own shade (owner, 2026-10-18): a darker back and paler belly than the species average for
+    /// contrast, plus a small per-fish shift in brightness, warmth and saturation (stable per fish id).
+    /// </summary>
+    private static (Color d, Color f, Color b, Color eye, bool bars, bool stripe, bool ear, bool spots) Vary(
+        (Color d, Color f, Color b, Color eye, bool bars, bool stripe, bool ear, bool spots) p, int id)
+    {
+        uint h = (uint)id * 2654435761u;
+        float R(int shift) => ((h >> shift) & 0xFF) / 255f * 2f - 1f; // -1..1
+        float bright = 1f + 0.14f * R(0), warm = 0.06f * R(8), sat = 1f + 0.25f * R(16);
+        Color Tweak(Color c)
+        {
+            c = new Color(c.R * bright + warm, c.G * bright, c.B * bright - warm, c.A);
+            float l = c.Luminance;
+            return new Color(Math.Clamp(l + (c.R - l) * sat, 0f, 1f), Math.Clamp(l + (c.G - l) * sat, 0f, 1f), Math.Clamp(l + (c.B - l) * sat, 0f, 1f), c.A);
+        }
+        return (Tweak(p.d.Darkened(0.22f)), Tweak(p.f), Tweak(p.b.Lightened(0.22f)), p.eye, p.bars, p.stripe, p.ear, p.spots);
+    }
+
     private static Color Mul(Color c, float k) => new(c.R * k, c.G * k, c.B * k, c.A);
 
     private Color Fade(Color c, float fade, float light) => c.Lerp(WaterTint, fade) * new Color(light, light, light, 1f);
@@ -104,7 +123,7 @@ public partial class FishRenderer : Node2D
     {
         var sp = f.Species;
         var shape = sp.Shape;
-        var pal = Palette(sp);
+        var pal = Vary(Palette(sp), f.Id);
         int n = BuildSpine(f, alpha);
         float L = f.LengthM * SimSpace.PixelsPerMetre;
         float facing = f.FacingSign;
