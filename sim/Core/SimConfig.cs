@@ -133,16 +133,22 @@ public sealed class SimConfig
     public float HandMaxAngularAccel = 220f;
 
     [Tunable("Hands", 1f, 400f, Help = "How hard the hands chase the input target (spring)")]
-    public float HandStiffness = 100f;
+    public float HandStiffness = 75f;
 
     [Tunable("Hands", 0f, 60f, Help = "Hand spring damping")]
-    public float HandDamping = 20f;
+    public float HandDamping = 10f;
 
     [Tunable("Hands", -3.2f, 0f, Help = "Lowest rod angle the arms allow, rad (0 = horizontal)")]
     public float HandMinAngle = -1.2f;
 
     [Tunable("Hands", 0f, 3.2f, Help = "Highest rod angle the arms allow, rad (π/2 = vertical)")]
-    public float HandMaxAngle = 2.6f;
+    public float HandMaxAngle = 3.1f;
+
+    [Tunable("Hands", 1f, 30f, Help = "Fastest arm swing once the lure is out and the bail is closed (no line-snapping yanks), rad/s")]
+    public float HandFishingMaxSpeed = 6f;
+
+    [Tunable("Hands", 10f, 1000f, Help = "Arm acceleration limit once the lure is out, rad/s²")]
+    public float HandFishingMaxAccel = 45f;
 
     // ---------- water (docs/04_PHYSICS_SPEC.md §7) ----------
 

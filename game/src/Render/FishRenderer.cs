@@ -17,7 +17,7 @@ public partial class FishRenderer : Node2D
 {
     public SimDriver Driver { get; set; } = null!;
 
-    private static readonly Color WaterTint = new(0.17f, 0.36f, 0.38f);
+    private static readonly Color WaterTint = new(0.24f, 0.52f, 0.58f);
     private const int Stations = 9;
 
     private readonly List<Vector2> _pts = new();
@@ -110,7 +110,7 @@ public partial class FishRenderer : Node2D
         float facing = f.FacingSign;
         var world = Driver.World;
         float depth = world.Water.Height(f.HeadX, world.Time) - f.HeadY;
-        float fade = Math.Clamp(depth / MathF.Max(visibility * 2.5f, 0.5f), 0f, 0.55f);
+        float fade = Math.Clamp(depth / MathF.Max(visibility * 4f, 0.5f), 0f, 0.3f);
 
         float bodyEnd = 1f - shape.TailLength;
         float beat = f.TailBeat;
@@ -266,7 +266,7 @@ public partial class FishRenderer : Node2D
         float yaw = MathF.Cos(f.PrevYaw) * MathF.Cos(f.Yaw) < 0f ? f.Yaw : Mathf.Lerp(f.PrevYaw, f.Yaw, alpha);
         float r = MathF.Max(0.032f * L, 1.2f) * (0.6f + 0.4f * MathF.Abs(MathF.Cos(yaw)));
         var world = Driver.World;
-        float fade = Math.Clamp((world.Water.Height(f.HeadX, world.Time) - f.HeadY) / MathF.Max(visibility * 2.5f, 0.5f), 0f, 0.55f);
+        float fade = Math.Clamp((world.Water.Height(f.HeadX, world.Time) - f.HeadY) / MathF.Max(visibility * 4f, 0.5f), 0f, 0.3f);
         Vector2 c = p + up * (0.045f * L);
         DrawCircle(c, r, Fade(new Color(0.9f, 0.85f, 0.6f), fade, light));
         DrawCircle(c, r * 0.62f, Fade(Palette(f.Species).eye.Darkened(0.4f), fade * 0.6f, light));

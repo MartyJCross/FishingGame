@@ -79,7 +79,8 @@ public sealed class AnglerState
     {
         LastInput = input;
         PrevPosition = Position;
-        Hands.Step(c, dt, input.RodTargetAngle, input.RodReach);
+        bool fishing = !Reel.BailOpen && Rig.Line.LineOut > c.RetieMaxLineOut;
+        Hands.Step(c, dt, input.RodTargetAngle, input.RodReach, fishing);
 
         bool land = input.Has(InputButtons.Land);
         LandPressed = land && !_landHeld;

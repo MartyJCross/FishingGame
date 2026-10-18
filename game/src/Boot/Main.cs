@@ -24,6 +24,7 @@ public partial class Main : Node2D
     private Label _toast = null!;
     private Label _card = null!;
     private LedgerPanel _ledger = null!;
+    private TheLedger.Ui.TackleMenu _menu = null!;
     private CanvasModulate _daylight = null!;
     private double _toastTime, _cardTime;
     private double _benchTime, _benchWorst;
@@ -123,6 +124,7 @@ public partial class Main : Node2D
 
         hud.AddChild(new TheLedger.Ui.LureCam { Name = "LureCam", Driver = _driver });
         hud.AddChild(new TheLedger.Ui.ControlsHud { Name = "Controls", Driver = _driver, Router = _router });
+        _menu = new TheLedger.Ui.TackleMenu { Name = "TackleMenu", Driver = _driver, Router = _router, OpenLedger = () => _ledger.Toggle() };
 
         _reelHud = new Label { AnchorLeft = 1f, AnchorRight = 1f, OffsetLeft = -420f, OffsetRight = -16f, OffsetTop = 12f, HorizontalAlignment = HorizontalAlignment.Right, GrowHorizontal = Control.GrowDirection.Begin };
         _reelHud.AddThemeFontSizeOverride("font_size", 22);
@@ -145,6 +147,7 @@ public partial class Main : Node2D
 
         _ledger = new LedgerPanel { Name = "Ledger" };
         hud.AddChild(_ledger);
+        hud.AddChild(_menu);
     }
 
     private void Toast(string text, double seconds = 2.5)
@@ -171,7 +174,7 @@ public partial class Main : Node2D
             {
                 var c = w.Catches[^1];
                 int rule = w.KeepRule(0, c);
-                string pad = _router.ActiveDevice == InputRouter.Device.Gamepad ? "Y" : "K";
+                string pad = _router.ActiveDevice == InputRouter.Device.Gamepad ? "Y" : "R";
                 string rel = _router.ActiveDevice == InputRouter.Device.Gamepad ? "RB / A" : "F";
                 string choice = rule switch
                 {
@@ -206,7 +209,7 @@ public partial class Main : Node2D
                 Toast(e.Value switch { 1f => "Too short to keep: it has to go back", 2f => "That's your bag limit for this species", _ => "This one must be released" }, 2.5);
                 break;
             case TheLedger.Sim.Core.SimEventType.Backlash:
-                Toast("Bird's nest! Thumb the spool as the lure slows. Hold K / Y to pick it out", 3.5);
+                Toast("Bird's nest! Thumb the spool as the lure slows. Hold R / Y to pick it out", 3.5);
                 break;
             case TheLedger.Sim.Core.SimEventType.FishJumped:
                 Toast("It jumped! Keep the line tight", 1.5);
@@ -281,16 +284,9 @@ public partial class Main : Node2D
         var a = _driver.World.Anglers[0];
         var r = a.Reel;
         var line = a.Rig.Line;
-        string outfit = a.Rack.Count > 0 ? a.Rack[a.RackIndex].Name : r.Spec.Name;
-        string reelState = r.Spec.IsBaitcaster
-            ? (r.Backlashed ? $"BIRD'S NEST - hold K / Y to pick it out {Bar(r.ClearProgress)}"
-               : $"{(r.BailOpen ? "FREE SPOOL" : "engaged")}   brake {r.BrakeClick}/{r.Spec.BrakeClicks}   overrun {Bar(r.Loose / r.Spec.BacklashLooseM)}")
-            : $"Bail {(r.BailOpen ? "OPEN" : "closed")}";
-        _reelHud.Text = $"{outfit}  (T / R3: next rod)\n{line.Terminal.Name}  (R / X: next lure)\n" +
-                        $"{reelState}   drag {r.DragForce / 9.81f:0.0} kg ({r.DragClick}/{r.Spec.DragDetents})\n" +
-                        $"line out {line.LineOut:0.0} m   spool {r.LineOnSpool:0} m\n" +
-                        $"tension {line.TipTension:0.0} N {Bar(line.TipTension / (line.Spec.BreakingForceN * line.Spec.KnotFactor))}" +
-                        $"{(r.DragSlipping ? "   DRAG" : "")}\nrod load {Bar(a.Rig.Rod.PeakLoadRatio)}   {(int)_driver.World.Hour:00}:{(int)(_driver.World.Hour % 1f * 60f):00}";
+        _reelHud.Text = r.Backlashed ? $"BIRD'S NEST - hold R / Y to pick it out {Bar(r.ClearProgress)}"
+                      : $"{(int)_driver.World.Hour:00}:{(int)(_driver.World.Hour % 1f * 60f):00}";
+        _ = line;
     }
 
     public override void _UnhandledInput(InputEvent e)
@@ -347,7 +343,7 @@ public partial class Main : Node2D
     public override void _Process(double delta)
     {
         _router.ShoulderPx = SimSpace.ToPx(_driver.World.Anglers[0].Shoulder);
-        _router.MouseRodEnabled = !_tuning.MouseOver;
+        _router.MouseRodEnabled = !_tuning.MouseOver && !_menu.Visible;
         UpdateReelHud();
         UpdateDaylight();
         Rumble(delta);

@@ -78,6 +78,8 @@ public partial class SimDriver : Node
         World = new SimWorld(config, seed, anglers);
         PopulateFish(args);
         var outfits = LoadOutfits();
+        // The baitcaster stays off the rack until the spinning cast feels right (owner, 2026-10-18); --outfit still picks it.
+        if (args.Outfit == null || !args.Outfit.StartsWith("baitcaster")) outfits.RemoveAll(o => o.Reel.IsBaitcaster);
         var lures = LoadTerminals();
         foreach (var a in World.Anglers)
         {

@@ -23,8 +23,8 @@ public partial class WaterRenderer : Node2D
     /// <summary>Height of the near surface band above the waterline, m.</summary>
     public float BandHeight { get; set; } = 0.42f;
 
-    public Color Shallow { get; set; } = new(0.20f, 0.45f, 0.47f, 0.96f);
-    public Color Deep { get; set; } = new(0.03f, 0.10f, 0.13f, 1f);
+    public Color Shallow { get; set; } = new(0.26f, 0.60f, 0.64f, 0.96f);
+    public Color Deep { get; set; } = new(0.07f, 0.27f, 0.36f, 1f);
     public Color BandNear { get; set; } = new(0.36f, 0.58f, 0.66f);
     public Color BandFar { get; set; } = new(0.62f, 0.77f, 0.84f);
     public Color Highlight { get; set; } = new(0.92f, 0.98f, 1f, 0.9f);

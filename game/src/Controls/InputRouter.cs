@@ -24,8 +24,11 @@ public partial class InputRouter : Node
     /// <summary>When false, the mouse doesn't move the rod (e.g. while dragging a tuning slider).</summary>
     public bool MouseRodEnabled { get; set; } = true;
 
-    /// <summary>Right-button / steady crank speed, handle turns per second (Ctrl+wheel or Z/C).</summary>
-    public float SteadyCrankRate { get; private set; } = 1.5f;
+    /// <summary>Holding the right button reels at this steady speed, handle turns per second; the wheel adds on top.</summary>
+    public float SteadyCrankRate { get; } = 1.5f;
+
+    /// <summary>One-tick presses from the Tab menu (next lure / next rod).</summary>
+    public bool PulseRig, PulseRack;
 
     /// <summary>Max crank rate for a fully pulled right trigger, turns/s.</summary>
     public float TriggerCrankMax = 3.0f;
@@ -37,6 +40,14 @@ public partial class InputRouter : Node
     public float HoldRampSeconds = 0.25f;
 
     private float _rodTarget = 0.6f;
+    private bool _fine;
+    private float _fineAnchor, _fineAim;
+
+    /// <summary>
+    /// Mouse angle into the arm's range: behind and slightly below (atan2 near −π) means "flat behind", not "down in
+    /// front", so the backswing never flips to the front.
+    /// </summary>
+    private static float Unwrap(float a) => a < -Mathf.Pi * 0.5f ? a + Mathf.Tau : a;
     private float _reach = 0.5f;
     private float _lineHold;
     private float _pendingWheelTurns;
@@ -64,10 +75,9 @@ public partial class InputRouter : Node
             };
             if (notch != 0)
             {
-                if (mb.ShiftPressed) _pendingDragDelta += notch;
-                else if (mb.CtrlPressed) SteadyCrankRate = Mathf.Clamp(SteadyCrankRate + 0.25f * notch, 0.25f, 4f);
                 // Wheel up = crank forward (retrieve). Wheel down never back-reels: anti-reverse.
-                else if (notch > 0) _pendingWheelTurns += TurnsPerWheelNotch;
+                // While V is held the wheel zooms the lure cam instead.
+                if (notch > 0 && !Input.IsKeyPressed(Key.V)) _pendingWheelTurns += TurnsPerWheelNotch;
             }
         }
         else if (e is InputEventJoypadMotion jm && Mathf.Abs(jm.AxisValue) > 0.3f)
@@ -81,8 +91,6 @@ public partial class InputRouter : Node
 
         if (e.IsActionPressed(InputActions.DragTighter)) _pendingDragDelta++;
         if (e.IsActionPressed(InputActions.DragLooser)) _pendingDragDelta--;
-        if (e.IsActionPressed(InputActions.CrankSpeedUp)) SteadyCrankRate = Mathf.Min(4f, SteadyCrankRate + 0.25f);
-        if (e.IsActionPressed(InputActions.CrankSpeedDown)) SteadyCrankRate = Mathf.Max(0.25f, SteadyCrankRate - 0.25f);
     }
 
     /// <summary>Builds this tick's frame. Call once per sim tick.</summary>
@@ -100,9 +108,19 @@ public partial class InputRouter : Node
         else if (ActiveDevice == Device.MouseKeyboard && MouseRodEnabled)
         {
             Vector2 d = mouseWorldPx - ShoulderPx;
-            if (d.LengthSquared() > 25f) _rodTarget = Mathf.Atan2(-d.Y, d.X);
-            float reachInput = Input.GetActionStrength(InputActions.ReachUp) - Input.GetActionStrength(InputActions.ReachDown);
-            _reach = Mathf.Clamp(_reach + reachInput * dt * 1.5f, 0f, 1f);
+            if (d.LengthSquared() > 25f)
+            {
+                float aim = Unwrap(Mathf.Atan2(-d.Y, d.X));
+                // Shift: fine control. The rod moves a quarter as far as the mouse, from where it was when Shift went down.
+                if (Input.IsKeyPressed(Key.Shift))
+                {
+                    if (!_fine) { _fine = true; _fineAnchor = _rodTarget; _fineAim = aim; }
+                    _rodTarget = _fineAnchor + (aim - _fineAim) * 0.25f;
+                }
+                else { _fine = false; _rodTarget = aim; }
+            }
+            // Arms reach on their own: up and out as the rod goes overhead and back, relaxed when it's low.
+            _reach = Mathf.Clamp(0.35f + 0.5f * Mathf.Max(0f, Mathf.Sin(_rodTarget)), 0f, 1f);
         }
         f.RodTargetAngle = _rodTarget;
         f.RodReach = _reach;
@@ -135,9 +153,10 @@ public partial class InputRouter : Node
         var b = InputButtons.None;
         if (Input.IsActionPressed(InputActions.Bail)) b |= InputButtons.Bail;
         if (Input.IsActionPressed(InputActions.Land)) b |= InputButtons.Land;
-        if (Input.IsActionPressed(InputActions.RigMenu)) b |= InputButtons.RigMenu;
+        if (Input.IsActionPressed(InputActions.RigMenu) || PulseRig) b |= InputButtons.RigMenu;
         if (Input.IsActionPressed(InputActions.Keep)) b |= InputButtons.Interact;
-        if (Input.IsActionPressed(InputActions.RodRack)) b |= InputButtons.RodRack;
+        if (Input.IsActionPressed(InputActions.RodRack) || PulseRack) b |= InputButtons.RodRack;
+        PulseRig = PulseRack = false;
         if (Input.IsActionPressed(InputActions.BrakeUp)) b |= InputButtons.BrakeUp;
         if (Input.IsActionPressed(InputActions.BrakeDown)) b |= InputButtons.BrakeDown;
         f.Buttons = b;

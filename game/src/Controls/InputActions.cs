@@ -13,8 +13,6 @@ public static class InputActions
     public const string Crank = "crank";
     public const string DragTighter = "drag_tighter";
     public const string DragLooser = "drag_looser";
-    public const string CrankSpeedUp = "crank_speed_up";
-    public const string CrankSpeedDown = "crank_speed_down";
     public const string Bail = "bail";
     public const string Land = "land";
     public const string RigMenu = "rig_menu";
@@ -25,8 +23,6 @@ public static class InputActions
     public const string ToggleLedger = "toggle_ledger";
     public const string MoveLeft = "move_left";
     public const string MoveRight = "move_right";
-    public const string ReachUp = "reach_up";
-    public const string ReachDown = "reach_down";
     public const string RodLeft = "rod_left";
     public const string RodRight = "rod_right";
     public const string RodUp = "rod_up";
@@ -40,21 +36,17 @@ public static class InputActions
         Add(Crank, 0.05f, Mouse(MouseButton.Right), Axis(JoyAxis.TriggerRight, 1f));
         Add(DragTighter, 0.5f, KeyEv(Key.E), Button(JoyButton.DpadUp));
         Add(DragLooser, 0.5f, KeyEv(Key.Q), Button(JoyButton.DpadDown));
-        Add(CrankSpeedUp, 0.5f, KeyEv(Key.C));
-        Add(CrankSpeedDown, 0.5f, KeyEv(Key.Z));
         // Bail on LB so both thumbs stay on the sticks (owner, 2026-10-18); B still works.
         Add(Bail, 0.5f, KeyEv(Key.Space), Button(JoyButton.LeftShoulder), Button(JoyButton.B));
         Add(Land, 0.5f, KeyEv(Key.F), Button(JoyButton.RightShoulder), Button(JoyButton.A));
-        Add(Keep, 0.5f, KeyEv(Key.K), Button(JoyButton.Y));
+        Add(Keep, 0.5f, KeyEv(Key.R), Button(JoyButton.Y));
         Add(ToggleLedger, 0.5f, KeyEv(Key.L), Button(JoyButton.Start));
-        Add(RigMenu, 0.5f, KeyEv(Key.R), Button(JoyButton.X));
-        Add(RodRack, 0.5f, KeyEv(Key.T), Button(JoyButton.RightStick));
+        Add(RigMenu, 0.5f, Button(JoyButton.X)); // keyboard: Tab menu
+        Add(RodRack, 0.5f, Button(JoyButton.RightStick)); // keyboard: Tab menu
         Add(BrakeUp, 0.5f, KeyEv(Key.Bracketright), Button(JoyButton.DpadRight));
         Add(BrakeDown, 0.5f, KeyEv(Key.Bracketleft), Button(JoyButton.DpadLeft));
         Add(MoveLeft, 0.2f, KeyEv(Key.A)); // the left stick reels (rotate it)
         Add(MoveRight, 0.2f, KeyEv(Key.D));
-        Add(ReachUp, 0.2f, KeyEv(Key.W));
-        Add(ReachDown, 0.2f, KeyEv(Key.S));
         Add(RodLeft, 0.15f, Axis(JoyAxis.RightX, -1f));
         Add(RodRight, 0.15f, Axis(JoyAxis.RightX, 1f));
         Add(RodUp, 0.15f, Axis(JoyAxis.RightY, -1f));

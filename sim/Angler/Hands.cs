@@ -27,16 +27,25 @@ public sealed class Hands
         Angle = PrevAngle = startAngle;
     }
 
-    public void Step(SimConfig c, float dt, float targetAngle, float targetReach)
+    /// <summary>0 = free casting arms, 1 = calm fishing arms (lure out, bail closed); eased so limits never snap.</summary>
+    public float Calm;
+
+    public void Step(SimConfig c, float dt, float targetAngle, float targetReach, bool fishing = false)
     {
         PrevAngle = Angle;
         PrevReach = Reach;
 
+        Calm += ((fishing ? 1f : 0f) - Calm) * MathF.Min(1f, dt / 0.4f);
+        float maxSpeed = c.HandMaxAngularSpeed + (c.HandFishingMaxSpeed - c.HandMaxAngularSpeed) * Calm;
+        float maxAccel = c.HandMaxAngularAccel + (c.HandFishingMaxAccel - c.HandMaxAngularAccel) * Calm;
+
+        // The arm's range spans more than half a turn (flat behind to below horizontal), so no angle wrapping here:
+        // the input side hands over a target already in [min, max].
         float target = Math.Clamp(targetAngle, c.HandMinAngle, c.HandMaxAngle);
-        float error = WrapAngle(target - Angle);
+        float error = target - Angle;
         float accel = c.HandStiffness * error - c.HandDamping * AngularVelocity;
-        accel = Math.Clamp(accel, -c.HandMaxAngularAccel, c.HandMaxAngularAccel);
-        AngularVelocity = Math.Clamp(AngularVelocity + accel * dt, -c.HandMaxAngularSpeed, c.HandMaxAngularSpeed);
+        accel = Math.Clamp(accel, -maxAccel, maxAccel);
+        AngularVelocity = Math.Clamp(AngularVelocity + accel * dt, -maxSpeed, maxSpeed);
         Angle += AngularVelocity * dt;
 
         if (Angle < c.HandMinAngle) { Angle = c.HandMinAngle; AngularVelocity = MathF.Max(0f, AngularVelocity); }

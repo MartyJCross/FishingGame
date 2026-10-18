@@ -16,6 +16,26 @@ public partial class LureCam : SubViewportContainer
     private SubViewport _view = null!;
     private Camera2D _cam = null!;
     private float _show;
+    private bool _enabled, _zoomedWhileHeld;
+    private float _zoom = 1.15f;
+
+    /// <summary>V: tap to show / hide; hold V and scroll to zoom.</summary>
+    public override void _UnhandledInput(InputEvent e)
+    {
+        if (e is InputEventKey { PhysicalKeycode: Key.V, Echo: false } k)
+        {
+            if (k.Pressed) _zoomedWhileHeld = false;
+            else if (!_zoomedWhileHeld) _enabled = !_enabled;
+        }
+        else if (e is InputEventMouseButton { Pressed: true } mb && Input.IsKeyPressed(Key.V)
+                 && mb.ButtonIndex is MouseButton.WheelUp or MouseButton.WheelDown)
+        {
+            _zoom = Mathf.Clamp(_zoom * (mb.ButtonIndex == MouseButton.WheelUp ? 1.15f : 1f / 1.15f), 0.4f, 4f);
+            _cam.Zoom = new Vector2(_zoom, _zoom);
+            _zoomedWhileHeld = true;
+            _enabled = true;
+        }
+    }
 
     public override void _Ready()
     {
@@ -49,7 +69,7 @@ public partial class LureCam : SubViewportContainer
         var a = w.Anglers[0];
         var line = a.Rig.Line;
         var p = line.TerminalPos;
-        bool want = a.Rig.Lure.Wet && p.X - a.Position.X > 6f;
+        bool want = _enabled && a.Rig.Lure.Wet && p.X - a.Position.X > 6f;
         _show = Mathf.MoveToward(_show, want ? 1f : 0f, (float)delta * 3f);
         Visible = _show > 0.01f;
         Modulate = new Color(1f, 1f, 1f, _show);

@@ -1,163 +1,107 @@
 using Godot;
 using TheLedger.Controls;
-using TheLedger.Sim.Fish;
 using TheLedger.SimGlue;
 
 namespace TheLedger.Ui;
 
 /// <summary>
-/// Temporary controls display until the M7 HUD: a "what now" panel that follows the fishing (ready → cast → close the
-/// bail → fish → fish on → land) and a full controls card (H / View to toggle). Key names follow the device in use.
-/// Readiness to land is shown because the angler can see it (fish at the surface, beaten), not as an assist.
+/// The fishing HUD (owner's plan, 2026-10-18): bottom left, a line tension bar, the drag setting, metres of line out,
+/// and a strip of key chips. Chips light up while their key is held, and a value pops when it changes, so adjusting
+/// something is visible at a glance. Nothing else stays on screen.
 /// </summary>
 public partial class ControlsHud : Control
 {
     public SimDriver Driver { get; set; } = null!;
     public InputRouter Router { get; set; } = null!;
 
-    private PanelContainer _nowPanel = null!, _cardPanel = null!;
-    private RichTextLabel _now = null!, _card = null!;
-    private bool _cardShown;
-    private string _lastNow = "", _lastCardDevice = "";
+    private int _lastDrag = -1;
+    private float _dragPop, _bailPop;
+    private bool _lastBail;
 
-    private static readonly Color Key = new(1f, 0.85f, 0.45f);
+    private static readonly Color Panel = new(0.04f, 0.07f, 0.09f, 0.72f);
+    private static readonly Color Dim = new(0.75f, 0.8f, 0.82f);
+    private static readonly Color Lit = new(1f, 0.85f, 0.45f);
+    private static readonly Color BarBack = new(1f, 1f, 1f, 0.12f);
+
+    private static readonly (string key, string label, Func<bool> held)[] Chips =
+    {
+        ("Space", "bail", () => Input.IsActionPressed(InputActions.Bail)),
+        ("LMB", "hold line", () => Input.IsActionPressed(InputActions.LineHold)),
+        ("RMB / wheel", "reel", () => Input.IsActionPressed(InputActions.Crank)),
+        ("Q / E", "drag", () => Input.IsActionPressed(InputActions.DragLooser) || Input.IsActionPressed(InputActions.DragTighter)),
+        ("Shift", "fine rod", () => Input.IsKeyPressed(Key.Shift)),
+        ("F", "land", () => Input.IsActionPressed(InputActions.Land)),
+        ("R", "keep", () => Input.IsActionPressed(InputActions.Keep)),
+        ("V", "lure cam", () => Input.IsKeyPressed(Key.V)),
+        ("Tab", "tackle", () => Input.IsKeyPressed(Key.Tab)),
+    };
 
     public override void _Ready()
     {
         SetAnchorsAndOffsetsPreset(LayoutPreset.FullRect);
         MouseFilter = MouseFilterEnum.Ignore;
-
-        _nowPanel = MakePanel();
-        _nowPanel.AnchorLeft = 0f; _nowPanel.AnchorTop = 1f; _nowPanel.AnchorBottom = 1f;
-        _nowPanel.OffsetLeft = 16f; _nowPanel.OffsetBottom = -16f; _nowPanel.OffsetTop = -16f;
-        _nowPanel.GrowVertical = GrowDirection.Begin;
-        _now = MakeText(620f, 21);
-        _nowPanel.AddChild(_now);
-        AddChild(_nowPanel);
-
-        _cardPanel = MakePanel();
-        _cardPanel.AnchorLeft = 0f; _cardPanel.AnchorTop = 0f;
-        _cardPanel.OffsetLeft = 16f; _cardPanel.OffsetTop = 56f;
-        _card = MakeText(560f, 19);
-        _cardPanel.AddChild(_card);
-        _cardPanel.Visible = false;
-        AddChild(_cardPanel);
-    }
-
-    private static PanelContainer MakePanel()
-    {
-        var p = new PanelContainer { MouseFilter = MouseFilterEnum.Ignore };
-        var sb = new StyleBoxFlat
-        {
-            BgColor = new Color(0.05f, 0.08f, 0.1f, 0.72f),
-            CornerRadiusTopLeft = 10, CornerRadiusTopRight = 10, CornerRadiusBottomLeft = 10, CornerRadiusBottomRight = 10,
-            ContentMarginLeft = 16, ContentMarginRight = 16, ContentMarginTop = 10, ContentMarginBottom = 10,
-            BorderColor = new Color(1f, 1f, 1f, 0.12f), BorderWidthBottom = 1, BorderWidthTop = 1, BorderWidthLeft = 1, BorderWidthRight = 1,
-        };
-        p.AddThemeStyleboxOverride("panel", sb);
-        return p;
-    }
-
-    private static RichTextLabel MakeText(float width, int size)
-    {
-        var t = new RichTextLabel
-        {
-            BbcodeEnabled = true, FitContent = true, ScrollActive = false, AutowrapMode = TextServer.AutowrapMode.Off,
-            CustomMinimumSize = new Vector2(width, 0f), MouseFilter = MouseFilterEnum.Ignore,
-        };
-        t.AddThemeFontSizeOverride("normal_font_size", size);
-        t.AddThemeFontSizeOverride("bold_font_size", size);
-        return t;
-    }
-
-    private bool Pad => Router.ActiveDevice == InputRouter.Device.Gamepad;
-
-    /// <summary>A key chip: [color]name[/color].</summary>
-    private string K(string mouseKeys, string pad) => $"[color=#{Key.ToHtml(false)}][b]{(Pad ? pad : mouseKeys)}[/b][/color]";
-
-    public override void _UnhandledInput(InputEvent e)
-    {
-        if (e is InputEventKey { Pressed: true, Echo: false, PhysicalKeycode: Godot.Key.H }
-            || e is InputEventJoypadButton { Pressed: true, ButtonIndex: JoyButton.Back })
-            _cardShown = !_cardShown;
     }
 
     public override void _Process(double delta)
     {
-        string now = NowText();
-        if (now != _lastNow) { _now.Text = now; _lastNow = now; }
-        _cardPanel.Visible = _cardShown;
-        string dev = Pad ? "pad" : "mk";
-        if (_cardShown && dev != _lastCardDevice) { _card.Text = CardText(); _lastCardDevice = dev; }
+        var r = Driver.World.Anglers[0].Reel;
+        if (_lastDrag >= 0 && r.DragClick != _lastDrag) _dragPop = 1f;
+        if (r.BailOpen != _lastBail) _bailPop = 1f;
+        _lastDrag = r.DragClick;
+        _lastBail = r.BailOpen;
+        _dragPop = MathF.Max(0f, _dragPop - (float)delta * 2.5f);
+        _bailPop = MathF.Max(0f, _bailPop - (float)delta * 2.5f);
+        QueueRedraw();
     }
 
-    private string NowText()
+    public override void _Draw()
     {
-        var w = Driver.World;
-        var a = w.Anglers[0];
-        var reel = a.Reel;
+        var font = ThemeDB.FallbackFont;
+        var a = Driver.World.Anglers[0];
+        var r = a.Reel;
         var line = a.Rig.Line;
-        Fish? on = null;
-        foreach (var f in w.Fish) if (f.Holding && f.LureAngler == 0) { on = f; break; }
-        string rod = Pad ? "right stick" : "mouse";
-        string help = $"   [color=#8a9aa0]{K("H", "View")} all controls[/color]";
+        float vh = GetViewportRect().Size.Y;
 
-        if (w.PendingCatch(0) >= 0)
-            return $"[b]In hand.[/b] Keep it {K("K", "Y")} or let it go {K("F", "RB / A")}." + help;
-        if (on != null && on.State == FishState.Hooked)
-        {
-            float surface = w.Water.Height(on.HeadX, w.Time);
-            bool close = MathF.Abs(on.HeadX - a.Position.X) < w.Config.LandReach && on.HeadY > surface - 0.6f;
-            bool beat = on.StaminaA < w.Config.LandStamina || on.MassKg < w.Config.SwingInKg;
-            if (close && beat)
-                return $"[b]FISH ON[/b] - it's beaten and close: press {K("F", "RB")} to land it!" + help;
-            return $"[b]FISH ON[/b] - keep the rod up ({rod}), crank {K("RMB / wheel", "RT or circle the left stick")} when it rests, let the drag work ({K("Q / E", "D-pad down / up")}).\n" +
-                   $"Bring it in close to the bank, tired and near the surface, then {K("F", "RB")} to land." + help;
-        }
-        if (reel.Backlashed)
-            return $"[b]Bird's nest![/b] Hold {K("K", "Y")} to pick the tangle out." + help;
-        if (reel.Spec.IsBaitcaster && reel.BailOpen)
-        {
-            if (line.LineOut < 3f)
-                return $"Free spool. Thumb the spool with {K("LMB", "LT")} (hold it), swing back and forward, ease off {K("LMB", "LT")} to cast.\n" +
-                       $"Feather {K("LMB", "LT")} lightly as it flies and press hard as it lands, or the spool overruns.   Brake {K("[ / ]", "D-pad left / right")}" + help;
-            return $"[b]Lure's out - engage the reel:[/b] turn the handle ({K("RMB / wheel up", "RT / circle left stick")})." + help;
-        }
-        if (reel.BailOpen)
-        {
-            if (line.LineOut < 3f)
-                return $"Bail open. Hold {K("LMB", "LT")} (finger on the line), swing the rod back and forward with the {rod}, " +
-                       $"let go of {K("LMB", "LT")} as it comes forward.\nChanged your mind? Crank {K("RMB / wheel", "RT or circle the left stick")} to close the bail." + help;
-            return $"[b]Lure's out - close the bail:[/b] turn the handle once ({K("RMB / wheel up", "RT / circle left stick")}).\n" +
-                   "With the bail open the line just runs off the spool: you can't set the hook or fight a fish." + help;
-        }
-        if (line.LineOut < 3f)
-            return $"[b]Ready.[/b] {K("Space", "LB")} {(reel.Spec.IsBaitcaster ? "puts the reel in free spool" : "opens the bail")} to cast.   " +
-                   $"{K("T", "R3")} next rod   {K("R", "X")} next lure ({line.Terminal.Name}).\n" +
-                   $"Point the rod with the {rod}{(Pad ? "" : ", W / S reach")}." + help;
-        string watch = line.FloatIndex >= 0 ? "watch the float: a twitch is a nibble, when it [b]goes under[/b]"
-                                            : "watch the line and the lure cam: when a fish [b]takes it[/b]";
-        return $"Fishing. Crank {K("RMB / wheel", "RT or circle the left stick")} to retrieve, twitch the rod for action, or wait.\n" +
-               $"Bites: {watch}, sweep the rod up hard ({rod} up) to set the hook." + help;
-    }
+        const float w = 500f, h = 160f, pad = 14f;
+        var box = new Rect2(16f, vh - 16f - h, w, h);
+        DrawRect(box, Panel);
+        float x = box.Position.X + pad, y = box.Position.Y + pad;
 
-    private string CardText()
-    {
-        string rod = Pad ? "Right stick" : "Mouse";
-        return "[b]Controls[/b]\n" +
-               $"{K("Mouse", "Right stick")}   point the rod (sweep up to set the hook)\n" +
-               (Pad ? "" : $"{K("W / S", "")}   reach out / in\n") +
-               $"{K("Space", "LB")}   open / close the bail\n" +
-               $"{K("Hold LMB", "Hold LT")}   finger on the line (release to cast; feather to slow it)\n" +
-               $"{K("RMB / wheel up", "RT / circle left stick")}   crank (closes the bail){(Pad ? "" : $"   {K("Z / C", "")} steady crank speed")}\n" +
-               $"{K("Q / E", "D-pad down / up")}   drag looser / tighter\n" +
-               $"{K("F", "RB")}   land the fish (net / lip), then {K("K", "Y")} keep or {K("F", "RB")} release\n" +
-               $"{K("L", "Start")}   the Ledger (your catch log)\n" +
-               $"{K("R", "X")}   change lure (when reeled in)\n" +
-               $"{K("T", "R3")}   next rod and reel (when reeled in)\n" +
-               $"{K("[ / ]", "D-pad left / right")}   baitcaster brake   (thumb the spool with {K("LMB", "LT")})\n" +
-               (Pad ? "" : $"{K("A / D", "")}   (walk: later)\n") +
-               $"{K("F11", "F11")} fullscreen   {K("M", "M")} mute   {K("F3", "F3")} rod and line loads   {K("F4", "F4")} rain   {K("F1", "F1")} tuning   {K("Middle click", "-")} splash\n" +
-               $"[color=#8a9aa0]{rod} sets where the rod points; the rod and line are simulated, so speed matters.[/color]";
+        // Tension: how close the line is to breaking (knot strength), green → amber → red.
+        float limit = line.Spec.BreakingForceN * line.Spec.KnotFactor;
+        float frac = Math.Clamp(line.TipTension / MathF.Max(limit, 1e-3f), 0f, 1f);
+        DrawString(font, new Vector2(x, y + 15f), "TENSION", HorizontalAlignment.Left, -1, 15, Dim);
+        var bar = new Rect2(x + 84f, y + 3f, w - 2f * pad - 84f, 14f);
+        DrawRect(bar, BarBack);
+        var col = frac < 0.5f ? new Color(0.45f, 0.85f, 0.5f) : frac < 0.8f ? new Color(1f, 0.75f, 0.3f) : new Color(1f, 0.3f, 0.25f);
+        DrawRect(new Rect2(bar.Position, new Vector2(bar.Size.X * frac, bar.Size.Y)), col);
+        if (r.DragSlipping)
+            DrawString(font, new Vector2(bar.End.X - 52f, y + 15f), "DRAG", HorizontalAlignment.Left, -1, 14, Colors.White);
+        y += 30f;
+
+        // Drag setting and line out.
+        float pop = _dragPop;
+        DrawString(font, new Vector2(x, y + 18f), $"Drag {r.DragForce / 9.81f:0.0} kg", HorizontalAlignment.Left, -1,
+                   (int)(20 + 6 * pop), Dim.Lerp(Lit, pop));
+        DrawString(font, new Vector2(x + 200f, y + 18f), $"Line out {line.LineOut:0.0} m", HorizontalAlignment.Left, -1, 20, Dim);
+        y += 30f;
+        string bail = r.BailOpen ? (r.Spec.IsBaitcaster ? "Free spool" : "Bail OPEN") : "Bail closed";
+        DrawString(font, new Vector2(x, y + 16f), bail, HorizontalAlignment.Left, -1, (int)(17 + 5 * _bailPop),
+                   r.BailOpen ? Lit : Dim.Lerp(Lit, _bailPop));
+        y += 28f;
+
+        // Key chips, two rows; a chip lights while its key is held.
+        float cx = x, cy = y;
+        foreach (var (key, label, held) in Chips)
+        {
+            bool on = held();
+            float kw = font.GetStringSize(key, HorizontalAlignment.Left, -1, 15).X + 10f;
+            float lw = font.GetStringSize(label, HorizontalAlignment.Left, -1, 15).X;
+            if (cx + kw + lw + 6f > box.End.X - pad) { cx = x; cy += 25f; }
+            DrawRect(new Rect2(cx, cy, kw, 20f), on ? Lit : new Color(1f, 1f, 1f, 0.16f));
+            DrawString(font, new Vector2(cx + 5f, cy + 15f), key, HorizontalAlignment.Left, -1, 15, on ? Colors.Black : Colors.White);
+            DrawString(font, new Vector2(cx + kw + 4f, cy + 15f), label, HorizontalAlignment.Left, -1, 15, on ? Lit : Dim);
+            cx += kw + lw + 14f;
+        }
     }
 }
