@@ -1,0 +1,16 @@
+{
+  "id": "reel_spin_1000",
+  "name": "Creekside 1000 Spinning",
+  "type": "spinning",
+  "gearRatio": 5.2,
+  "spoolCoreRadiusM": 0.013,
+  "spoolWidthM": 0.01,
+  "capacityM": 120,
+  "maxDragN": 25,
+  "dragDetents": 12,
+  "dragStickRatio": 1.15,
+  "lipFrictionN": 0.008,
+  "fingerHoldN": 15,
+  "massKg": 0.19,
+  "price": 30
+}

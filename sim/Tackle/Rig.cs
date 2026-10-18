@@ -358,6 +358,7 @@ public sealed class Rig
 
     private float _lureOmega;
 
+
     /// <summary>
     /// The lure's orientation as a rigid body (docs/04 §6.1): the line pulls at the nose eye, water drag across the
     /// body weathervanes the tail behind its motion, and weight and buoyancy act a little apart (nose-heavy jigs tip

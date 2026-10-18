@@ -1,0 +1,14 @@
+{
+  "id": "line_mono_6lb",
+  "name": "Clear Monofilament 6 lb",
+  "material": "mono",
+  "ratedLb": 6,
+  "diameterMm": 0.22,
+  "density": 1140,
+  "stretchAtBreak": 0.22,
+  "abrasionResistance": 0.55,
+  "visibility": 0.35,
+  "knotFactor": 0.9,
+  "color": "#dfe9e4",
+  "price": 7
+}

@@ -267,6 +267,14 @@ input from a `.rec` recording), `--record FILE` (save this session's input on ex
   `InputButtons.Interact`) or release (land button); `SimWorld.KeepRule` = min length, daily bag per species, bag 0 =
   must release; kept fish leave the spot (`FishState.Kept`). The Ledger: `game/src/Ui/Ledger.cs` appends every
   decision to `user://ledger.json`; L / Start shows per-species records and the latest catches.
+- **v0.4.8 baitcaster + rod rack:** `ReelSpec.Type == "baitcaster"`: in free spool (bail button) line is drawn off
+  against `Reel.SpoolResistance` (bearing + magnetic brake ∝ spool speed + thumb² × FingerHoldN + spin-up inertia
+  I/r²); `Reel.StepSpool` couples the spool to the line while the line keeps up, otherwise it coasts and the excess
+  loops up as `Loose`; > `BacklashLooseM` (1 m) = bird's nest (`Backlash` event), hold K / Y 1.5 s to clear.
+  Thumb = LineHold (LT / LMB). Brake `[ ]` / D-pad left-right. Outfits in `game/data/gear/combos` (+ reels/, new
+  lines), `AnglerState.Rack`, T / R3 swaps when reeled in, `--outfit ID`. Spinning reels unchanged. Lessons: a
+  per-segment slack measure of overrun is wrong (newly paid line sits at the tip); scripted fixed-angle casts are
+  fragile across rods (the MH outfit only throws the 14 g sinker ~6 m in the test script; owner to judge in play).
 - **Owner ideas backlog:** `docs/IDEAS.md` (check it when planning a milestone; add new owner ideas there).
 - **M2 done (2026-10-18, v0.3.0):** `sim/Tackle/`: `Rod` (XPBD chain, EI taper,
   strength taper, moments), `Line` (variable length, pay-out/merge, solver mass floor), `TackleSolver` (direct banded

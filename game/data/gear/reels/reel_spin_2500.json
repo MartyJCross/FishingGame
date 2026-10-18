@@ -1,0 +1,16 @@
+{
+  "id": "reel_spin_2500",
+  "name": "Shoreline 2500 Spinning",
+  "type": "spinning",
+  "gearRatio": 5.2,
+  "spoolCoreRadiusM": 0.016,
+  "spoolWidthM": 0.012,
+  "capacityM": 140,
+  "maxDragN": 40,
+  "dragDetents": 16,
+  "dragStickRatio": 1.1,
+  "lipFrictionN": 0.012,
+  "fingerHoldN": 25,
+  "massKg": 0.25,
+  "price": 45
+}

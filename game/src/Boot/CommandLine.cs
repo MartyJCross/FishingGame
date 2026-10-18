@@ -29,6 +29,8 @@ public sealed class CommandLine
     public int? MaxFps;
     /// <summary>Start with this lure/rig tied on (id from data/lures).</summary>
     public string? Lure;
+    /// <summary>Start with this outfit (id from data/gear/combos).</summary>
+    public string? Outfit;
     /// <summary>Start with an empty pond (tackle and water work).</summary>
     public bool NoFish;
     /// <summary>Automated run: the window stays off-screen and never takes focus.</summary>
@@ -78,6 +80,7 @@ public sealed class CommandLine
                 case "--bench": c.BenchSeconds = NextFloat(); break;
                 case "--debug-overlay": c.DebugOverlay = true; break;
                 case "--lure": c.Lure = Next(); break;
+                case "--outfit": c.Outfit = Next(); break;
                 case "--no-fish": c.NoFish = true; break;
                 case "--background": c.Background = true; break;
                 case "--look":

@@ -79,7 +79,7 @@ public class ReelTests
         {
             reel.BeginTick(c, c.Dt, input, rig.Line.Spec, rig.Line.TipTension);
             rig.Step(c, c.Dt, env, new Vec2(0f, 2f), 0f, reel.Retrieve, reel.SlipForce);
-            reel.EndTick(c.Dt, rig.SlippedThisTick, rig.TakenThisTick);
+            reel.EndTick(c.Dt, rig.SlippedThisTick, rig.TakenThisTick, rig.Line.Spec);
             if (t > 120) { tensionSum += rig.Line.TipTension; n++; }
         }
         float mean = tensionSum / n;

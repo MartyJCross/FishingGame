@@ -205,6 +205,9 @@ public partial class Main : Node2D
             case TheLedger.Sim.Core.SimEventType.KeepRefused:
                 Toast(e.Value switch { 1f => "Too short to keep: it has to go back", 2f => "That's your bag limit for this species", _ => "This one must be released" }, 2.5);
                 break;
+            case TheLedger.Sim.Core.SimEventType.Backlash:
+                Toast("Bird's nest! Thumb the spool as the lure slows. Hold K / Y to pick it out", 3.5);
+                break;
             case TheLedger.Sim.Core.SimEventType.FishJumped:
                 Toast("It jumped! Keep the line tight", 1.5);
                 break;
@@ -278,8 +281,13 @@ public partial class Main : Node2D
         var a = _driver.World.Anglers[0];
         var r = a.Reel;
         var line = a.Rig.Line;
-        _reelHud.Text = $"{line.Terminal.Name}  (R / X / D-pad right to change when reeled in)\n" +
-                        $"Bail {(r.BailOpen ? "OPEN" : "closed")}   drag {r.DragForce / 9.81f:0.0} kg ({r.DragClick}/{r.Spec.DragDetents})\n" +
+        string outfit = a.Rack.Count > 0 ? a.Rack[a.RackIndex].Name : r.Spec.Name;
+        string reelState = r.Spec.IsBaitcaster
+            ? (r.Backlashed ? $"BIRD'S NEST - hold K / Y to pick it out {Bar(r.ClearProgress)}"
+               : $"{(r.BailOpen ? "FREE SPOOL" : "engaged")}   brake {r.BrakeClick}/{r.Spec.BrakeClicks}   overrun {Bar(r.Loose / r.Spec.BacklashLooseM)}")
+            : $"Bail {(r.BailOpen ? "OPEN" : "closed")}";
+        _reelHud.Text = $"{outfit}  (T / R3: next rod)\n{line.Terminal.Name}  (R / X: next lure)\n" +
+                        $"{reelState}   drag {r.DragForce / 9.81f:0.0} kg ({r.DragClick}/{r.Spec.DragDetents})\n" +
                         $"line out {line.LineOut:0.0} m   spool {r.LineOnSpool:0} m\n" +
                         $"tension {line.TipTension:0.0} N {Bar(line.TipTension / (line.Spec.BreakingForceN * line.Spec.KnotFactor))}" +
                         $"{(r.DragSlipping ? "   DRAG" : "")}\nrod load {Bar(a.Rig.Rod.PeakLoadRatio)}   {(int)_driver.World.Hour:00}:{(int)(_driver.World.Hour % 1f * 60f):00}";

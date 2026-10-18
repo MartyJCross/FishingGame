@@ -157,6 +157,8 @@ public sealed class SimWorld
         for (int i = 0; i < _anglers.Length; i++)
         {
             _anglers[i].Step(Config, dt, inputs[i], env);
+            if (_anglers[i].Reel.BacklashedNow)
+                Events.Push(new SimEvent { Type = SimEventType.Backlash, Tick = Tick, Angler = i, Value = _anglers[i].Reel.Loose });
             var rig = _anglers[i].Rig;
             for (int e = 0; e < rig.EntryCount; e++)
             {

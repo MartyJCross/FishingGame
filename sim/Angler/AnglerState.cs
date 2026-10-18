@@ -36,9 +36,22 @@ public sealed class AnglerState
 
     public int Index { get; }
 
+    /// <summary>Picks up outfit <paramref name="index"/> from the rack (allocates: gear changes only).</summary>
+    public void UseOutfit(SimConfig c, int index)
+    {
+        RackIndex = index;
+        var o = Rack[index];
+        SetTackle(c, o.Rod, o.Reel, o.Line, Rig.Line.Terminal, 1.0f);
+    }
+
     /// <summary>Terminals this angler can tie on (lures, bait rigs). R / X cycles them while the line is in.</summary>
     public List<TerminalSpec> TackleBox { get; } = new() { TerminalSpec.HalfOunceSinker() };
     public int TackleIndex;
+
+    /// <summary>Rod-and-reel outfits to swap between (T / R3, when reeled in).</summary>
+    public List<Outfit> Rack { get; } = new();
+    public int RackIndex;
+    private bool _rackHeld;
     private bool _rigHeld;
     private bool _landHeld, _keepHeld;
 
@@ -75,6 +88,14 @@ public sealed class AnglerState
         KeepPressed = keep && !_keepHeld;
         _keepHeld = keep;
 
+        bool rackButton = input.Has(InputButtons.RodRack);
+        if (rackButton && !_rackHeld && Rack.Count > 1 && Rig.Line.LineOut <= c.RetieMaxLineOut && !Rig.Line.Pinned)
+        {
+            RackIndex = (RackIndex + 1) % Rack.Count;
+            UseOutfit(c, RackIndex);
+        }
+        _rackHeld = rackButton;
+
         bool rigButton = input.Has(InputButtons.RigMenu);
         if (rigButton && !_rigHeld && TackleBox.Count > 1 && Rig.Line.LineOut <= c.RetieMaxLineOut)
         {
@@ -86,7 +107,7 @@ public sealed class AnglerState
         Reel.BeginTick(c, dt, input, Rig.Line.Spec, Rig.Line.TipTension);
         Rig.Line.SegmentLength = MathF.Max(c.LineSegmentLength, Rig.Line.LineOut / MathF.Max(c.LineNodesTarget, 1f));
         Rig.Step(c, dt, env, Grip, Hands.Angle, Reel.Retrieve, Reel.SlipForce);
-        Reel.EndTick(dt, Rig.SlippedThisTick, Rig.TakenThisTick);
+        Reel.EndTick(dt, Rig.SlippedThisTick, Rig.TakenThisTick, Rig.Line.Spec);
     }
 
     public void Hash(ref StateHasher h)

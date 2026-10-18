@@ -19,6 +19,9 @@ public static class InputActions
     public const string Land = "land";
     public const string RigMenu = "rig_menu";
     public const string Keep = "keep";
+    public const string RodRack = "rod_rack";
+    public const string BrakeUp = "brake_up";
+    public const string BrakeDown = "brake_down";
     public const string ToggleLedger = "toggle_ledger";
     public const string MoveLeft = "move_left";
     public const string MoveRight = "move_right";
@@ -44,7 +47,10 @@ public static class InputActions
         Add(Land, 0.5f, KeyEv(Key.F), Button(JoyButton.RightShoulder), Button(JoyButton.A));
         Add(Keep, 0.5f, KeyEv(Key.K), Button(JoyButton.Y));
         Add(ToggleLedger, 0.5f, KeyEv(Key.L), Button(JoyButton.Start));
-        Add(RigMenu, 0.5f, KeyEv(Key.R), Button(JoyButton.X), Button(JoyButton.DpadRight));
+        Add(RigMenu, 0.5f, KeyEv(Key.R), Button(JoyButton.X));
+        Add(RodRack, 0.5f, KeyEv(Key.T), Button(JoyButton.RightStick));
+        Add(BrakeUp, 0.5f, KeyEv(Key.Bracketright), Button(JoyButton.DpadRight));
+        Add(BrakeDown, 0.5f, KeyEv(Key.Bracketleft), Button(JoyButton.DpadLeft));
         Add(MoveLeft, 0.2f, KeyEv(Key.A)); // the left stick reels (rotate it)
         Add(MoveRight, 0.2f, KeyEv(Key.D));
         Add(ReachUp, 0.2f, KeyEv(Key.W));

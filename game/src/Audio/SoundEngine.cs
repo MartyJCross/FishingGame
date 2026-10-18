@@ -37,7 +37,7 @@ public partial class SoundEngine : Node
 
     // Continuous state.
     private float _ambLp, _ambLp2, _hissHp, _hissPrev, _swishLp, _swishBp, _dragPhase, _dragLp;
-    private float _lapPhase;
+    private float _lapPhase, _whinePhase;
     private double _time;
     private bool _lastBail;
     private float _crankClickCarry;
@@ -97,6 +97,10 @@ public partial class SoundEngine : Node
                 }
                 break;
             }
+            case SimEventType.Backlash:
+                Add(Kind.Noise, 0.25f, 0.4f, 0f, 0f, -0.3f, 0.5f);
+                Add(Kind.Snap, 0.06f, 0.4f, 1200f, 500f, -0.3f);
+                break;
             case SimEventType.LineBroke:
                 Add(Kind.Snap, 0.05f, 0.7f, 2400f, 900f);
                 Add(Kind.Chirp, 0.18f, 0.25f, 3200f, 2600f, 0.2f);
@@ -177,6 +181,9 @@ public partial class SoundEngine : Node
         float omega = MathF.Abs(a.Hands.AngularVelocity);
         float swishAmp = omega > 4f ? MathF.Min(0.25f, (omega - 4f) * 0.02f) : 0f;
         float ambAmp = 0.035f + 0.006f * wind;
+        // A baitcaster spool singing in free spool: pitch from its speed.
+        float whineAmp = reel.Spec.IsBaitcaster && reel.BailOpen && reel.SpoolOmega > 30f ? MathF.Min(0.08f, reel.SpoolOmega * 0.00015f) : 0f;
+        float whineHz = 120f + reel.SpoolOmega * 1.6f;
 
         for (int i = 0; i < n; i++)
         {
@@ -196,6 +203,12 @@ public partial class SoundEngine : Node
                 float hp = nz - _hissPrev; _hissPrev = nz;
                 _hissHp += (hp - _hissHp) * 0.5f;
                 float s = _hissHp * hissAmp;
+                l += s * 1.1f; r += s * 0.7f;
+            }
+            if (whineAmp > 0f)
+            {
+                _whinePhase += whineHz * dt;
+                float s = (MathF.Sin(_whinePhase * MathF.Tau) + 0.3f * MathF.Sin(_whinePhase * MathF.Tau * 2.7f)) * whineAmp;
                 l += s * 1.1f; r += s * 0.7f;
             }
             if (dragAmp > 0f)

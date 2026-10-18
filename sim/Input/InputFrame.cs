@@ -11,6 +11,11 @@ public enum InputButtons : ushort
     Land = 1 << 1,
     RigMenu = 1 << 2,
     Interact = 1 << 3,
+    /// <summary>Swap to the next rod and reel from the rack (when reeled in).</summary>
+    RodRack = 1 << 4,
+    /// <summary>Baitcaster brake knob one click up / down.</summary>
+    BrakeUp = 1 << 5,
+    BrakeDown = 1 << 6,
 }
 
 /// <summary>

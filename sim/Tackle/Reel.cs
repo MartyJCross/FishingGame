@@ -31,6 +31,20 @@ public sealed class ReelSpec
     public float MassKg { get; set; } = 0.25f;
     public float Price { get; set; }
 
+    // Baitcasters (docs/04 §5.4): the spool turns during the cast.
+    /// <summary>Spool moment of inertia when empty, kg·m² (a 10 g aluminium spool is ~1.5e-6).</summary>
+    public float SpoolInertia { get; set; } = 1.5e-6f;
+    /// <summary>Bearing friction torque, N·m.</summary>
+    public float BearingTorque { get; set; } = 1.5e-5f;
+    /// <summary>Magnetic brake torque per rad/s at full setting, N·m·s.</summary>
+    public float MagBrakeMax { get; set; } = 4.0e-6f;
+    /// <summary>Brake knob clicks.</summary>
+    public int BrakeClicks { get; set; } = 10;
+    /// <summary>Loose line on the spool that becomes a bird's nest, m.</summary>
+    public float BacklashLooseM { get; set; } = 1.0f;
+
+    public bool IsBaitcaster => Type == "baitcaster";
+
     public static ReelSpec Spinning2500() => new();
 }
 
@@ -64,7 +78,27 @@ public sealed class Reel
     /// <summary>Times the line has spooled off completely (the knot at the arbor took the strain).</summary>
     public bool Spooled => LineOnSpool <= 0f;
 
-    private bool _bailHeld;
+    private bool _bailHeld, _brakeUpHeld, _brakeDownHeld;
+    private float _clearHold, _lastLineSpeed;
+
+    // Baitcaster spool state.
+    /// <summary>Spool speed in free spool, rad/s.</summary>
+    public float SpoolOmega;
+    /// <summary>Line that has come off the spool faster than the lure took it (overrun), m.</summary>
+    public float Loose;
+    /// <summary>Bird's nest: the spool is locked until the tangle is picked out (hold Keep).</summary>
+    public bool Backlashed;
+    /// <summary>Raised on the tick a backlash happens (the world turns it into an event).</summary>
+    public bool BacklashedNow;
+    /// <summary>Brake knob, 0..BrakeClicks.</summary>
+    public int BrakeClick = 5;
+    /// <summary>Thumb pressure on the spool this tick, 0..1.</summary>
+    public float Thumb;
+    /// <summary>Progress picking out a backlash, 0..1.</summary>
+    public float ClearProgress => Math.Clamp(_clearHold / 1.5f, 0f, 1f);
+
+    /// <summary>The spool is free and spinning line off (a baitcaster in free spool, not thumbed to a stop, not tangled).</summary>
+    public bool SpoolDriving => Spec.IsBaitcaster && BailOpen && !Backlashed;
 
     public float Fill => Math.Clamp(LineOnSpool / MathF.Max(Spec.CapacityM, 1f), 0f, 1.5f);
 
@@ -81,16 +115,95 @@ public sealed class Reel
     /// <summary>Line pull at which the hand can no longer turn the handle, N.</summary>
     public float CrankStallForce(SimConfig c, LineSpec line) => c.HandCrankTorque / (Spec.GearRatio * SpoolRadius(line));
 
+    public float SpoolInertiaNow(LineSpec line)
+    {
+        float r = SpoolRadius(line), rc = Spec.SpoolCoreRadiusM;
+        // The line on the spool adds a ring of mass between the core and the current radius.
+        float lineMass = MathF.Max(LineOnSpool, 0f) * line.MassPerMetre;
+        return Spec.SpoolInertia + 0.5f * lineMass * (r * r + rc * rc);
+    }
+
+    /// <summary>Spool resistance felt by the line in free spool: bearings, the magnetic brake (∝ spool speed), the thumb, N.</summary>
+    public float SpoolResistance(LineSpec line)
+    {
+        float r = SpoolRadius(line);
+        float b = Spec.MagBrakeMax * BrakeClick / MathF.Max(Spec.BrakeClicks, 1);
+        return (Spec.BearingTorque + b * SpoolOmega) / r + Thumb * Thumb * Spec.FingerHoldN;
+    }
+
+    /// <summary>
+    /// Baitcaster spool after the tick (docs/04 §5.4): while the line goes out at least as fast as the spool turns,
+    /// the line drives the spool (and first draws any loose loops back out). When the line slows (splash-down, wind,
+    /// a stalling lure) the spool keeps turning on its inertia, slowed only by bearings, brake and thumb; the line it
+    /// feeds that nobody takes loops up as loose line. Too much loose line is a bird's nest.
+    /// </summary>
+    private void StepSpool(float dt, float lineOut, LineSpec line)
+    {
+        float r = SpoolRadius(line);
+        float vLine = lineOut / dt;
+        _lastLineSpeed = vLine;
+        float vSpool = SpoolOmega * r;
+        if (Thumb >= 0.98f) { SpoolOmega = 0f; return; }
+        if (vLine >= vSpool)
+        {
+            float pull = (vLine - vSpool) * dt;
+            float fromLoose = MathF.Min(Loose, pull);
+            Loose -= fromLoose;
+            SpoolOmega = MathF.Max(SpoolOmega, (vLine - fromLoose / dt) / r);
+        }
+        else
+        {
+            float torque = SpoolResistance(line) * r;
+            SpoolOmega = MathF.Max(0f, SpoolOmega - torque / SpoolInertiaNow(line) * dt);
+            Loose += MathF.Max(0f, SpoolOmega * r - vLine) * dt;
+        }
+        if (!Backlashed && Loose > Spec.BacklashLooseM)
+        {
+            Backlashed = true;
+            BacklashedNow = true;
+            SpoolOmega = 0f;
+        }
+    }
+
     /// <summary>Reads this tick's input: bail, drag clicks, line hold and cranking. Sets SlipForce and Retrieve.</summary>
     public void BeginTick(SimConfig c, float dt, in InputFrame input, LineSpec line, float tipTension)
     {
         bool bail = input.Has(InputButtons.Bail);
-        if (bail && !_bailHeld) BailOpen = !BailOpen;
+        if (bail && !_bailHeld && !Backlashed) { BailOpen = !BailOpen; SpoolOmega = 0f; Loose = 0f; }
         _bailHeld = bail;
         DragClick = Math.Clamp(DragClick + input.DragDelta, 0, Spec.DragDetents);
+        bool up = input.Has(InputButtons.BrakeUp), down = input.Has(InputButtons.BrakeDown);
+        if (up && !_brakeUpHeld) BrakeClick = Math.Min(Spec.BrakeClicks, BrakeClick + 1);
+        if (down && !_brakeDownHeld) BrakeClick = Math.Max(0, BrakeClick - 1);
+        _brakeUpHeld = up; _brakeDownHeld = down;
+        BacklashedNow = false;
+        Thumb = Math.Clamp(input.LineHold, 0f, 1f);
 
         float crank = MathF.Max(input.CrankRate, 0f);
         Retrieve = 0f;
+
+        if (Backlashed)
+        {
+            // Picking out a bird's nest: hold Keep (K / Y) for a second and a half. Until then nothing moves.
+            _clearHold = input.Has(InputButtons.Interact) ? _clearHold + dt : 0f;
+            if (_clearHold >= 1.5f) { Backlashed = false; Loose = 0f; BailOpen = false; _clearHold = 0f; }
+            SlipForce = float.PositiveInfinity;
+            return;
+        }
+        if (Spec.IsBaitcaster)
+        {
+            // Free spool: line only leaves by the spool turning (Rig drives it); the clutch re-engages on cranking.
+            if (BailOpen && crank > 0.05f) { BailOpen = false; SpoolOmega = 0f; Loose = 0f; crank = 0f; }
+            if (BailOpen)
+            {
+                // Line is drawn off against the spool's resistance; loose loops come off for nothing.
+                // Spinning the spool up takes force too (its inertia as a mass at the line: I / r²).
+                float r = SpoolRadius(line);
+                float spinUp = SpoolInertiaNow(line) / (r * r) * MathF.Max(0f, _lastLineSpeed - SpoolOmega * r) / dt;
+                SlipForce = Thumb >= 0.98f ? float.PositiveInfinity : Loose > 0.01f ? 0.002f : MathF.Max(0.002f, SpoolResistance(line) + spinUp);
+                return;
+            }
+        }
         if (BailOpen)
         {
             // Turning the handle flips the bail shut (it takes a moment; that tick retrieves nothing).
@@ -123,11 +236,12 @@ public sealed class Reel
     }
 
     /// <summary>Books what actually happened: <paramref name="slipped"/> m left the spool, <paramref name="taken"/> m came in.</summary>
-    public void EndTick(float dt, float slipped, float taken)
+    public void EndTick(float dt, float slipped, float taken, LineSpec line)
     {
+        if (SpoolDriving) StepSpool(dt, slipped, line);
         LineOnSpool -= slipped;
         LineOnSpool += taken;
-        DragSlipping = !BailOpen && slipped > 1e-4f;
+        DragSlipping = !BailOpen && !Backlashed && slipped > 1e-4f;
         LineSpeed = (slipped - taken) / dt;
     }
 
@@ -136,5 +250,7 @@ public sealed class Reel
         h.Add(LineOnSpool);
         h.Add(BailOpen ? 1 : 0);
         h.Add(DragClick);
+        h.Add(SpoolOmega);
+        h.Add(Backlashed ? 1 : 0);
     }
 }

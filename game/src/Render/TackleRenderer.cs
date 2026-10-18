@@ -158,7 +158,8 @@ public partial class TackleRenderer : Node2D
         {
             if (!rod.IsGuide[k]) continue;
             Vector2 dir = (_rodPts[k + 1] - _rodPts[k - 1]).Normalized();
-            Vector2 nrm = new(dir.Y, -dir.X);
+            // Guides hang under a spinning rod and stand on top of a casting rod (same side as the reel).
+            Vector2 nrm = new Vector2(dir.Y, -dir.X) * (rod.Spec.Type == "casting" ? 1f : -1f);
             float d = rod.Diameter[k] * SimSpace.PixelsPerMetre;
             float stand = 3f + d * 1.2f;
             DrawLine(_rodPts[k], _rodPts[k] + nrm * stand, Guide, 1.2f);
@@ -173,12 +174,25 @@ public partial class TackleRenderer : Node2D
         DrawColoredPolygon(new[] { butt + hn * hw, grip + hn * hw * 0.85f, grip - hn * hw * 0.85f, butt - hn * hw }, Cork);
         DrawColoredPolygon(new[] { butt - hn * hw * 0.2f, grip - hn * hw * 0.2f, grip - hn * hw * 0.85f, butt - hn * hw }, CorkShade);
         Vector2 seat = grip.Lerp(butt, 0.18f);
-        Vector2 foot = seat - hn * 0.045f * SimSpace.PixelsPerMetre;
-        DrawLine(seat, foot, ReelBody, 3f);
-        float rr = 0.028f * SimSpace.PixelsPerMetre;
-        Vector2 c = foot - hn * rr * 0.8f;
-        DrawColoredPolygon(Hex(c, rr), ReelBody);
-        DrawColoredPolygon(Hex(c + hdir * rr * 0.6f, rr * 0.7f), ReelSpool);
+        if (rig.Rod.Spec.Type == "casting")
+        {
+            // Baitcaster: a low-profile reel sitting on top of the handle, spool across the rod.
+            float rb = 0.022f * SimSpace.PixelsPerMetre;
+            Vector2 c = seat + hn * rb * 0.9f;
+            var body = new[] { c - hdir * rb * 1.3f - hn * rb * 0.5f, c - hdir * rb * 1.1f + hn * rb * 0.6f, c + hdir * rb * 0.9f + hn * rb * 0.7f,
+                               c + hdir * rb * 1.3f, c + hdir * rb * 0.9f - hn * rb * 0.5f };
+            DrawColoredPolygon(body, ReelBody);
+            DrawColoredPolygon(Hex(c, rb * 0.55f), ReelSpool);
+        }
+        else
+        {
+            Vector2 foot = seat - hn * 0.045f * SimSpace.PixelsPerMetre;
+            DrawLine(seat, foot, ReelBody, 3f);
+            float rr = 0.028f * SimSpace.PixelsPerMetre;
+            Vector2 c = foot - hn * rr * 0.8f;
+            DrawColoredPolygon(Hex(c, rr), ReelBody);
+            DrawColoredPolygon(Hex(c + hdir * rr * 0.6f, rr * 0.7f), ReelSpool);
+        }
     }
 
     private Vector2[] _smoothPts = Array.Empty<Vector2>();

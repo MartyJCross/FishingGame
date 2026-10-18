@@ -114,6 +114,15 @@ public partial class ControlsHud : Control
             return $"[b]FISH ON[/b] - keep the rod up ({rod}), crank {K("RMB / wheel", "RT or circle the left stick")} when it rests, let the drag work ({K("Q / E", "D-pad down / up")}).\n" +
                    $"Bring it in close to the bank, tired and near the surface, then {K("F", "RB")} to land." + help;
         }
+        if (reel.Backlashed)
+            return $"[b]Bird's nest![/b] Hold {K("K", "Y")} to pick the tangle out." + help;
+        if (reel.Spec.IsBaitcaster && reel.BailOpen)
+        {
+            if (line.LineOut < 3f)
+                return $"Free spool. Thumb the spool with {K("LMB", "LT")} (hold it), swing back and forward, ease off {K("LMB", "LT")} to cast.\n" +
+                       $"Feather {K("LMB", "LT")} lightly as it flies and press hard as it lands, or the spool overruns.   Brake {K("[ / ]", "D-pad left / right")}" + help;
+            return $"[b]Lure's out - engage the reel:[/b] turn the handle ({K("RMB / wheel up", "RT / circle left stick")})." + help;
+        }
         if (reel.BailOpen)
         {
             if (line.LineOut < 3f)
@@ -123,7 +132,8 @@ public partial class ControlsHud : Control
                    "With the bail open the line just runs off the spool: you can't set the hook or fight a fish." + help;
         }
         if (line.LineOut < 3f)
-            return $"[b]Ready.[/b] {K("Space", "LB")} opens the bail to cast.   {K("R", "X / D-pad right")} changes lure ({line.Terminal.Name}).\n" +
+            return $"[b]Ready.[/b] {K("Space", "LB")} {(reel.Spec.IsBaitcaster ? "puts the reel in free spool" : "opens the bail")} to cast.   " +
+                   $"{K("T", "R3")} next rod   {K("R", "X")} next lure ({line.Terminal.Name}).\n" +
                    $"Point the rod with the {rod}{(Pad ? "" : ", W / S reach")}." + help;
         string watch = line.FloatIndex >= 0 ? "watch the float: a twitch is a nibble, when it [b]goes under[/b]"
                                             : "watch the line and the lure cam: when a fish [b]takes it[/b]";
@@ -143,7 +153,9 @@ public partial class ControlsHud : Control
                $"{K("Q / E", "D-pad down / up")}   drag looser / tighter\n" +
                $"{K("F", "RB")}   land the fish (net / lip), then {K("K", "Y")} keep or {K("F", "RB")} release\n" +
                $"{K("L", "Start")}   the Ledger (your catch log)\n" +
-               $"{K("R", "X / D-pad right")}   change lure (when reeled in)\n" +
+               $"{K("R", "X")}   change lure (when reeled in)\n" +
+               $"{K("T", "R3")}   next rod and reel (when reeled in)\n" +
+               $"{K("[ / ]", "D-pad left / right")}   baitcaster brake   (thumb the spool with {K("LMB", "LT")})\n" +
                (Pad ? "" : $"{K("A / D", "")}   (walk: later)\n") +
                $"{K("F11", "F11")} fullscreen   {K("M", "M")} mute   {K("F3", "F3")} rod and line loads   {K("F4", "F4")} rain   {K("F1", "F1")} tuning   {K("Middle click", "-")} splash\n" +
                $"[color=#8a9aa0]{rod} sets where the rod points; the rod and line are simulated, so speed matters.[/color]";

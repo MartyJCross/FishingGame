@@ -77,11 +77,20 @@ public partial class SimDriver : Node
         ulong seed = _replay?.Seed ?? args.Seed;
         World = new SimWorld(config, seed, anglers);
         PopulateFish(args);
+        var outfits = LoadOutfits();
         var lures = LoadTerminals();
         foreach (var a in World.Anglers)
         {
             a.TackleBox.Clear();
             a.TackleBox.AddRange(lures);
+            a.Rack.Clear();
+            a.Rack.AddRange(outfits);
+            if (outfits.Count > 0)
+            {
+                int o = Math.Max(0, outfits.FindIndex(x => x.Id == args.Outfit));
+                if (args.Outfit != null && outfits[o].Id != args.Outfit) GD.PushWarning($"--outfit {args.Outfit}: no such outfit");
+                a.UseOutfit(config, o);
+            }
             int pick = Math.Max(0, lures.FindIndex(l => l.Id == args.Lure));
             if (args.Lure != null && lures[pick].Id != args.Lure) GD.PushWarning($"--lure {args.Lure}: no such lure");
             a.TackleIndex = pick;
@@ -112,6 +121,31 @@ public partial class SimDriver : Node
         var stock = TheLedger.Sim.Fish.SpotStock.Load(Godot.FileAccess.GetFileAsString("res://data/spots/station_pond.json"));
         World.Populate(stock, species);
         GD.Print($"Station Pond: {World.Fish.Count} fish of {stock.Stock.Count} species");
+    }
+
+    /// <summary>Rod/reel/line outfits from data/gear/combos (in file-name order), resolved against rods, reels, lines.</summary>
+    private static List<TheLedger.Sim.Angler.Outfit> LoadOutfits()
+    {
+        var list = new List<TheLedger.Sim.Angler.Outfit>();
+        string Read(string dir, string id) => Godot.FileAccess.GetFileAsString($"res://data/gear/{dir}/{id}.json");
+        const string combos = "res://data/gear/combos";
+        foreach (string f in DirAccess.GetFilesAt(combos).Where(f => f.EndsWith(".json")).OrderBy(f => f, StringComparer.Ordinal))
+        {
+            try
+            {
+                var d = System.Text.Json.JsonDocument.Parse(Godot.FileAccess.GetFileAsString($"{combos}/{f}")).RootElement;
+                list.Add(new TheLedger.Sim.Angler.Outfit
+                {
+                    Id = d.GetProperty("id").GetString() ?? f,
+                    Name = d.GetProperty("name").GetString() ?? f,
+                    Rod = TheLedger.Sim.Tackle.GearJson.Rod(Read("rods", d.GetProperty("rod").GetString()!)),
+                    Reel = TheLedger.Sim.Tackle.GearJson.Reel(Read("reels", d.GetProperty("reel").GetString()!)),
+                    Line = TheLedger.Sim.Tackle.GearJson.Line(Read("lines", d.GetProperty("line").GetString()!)),
+                });
+            }
+            catch (Exception ex) { GD.PushError($"Outfit {f}: {ex.Message}"); }
+        }
+        return list;
     }
 
     /// <summary>Everything in data/lures, in file-name order (replays rely on the same order).</summary>

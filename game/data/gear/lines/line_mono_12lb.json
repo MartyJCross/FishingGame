@@ -1,0 +1,14 @@
+{
+  "id": "line_mono_12lb",
+  "name": "Green Monofilament 12 lb",
+  "material": "mono",
+  "ratedLb": 12,
+  "diameterMm": 0.3,
+  "density": 1140,
+  "stretchAtBreak": 0.2,
+  "abrasionResistance": 0.62,
+  "visibility": 0.4,
+  "knotFactor": 0.9,
+  "color": "#a8c4a0",
+  "price": 9
+}
