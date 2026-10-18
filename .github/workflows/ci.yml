@@ -1,0 +1,99 @@
+name: CI
+
+# Every push to development: sim tests, game build, headless smoke run, Windows export.
+# The owner downloads the "TheLedger-windows-x64" artifact from the run page.
+
+on:
+  push:
+    branches: [development]
+  pull_request:
+  workflow_dispatch:
+
+env:
+  GODOT_VERSION: "4.7.2"
+  DOTNET_NOLOGO: "true"
+  DOTNET_CLI_TELEMETRY_OPTOUT: "true"
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Sim and data tests
+        run: dotnet test tests/TheLedger.Sim.Tests.csproj -c Release --logger "console;verbosity=normal"
+
+      - name: Cache Godot editor and Windows export templates
+        id: cache-godot
+        uses: actions/cache@v4
+        with:
+          path: ${{ runner.temp }}/godot
+          key: godot-${{ env.GODOT_VERSION }}-mono-win64-v1
+
+      - name: Download Godot (self-contained) and Windows export templates
+        if: steps.cache-godot.outputs.cache-hit != 'true'
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $ProgressPreference = 'SilentlyContinue'
+          $root = "${{ runner.temp }}/godot"
+          New-Item -ItemType Directory -Force $root | Out-Null
+          $base = "https://github.com/godotengine/godot/releases/download/$($env:GODOT_VERSION)-stable"
+          Invoke-WebRequest "$base/Godot_v$($env:GODOT_VERSION)-stable_mono_win64.zip" -OutFile "$root/godot.zip"
+          Expand-Archive "$root/godot.zip" -DestinationPath $root
+          Remove-Item "$root/godot.zip"
+          $editorDir = "$root/Godot_v$($env:GODOT_VERSION)-stable_mono_win64"
+          # Self-contained mode: settings and export templates live next to the editor.
+          New-Item -ItemType File -Force "$editorDir/._sc_" | Out-Null
+          Invoke-WebRequest "$base/Godot_v$($env:GODOT_VERSION)-stable_mono_export_templates.tpz" -OutFile "$root/templates.zip"
+          Expand-Archive "$root/templates.zip" -DestinationPath "$root/tpl"
+          Remove-Item "$root/templates.zip"
+          $dest = "$editorDir/editor_data/export_templates/$($env:GODOT_VERSION).stable.mono"
+          New-Item -ItemType Directory -Force $dest | Out-Null
+          # Keep only what a Windows export needs, so the cache stays small.
+          Get-ChildItem "$root/tpl/templates" | Where-Object { $_.Name -like 'windows_*' -or $_.Name -eq 'version.txt' } |
+            ForEach-Object { Move-Item $_.FullName $dest }
+          Remove-Item -Recurse -Force "$root/tpl"
+          Get-ChildItem $dest
+
+      - name: Locate Godot
+        shell: pwsh
+        run: |
+          $exe = "${{ runner.temp }}/godot/Godot_v$($env:GODOT_VERSION)-stable_mono_win64/Godot_v$($env:GODOT_VERSION)-stable_mono_win64_console.exe"
+          if (-not (Test-Path $exe)) { throw "Godot not found at $exe" }
+          "GODOT=$exe" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+
+      - name: Build game C# (warnings are errors)
+        run: dotnet build game/TheLedger.csproj -warnaserror
+
+      - name: Import project
+        shell: pwsh
+        run: |
+          & $env:GODOT --headless --path game --import
+          if ($LASTEXITCODE -ne 0) { throw "Import failed ($LASTEXITCODE)" }
+
+      - name: Headless smoke run
+        shell: pwsh
+        run: |
+          & $env:GODOT --headless --path game -- --smoke 20
+          if ($LASTEXITCODE -ne 0) { throw "Smoke run failed ($LASTEXITCODE)" }
+
+      - name: Export Windows build
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force build | Out-Null
+          & $env:GODOT --headless --path game --export-release "Windows Desktop" ../build/TheLedger.exe
+          if ($LASTEXITCODE -ne 0) { throw "Export failed ($LASTEXITCODE)" }
+          if (-not (Test-Path build/TheLedger.exe)) { throw "Export produced no exe" }
+          Get-ChildItem -Recurse build | Select-Object FullName, Length
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: TheLedger-windows-x64
+          path: build/
+          if-no-files-found: error
