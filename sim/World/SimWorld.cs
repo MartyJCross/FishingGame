@@ -422,11 +422,20 @@ public sealed class SimWorld
             if (fish == null || fish.State != FishState.Hooked) continue;
             // Net or hand from where the angler stands: within reach of the bank and up near the surface.
             float surface = Water.Height(fish.HeadX, Time);
-            bool close = MathF.Abs(fish.HeadX - a.Position.X) < Config.LandReach && fish.HeadY > surface - 0.6f;
-            bool ready = fish.StaminaA < Config.LandStamina || fish.MassKg < Config.SwingInKg;
-            if (!close || !ready)
+            // A fish reeled up under the rod tip can always be lifted in, wherever the rod points.
+            bool near = MathF.Abs(fish.HeadX - a.Position.X) < Config.LandReach || (fish.Mouth - a.Rig.Rod.TipPos).Length < 1.6f;
+            bool shallow = fish.HeadY > surface - 0.6f;
+            // Value says why: 1 too far out, 2 too deep, 3 it was still lively and slipped out.
+            float why = !near ? 1f : !shallow ? 2f : 0f;
+            if (why == 0f && fish.StaminaA >= Config.LandStamina && fish.MassKg >= Config.SwingInKg)
             {
-                Events.Push(new SimEvent { Type = SimEventType.LandFailed, Tick = Tick, Angler = i, Id = fish.Id, Position = fish.Mouth });
+                // A fish that isn't tired can still be netted, but the fresher it is the likelier it thrashes free.
+                float chance = Math.Clamp(1.2f - fish.StaminaA, 0.2f, 1f);
+                if (!Rng.Chance(chance)) why = 3f;
+            }
+            if (why != 0f)
+            {
+                Events.Push(new SimEvent { Type = SimEventType.LandFailed, Tick = Tick, Angler = i, Id = fish.Id, Position = fish.Mouth, Value = why });
                 continue;
             }
             if (Catches.Count < Catches.Capacity)

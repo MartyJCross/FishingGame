@@ -22,7 +22,7 @@
   "SkipRestitution": 0.35,
   "SkipSpeedLoss": 0.2,
   "PopAcceleration": 12.0,
-  "LandReach": 3.2,
+  "LandReach": 4.0,
   "LandStamina": 0.4,
   "SwingInKg": 0.35,
   "StartHour": 8.0,

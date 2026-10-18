@@ -215,7 +215,14 @@ public partial class Main : Node2D
             case TheLedger.Sim.Core.SimEventType.HookPulled:
                 Toast("It threw the hook", 3);
                 break;
-            case TheLedger.Sim.Core.SimEventType.LandFailed: Toast("Not yet: bring it closer and tire it out", 2); break;
+            case TheLedger.Sim.Core.SimEventType.LandFailed:
+                Toast(e.Value switch
+                {
+                    1f => "Too far out to reach: reel it in closer",
+                    2f => "Too deep: lift the rod to bring it up",
+                    _ => "It thrashed out of the net: still lively, tire it a bit more",
+                }, 2.5);
+                break;
             case TheLedger.Sim.Core.SimEventType.FishLanded:
             {
                 var c = w.Catches[^1];
@@ -341,7 +348,8 @@ public partial class Main : Node2D
         }
         var a = _driver.World.Anglers[0];
         float left = a.Position.X - 2.5f;
-        float right = MathF.Max(a.Position.X + 6f, a.Rig.Line.TerminalPos.X + 3f);
+        // Always show the water the fish live in (the stocked range reaches ~16 m), more when the lure is further out.
+        float right = MathF.Max(a.Position.X + 18f, a.Rig.Line.TerminalPos.X + 3f);
         float span = right - left;
         float zoom = Math.Clamp(15f / span, 0.35f, 1f);
         var target = SimSpace.ToPx(0.5f * (left + right), 0.5f + 1.5f * (1f - zoom));

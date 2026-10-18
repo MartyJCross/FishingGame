@@ -63,7 +63,8 @@ public partial class ControlsHud : Control
         var line = a.Rig.Line;
         float vh = GetViewportRect().Size.Y;
 
-        const float w = 500f, h = 160f, pad = 14f;
+        const float w0 = 500f, h = 160f, pad = 14f;
+        const float w = w0;
         var box = new Rect2(16f, vh - 16f - h, w, h);
         DrawRect(box, Panel);
         float x = box.Position.X + pad, y = box.Position.Y + pad;
@@ -99,6 +100,25 @@ public partial class ControlsHud : Control
             DrawRect(new Rect2(ob.Position, new Vector2(ob.Size.X * over, ob.Size.Y)), over < 0.6f ? Lit : new Color(1f, 0.3f, 0.25f));
         }
         y += 28f;
+
+        // Fish on: how far out it is and how much fight it has left, so you can see when F will work.
+        TheLedger.Sim.Fish.Fish? hooked = null;
+        foreach (var f in Driver.World.Fish) if (f.State == TheLedger.Sim.Fish.FishState.Hooked && f.LureAngler == 0) { hooked = f; break; }
+        if (hooked != null)
+        {
+            var wd = Driver.World;
+            float dist = MathF.Abs(hooked.HeadX - a.Position.X);
+            float depth = wd.Water.Height(hooked.HeadX, wd.Time) - hooked.HeadY;
+            bool reach = (dist < wd.Config.LandReach || (hooked.Mouth - a.Rig.Rod.TipPos).Length < 1.6f) && depth < 0.6f;
+            bool tired = hooked.StaminaA < wd.Config.LandStamina || hooked.MassKg < wd.Config.SwingInKg;
+            var fishBox = new Rect2(box.Position.X, box.Position.Y - 40f, w0, 34f);
+            DrawRect(fishBox, Panel);
+            string state = reach ? (tired ? "in reach and beaten: press F" : "in reach: F to try, it's still lively") : $"{dist - wd.Config.LandReach:0.0} m too far to net";
+            DrawString(font, new Vector2(x, fishBox.Position.Y + 23f), $"FISH  {state}", HorizontalAlignment.Left, -1, 16, reach ? Lit : Dim);
+            var eb = new Rect2(fishBox.End.X - pad - 110f, fishBox.Position.Y + 12f, 110f, 10f);
+            DrawRect(eb, BarBack);
+            DrawRect(new Rect2(eb.Position, new Vector2(eb.Size.X * Math.Clamp(hooked.StaminaA, 0f, 1f), eb.Size.Y)), new Color(0.9f, 0.55f, 0.3f));
+        }
 
         // Key chips, two rows; a chip lights while its key is held.
         float cx = x, cy = y;

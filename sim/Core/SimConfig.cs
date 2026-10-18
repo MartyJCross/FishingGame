@@ -109,7 +109,7 @@ public sealed class SimConfig
     public float PopAcceleration = 12f;
 
     [Tunable("Fight", 0.5f, 6f, Help = "How far out from the angler's feet a fish can be netted or lipped, m")]
-    public float LandReach = 3.2f;
+    public float LandReach = 4.0f;
 
     [Tunable("Fight", 0f, 1f, Help = "A hooked fish can be landed once its burst stamina is below this")]
     public float LandStamina = 0.4f;

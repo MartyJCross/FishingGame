@@ -56,7 +56,7 @@
   "visibilityM": 1.8,
   "rangeX": [
     1.0,
-    40.0
+    16.0
   ],
   "stock": [
     {
@@ -86,27 +86,10 @@
   ],
   "structures": [
     {
-      "kind": "wood",
-      "name": "fallen live oak",
-      "x": [
-        0.9,
-        4.6
-      ],
-      "y": [
-        -3.9,
-        -0.45
-      ],
-      "snag": 0.6,
-      "holdN": [
-        10,
-        50
-      ]
-    },
-    {
       "kind": "lilyPads",
       "x": [
-        10.0,
-        14.5
+        7.0,
+        11.0
       ],
       "y": [
         -0.35,
@@ -121,8 +104,8 @@
     {
       "kind": "weeds",
       "x": [
-        17.0,
-        23.0
+        12.0,
+        16.0
       ],
       "y": [
         -4.3,
@@ -145,8 +128,8 @@
         "winter",
         "spring"
       ],
-      "near": "wood",
-      "story": "Junie swears she's real: a bass the size of a dog's head that lives in the fallen oak and only shows before the spawn."
+      "near": "lilyPads",
+      "story": "Junie swears she's real: a bass the size of a dog's head that lives under the lily pads and only shows before the spawn."
     }
   ]
 }
