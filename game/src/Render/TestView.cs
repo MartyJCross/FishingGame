@@ -192,47 +192,101 @@ public partial class PondBank : Node2D
     private static readonly Color OakLeaf = new(0.24f, 0.36f, 0.20f);
     private static readonly Color Moss = new(0.62f, 0.66f, 0.56f, 0.9f);
 
-    private Vector2[]? _terrainPx, _deepPx;
+    private Vector2[]? _terrainPx, _bedPx;
+    private Texture2D _soil = null!, _bed = null!, _grass = null!;
+    private Texture2D[] _tufts = null!, _tall = null!, _flowers = null!, _water = null!;
+
+    /// <summary>Texture tile size on screen, px (2 m of ground per tile).</summary>
+    private const float TilePx = 2f * SimSpace.PixelsPerMetre;
+
+    public override void _Ready()
+    {
+        // CC0 art (game/assets/CREDITS.md): ambientCG ground textures, Kenney foliage sprites (white, tinted here).
+        TextureRepeat = TextureRepeatEnum.Enabled;
+        _soil = GD.Load<Texture2D>("res://assets/ground/soil.jpg");
+        _bed = GD.Load<Texture2D>("res://assets/ground/lakebed.jpg");
+        _grass = GD.Load<Texture2D>("res://assets/ground/grass.jpg");
+        Texture2D F(string n) => GD.Load<Texture2D>($"res://assets/foliage/foliage_{n}.png");
+        _tufts = new[] { F("0001"), F("0002"), F("0003"), F("0011"), F("0012"), F("0016"), F("0018") };
+        _tall = new[] { F("0005"), F("0006"), F("0017"), F("0021"), F("0022") };
+        _flowers = new[] { F("0010"), F("0020") };
+        _water = new[] { F("0009"), F("0024") };
+    }
+
+    /// <summary>A textured polygon: UVs from screen position so the texture tiles seamlessly across shapes.</summary>
+    private void Textured(Vector2[] px, Texture2D tex, Color tint)
+    {
+        var uv = new Vector2[px.Length];
+        var col = new Color[px.Length];
+        for (int i = 0; i < px.Length; i++) { uv[i] = px[i] / TilePx; col[i] = tint; }
+        DrawPolygon(px, col, uv, tex);
+    }
+
+    /// <summary>A foliage sprite standing on (x, y) world metres, <paramref name="h"/> m tall, tinted.</summary>
+    private void Plant(Texture2D tex, float x, float y, float h, Color tint, bool flip = false)
+    {
+        float hp = h * SimSpace.PixelsPerMetre;
+        float wp = hp * tex.GetWidth() / MathF.Max(tex.GetHeight(), 1f);
+        var basePx = SimSpace.ToPx(x, y);
+        var rect = new Rect2(basePx.X - wp * 0.5f, basePx.Y - hp, flip ? -wp : wp, hp);
+        if (flip) rect.Position = new Vector2(basePx.X + wp * 0.5f, rect.Position.Y);
+        DrawTextureRect(tex, rect, false, tint);
+    }
 
     public override void _Draw()
     {
+        var spot = Driver.World.Spot;
+        float wl = spot.WaterlineX;
         if (_terrainPx == null)
         {
-            // The spot's cross-section, closed off below; a darker layer follows the bottom 0.7 m down.
-            var spot = Driver.World.Spot;
+            // The spot's cross-section closed off below, and the lake-bed band: the bottom surface out from the
+            // waterline, 0.7 m thick (mossy mud over the soil underneath).
             var pts = new List<Vector2>();
-            var deep = new List<Vector2>();
+            var top = new List<Vector2>();
             for (int i = 0; i < spot.PointCount; i++)
             {
                 var p = spot.Point(i);
                 pts.Add(SimSpace.ToPx(p.X, p.Y));
-                deep.Add(SimSpace.ToPx(p.X, p.Y - 0.7f));
+                if (p.X > wl) top.Add(new Vector2(p.X, p.Y));
             }
             var last = spot.Point(spot.PointCount - 1);
-            pts.Add(SimSpace.ToPx(last.X, -12f));
-            pts.Add(SimSpace.ToPx(spot.Point(0).X, -12f));
-            deep.Add(SimSpace.ToPx(last.X, -12f));
-            deep.Add(SimSpace.ToPx(spot.Point(0).X, -12f));
+            pts.Add(SimSpace.ToPx(last.X, -14f));
+            pts.Add(SimSpace.ToPx(spot.Point(0).X, -14f));
+            top.Insert(0, new Vector2(wl, spot.GroundHeight(wl)));
+            var bed = new List<Vector2>();
+            foreach (var q in top) bed.Add(SimSpace.ToPx(q.X, q.Y));
+            for (int i = top.Count - 1; i >= 0; i--) bed.Add(SimSpace.ToPx(top[i].X + (i == 0 ? 0.35f : 0f), top[i].Y - 0.7f));
             _terrainPx = pts.ToArray();
-            _deepPx = deep.ToArray();
+            _bedPx = bed.ToArray();
         }
-        DrawColoredPolygon(_terrainPx, Bottom);
-        DrawColoredPolygon(_deepPx!, BottomDeep);
-        DrawColoredPolygon(_terrainPx, Bottom);
-        DrawColoredPolygon(_deepPx!, BottomDeep);
+        // Earth: soil through the whole cross-section, the mossy lake bed as a band along the bottom.
+        Textured(_terrainPx, _soil, new Color(0.62f, 0.55f, 0.48f));
+        Textured(_bedPx!, _bed, new Color(0.62f, 0.66f, 0.6f));
 
-        // Bank: soil, a sandy lip down to the water, grass on top with tufts.
-        Lp.Poly(this, Soil, new Vector2(-40f, 0.45f), new Vector2(-1.25f, 0.45f), new Vector2(-0.24f, -0.1f), new Vector2(0.2f, -0.45f), new Vector2(-40f, -0.6f));
+        // Bank top: a sandy lip down to the water, then a grass strip with clumps and the odd flower.
         Lp.Poly(this, Sand, new Vector2(-1.35f, 0.5f), new Vector2(-1.15f, 0.6f), new Vector2(0.4f, -0.4f), new Vector2(0.1f, -0.45f), new Vector2(-0.3f, -0.05f));
-        Lp.Poly(this, Grass, new Vector2(-40f, 0.6f), new Vector2(-1.2f, 0.6f), new Vector2(-1.4f, 0.45f), new Vector2(-40f, 0.42f));
-        for (int i = 0; i < 40; i++)
+        Textured(new[] { SimSpace.ToPx(-40f, 0.6f), SimSpace.ToPx(-1.2f, 0.6f), SimSpace.ToPx(-1.4f, 0.4f), SimSpace.ToPx(-40f, 0.38f) }, _grass, new Color(0.85f, 0.95f, 0.75f));
+        var rng = new RandomNumberGenerator { Seed = 1234 };
+        for (float x = -30f; x < -1.35f; x += rng.RandfRange(0.25f, 0.55f))
         {
-            float x = -30f + i * 0.73f + 0.2f * MathF.Sin(i * 3.1f);
-            if (x > -1.3f) break;
-            float h = 0.12f + 0.07f * MathF.Abs(MathF.Sin(i * 1.9f));
-            const float s = 0f;
-            Lp.Poly(this, i % 3 == 0 ? GrassDark : Grass, new Vector2(x - 0.07f, 0.58f), new Vector2(x + 0.07f, 0.58f), new Vector2(x + 0.02f + s, 0.6f + h));
+            var tex = _tufts[rng.RandiRange(0, _tufts.Length - 1)];
+            var tint = new Color(0.32f, 0.48f, 0.2f).Lerp(new Color(0.5f, 0.6f, 0.28f), rng.Randf());
+            Plant(tex, x, 0.58f, rng.RandfRange(0.18f, 0.34f), tint, rng.Randf() < 0.5f);
+            if (rng.Randf() < 0.08f)
+                Plant(_flowers[rng.RandiRange(0, 1)], x + 0.1f, 0.58f, rng.RandfRange(0.2f, 0.3f),
+                      rng.Randf() < 0.5f ? new Color(0.95f, 0.9f, 0.55f) : new Color(0.85f, 0.7f, 0.9f));
         }
+        // Shoreline: marsh grass and seed-headed reeds down the sandy slope.
+        for (float x = -1.3f; x < 0.35f; x += rng.RandfRange(0.12f, 0.22f))
+        {
+            float y = spot.GroundHeight(x) < 0.6f ? MathF.Max(spot.GroundHeight(x), -0.3f) : 0.58f;
+            if (x < -1.15f) y = 0.58f;
+            var tint = new Color(0.42f, 0.5f, 0.24f).Lerp(new Color(0.6f, 0.58f, 0.32f), rng.Randf());
+            Plant(_tall[rng.RandiRange(0, _tall.Length - 1)], x, y, rng.RandfRange(0.45f, 0.85f), tint, rng.Randf() < 0.5f);
+        }
+        // Submerged plants scattered over the lake bed (tinted toward the water colour).
+        for (float x = 1.5f; x < 18f; x += rng.RandfRange(0.9f, 2.4f))
+            Plant(_water[rng.RandiRange(0, 1)], x, spot.GroundHeight(x), rng.RandfRange(0.35f, 0.8f), new Color(0.2f, 0.38f, 0.3f, 0.85f), rng.Randf() < 0.5f);
 
         // Shade trees behind the angler.
         Lp.Oak(this, new Vector2(-8.5f, 0.55f), 3.6f, Trunk, OakLeaf, Moss);

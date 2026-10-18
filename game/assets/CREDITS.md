@@ -1,13 +1,8 @@
-# Credits and licences
+# Third-party art
 
-Every third-party asset in the game is listed here with its source and licence (CLAUDE.md rule 10). Only CC0,
-explicitly royalty-free-for-commercial-use, or OFL (fonts) assets are allowed, and each must have a fallback so the
-game runs without it.
+All CC0 1.0 (public domain): free for commercial use, no attribution required. Credited anyway.
 
-| File(s) | Source | Author | Licence | Notes |
-|---|---|---|---|---|
-| (none yet) | | | | |
-
-## Engine
-
-- Godot Engine 4.7.2, MIT licence, © Godot Engine contributors (https://godotengine.org/license).
+| Files | Source | License |
+|---|---|---|
+| `ground/soil.jpg` (Ground048), `ground/lakebed.jpg` (Ground109), `ground/grass.jpg` (Grass001) | [ambientCG](https://ambientcg.com) by Lennart Demes, colour maps, resized to 512 px | CC0 1.0 |
+| `foliage/foliage_*.png` | [Foliage Sprites](https://kenney.nl/assets/foliage-sprites) by Kenney (kenney.nl) | CC0 1.0 |
