@@ -43,11 +43,19 @@ public partial class InputRouter : Node
     private bool _fine;
     private float _fineAnchor, _fineAim;
 
+    /// <summary>The arm's reach in rod angle (matches SimConfig HandMinAngle / HandMaxAngle).</summary>
+    public float ArmMin = -1.2f, ArmMax = 3.1f;
+
     /// <summary>
-    /// Mouse angle into the arm's range: behind and slightly below (atan2 near −π) means "flat behind", not "down in
-    /// front", so the backswing never flips to the front.
+    /// Mouse angle into the arm's range. Pointing down and behind the angler is out of reach: the rod stays at
+    /// whichever limit it was nearer to, so it never flips from "down in front" to "flat behind" (or back) on a
+    /// tiny mouse move. It only goes behind when the cursor actually comes round above.
     /// </summary>
-    private static float Unwrap(float a) => a < -Mathf.Pi * 0.5f ? a + Mathf.Tau : a;
+    private float Aim(float a, float previous)
+    {
+        if (a >= ArmMin) return MathF.Min(a, ArmMax);
+        return previous - ArmMin < ArmMax - previous ? ArmMin : ArmMax;
+    }
     private float _reach = 0.5f;
     private float _lineHold;
     private float _pendingWheelTurns;
@@ -108,9 +116,10 @@ public partial class InputRouter : Node
         else if (ActiveDevice == Device.MouseKeyboard && MouseRodEnabled)
         {
             Vector2 d = mouseWorldPx - ShoulderPx;
-            if (d.LengthSquared() > 25f)
+            // Ignore the cursor right next to the shoulder, where a pixel is a big angle.
+            if (d.LengthSquared() > 80f * 80f)
             {
-                float aim = Unwrap(Mathf.Atan2(-d.Y, d.X));
+                float aim = Aim(Mathf.Atan2(-d.Y, d.X), _rodTarget);
                 // Shift: fine control. The rod moves a quarter as far as the mouse, from where it was when Shift went down.
                 if (Input.IsKeyPressed(Key.Shift))
                 {
