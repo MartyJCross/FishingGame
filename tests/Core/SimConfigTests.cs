@@ -43,8 +43,15 @@ public class SimConfigTests
     {
         string path = Path.Combine(TestUtil.RepoRoot, "game", "data", "tuning", "sim.json");
         Assert.True(File.Exists(path), "game/data/tuning/sim.json must exist");
+        string json = File.ReadAllText(path);
         var warnings = new List<string>();
-        SimConfig.FromJson(File.ReadAllText(path), warnings);
+        SimConfig.FromJson(json, warnings);
         Assert.Empty(warnings);
+
+        // Every tunable must be in the committed file (run `python tools/sync_tuning.py` after adding one).
+        using var doc = System.Text.Json.JsonDocument.Parse(json);
+        var keys = doc.RootElement.EnumerateObject().Select(p => p.Name).ToHashSet();
+        var missing = SimConfig.Tunables.Select(t => t.Name).Where(n => !keys.Contains(n)).ToList();
+        Assert.True(missing.Count == 0, "Missing from sim.json: " + string.Join(", ", missing));
     }
 }

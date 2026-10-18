@@ -232,7 +232,13 @@ input from a `.rec` recording), `--record FILE` (save this session's input on ex
     `DebugOverlay`, `TestView` placeholder (stick-figure angler with a rigid rod).
   - Tests: 18 (determinism, replay, zero allocation per tick, tuning file). CI: tests, build, smoke, export,
     artifact `TheLedger-windows-x64` (~37 MB).
-  - Next: M1 water surface.
+- **v0.2.0 (M1, 2026-10-18):** water. `sim/Water/`: `AmbientWaves` (JONSWAP/PM wind sea + swell, dispersion,
+  orbital velocity), `SurfacePatch` (1D heightfield, sponge edges, foam, volume-conserving impulses), `Droplets`,
+  `WaterSurface` (tide + ambient + up to 3 patches, rain, `ImpactLog` for rings), conditions from "Debug conditions"
+  tunables until weather exists. `game/src/Render/WaterRenderer.cs` (volume gradient, surface line, near band with
+  ripple rings, droplets). `--weather calm|breeze|windy|rain|storm`, `--scene water_test`, middle-click splash, F4 rain.
+  `tools/sync_tuning.py` keeps `sim.json` in step with `SimConfig`. 32 tests.
+  - Next: M2 rod and line.
 
 (Replace this list with a short, accurate description of what exists as the game grows: systems, controls, data
 counts, known issues.)
@@ -245,7 +251,7 @@ Tick items as they land (commit hash + date). The full Definition of Done for ea
 
 - [x] M0 Foundations: repo skeleton, Godot .NET project, sim library, tests, CI, harness args, debug overlay
   (2026-10-18, commits 49779c1..1ba3030, CI run 39103364556 green; owner still to confirm the GameSir shows in F3)
-- [ ] M1 Water surface sim + rendering (pond test scene)
+- [x] M1 Water surface sim + rendering (pond test scene) (2026-10-18, v0.2.0)
 - [ ] M2 Rod + line sim driven by mouse and controller
 - [ ] M3 Reel, spool, casting (spinning + baitcaster), lure flight, water entry, skipping, snags
 - [ ] M4 Lure and rig hydrodynamics, retrieves, floats and bottom rigs

@@ -39,6 +39,21 @@ public partial class SimDriver : Node
     /// <summary>Interpolation factor between the previous and current tick for rendering.</summary>
     public float Alpha => _lockstep ? 1f : (float)Engine.GetPhysicsInterpolationFraction();
 
+    private struct PendingSplash
+    {
+        public long Tick;
+        public float X, Speed, Mass, Radius;
+    }
+
+    private readonly List<PendingSplash> _splashes = new();
+
+    /// <summary>
+    /// Debug/test splash applied at the start of <paramref name="atTick"/> (or the next tick if it's in the past).
+    /// Not recorded in .rec files: it's a debug tool, not player input.
+    /// </summary>
+    public void QueueSplash(float x, float speed, float mass, float radius, long atTick = -1) =>
+        _splashes.Add(new PendingSplash { Tick = atTick, X = x, Speed = speed, Mass = mass, Radius = radius });
+
     /// <summary>Longest single Step, in milliseconds (perf budget check).</summary>
     public double WorstStepMs { get; private set; }
 
@@ -96,6 +111,14 @@ public partial class SimDriver : Node
             {
                 _frames[a] = default;
             }
+        }
+
+        for (int i = _splashes.Count - 1; i >= 0; i--)
+        {
+            var s = _splashes[i];
+            if (s.Tick > World.Tick) continue;
+            World.Splash(s.X, s.Speed, s.Mass, s.Radius);
+            _splashes.RemoveAt(i);
         }
 
         long start = System.Diagnostics.Stopwatch.GetTimestamp();

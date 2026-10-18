@@ -44,6 +44,7 @@ public partial class Main : Node2D
         var warnings = new List<string>();
         var config = TuningStore.Load(warnings);
         foreach (string w in warnings) GD.PushWarning($"Tuning: {w}");
+        ApplyWeather(config, _args.Weather);
 
         _worldRoot = new Node2D { Name = "World" };
         AddChild(_worldRoot);
@@ -57,8 +58,10 @@ public partial class Main : Node2D
         _driver.MouseWorldPx = () => _worldRoot.GetGlobalMousePosition();
         AddChild(_driver);
 
-        var view = new TestView { Name = "TestView", Driver = _driver };
-        _worldRoot.AddChild(view);
+        _worldRoot.AddChild(new TestSky { Name = "Sky", ZIndex = -10 });
+        _worldRoot.AddChild(new WaterRenderer { Name = "Water", Driver = _driver, WaterStartX = TestPond.WaterlineX, ZIndex = 0 });
+        _worldRoot.AddChild(new TestView { Name = "TestView", Driver = _driver, ZIndex = 10 });
+        ApplyScene();
 
         _camera = new Camera2D { Name = "Camera", Position = SimSpace.ToPx(2.5f, 0.5f) };
         _worldRoot.AddChild(_camera);
@@ -89,7 +92,7 @@ public partial class Main : Node2D
 
         var hint = new Label
         {
-            Text = "M0 foundations: move the mouse or right stick to swing the rod.  F1 tuning  ·  F3 debug overlay",
+            Text = "Move the mouse or right stick to swing the rod  ·  middle-click: splash  ·  F4 rain  ·  F1 tuning  ·  F3 debug",
             AnchorLeft = 0f, AnchorRight = 1f, AnchorTop = 1f, AnchorBottom = 1f,
             OffsetTop = -44f, OffsetBottom = -12f, OffsetLeft = 16f,
         };
@@ -103,6 +106,43 @@ public partial class Main : Node2D
     {
         if (e.IsActionPressed(InputActions.ToggleTuning)) _tuning.Toggle();
         if (e.IsActionPressed(InputActions.ToggleDebug)) _overlay.Toggle();
+        if (e is InputEventKey { Pressed: true, Echo: false, PhysicalKeycode: Key.F4 })
+        {
+            var c = _driver.Config;
+            c.DebugRainRate = c.DebugRainRate > 0f ? 0f : 8f;
+            GD.Print($"Rain {(c.DebugRainRate > 0 ? "on (8 mm/h)" : "off")}");
+        }
+        if (e is InputEventMouseButton { Pressed: true, ButtonIndex: MouseButton.Middle })
+        {
+            // Debug splash: a 50 g stone dropped from about a metre.
+            float x = SimSpace.ToSim(_worldRoot.GetGlobalMousePosition()).X;
+            _driver.QueueSplash(x, 4.5f, 0.05f, 0.05f);
+        }
+    }
+
+    /// <summary>--weather presets until the weather system exists (M8).</summary>
+    private static void ApplyWeather(TheLedger.Sim.Core.SimConfig c, string? weather)
+    {
+        switch (weather)
+        {
+            case null: break;
+            case "calm": c.DebugWindSpeed = 0.5f; c.DebugRainRate = 0f; break;
+            case "breeze": c.DebugWindSpeed = 5f; c.DebugFetch = 60f; break;
+            case "windy": c.DebugWindSpeed = 9f; c.DebugFetch = 600f; break;
+            case "rain": c.DebugWindSpeed = 3f; c.DebugRainRate = 8f; break;
+            case "storm": c.DebugWindSpeed = 14f; c.DebugFetch = 2000f; c.DebugRainRate = 35f; break;
+            default: GD.PushWarning($"Unknown --weather '{weather}' (calm, breeze, windy, rain, storm)"); break;
+        }
+    }
+
+    /// <summary>--scene presets. "water_test" drops a few stones in for screenshots.</summary>
+    private void ApplyScene()
+    {
+        if (_args.Scene != "water_test") return;
+        _driver.QueueSplash(2.5f, 3f, 0.02f, 0.03f, atTick: 20);
+        _driver.QueueSplash(6.0f, 6f, 0.08f, 0.05f, atTick: 70);
+        _driver.QueueSplash(9.5f, 9f, 0.2f, 0.07f, atTick: 150);
+        _driver.QueueSplash(4.0f, 2f, 0.01f, 0.02f, atTick: 165);
     }
 
     public override void _Process(double delta)

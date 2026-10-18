@@ -7,7 +7,7 @@ config_version=5
 [application]
 
 config/name="The Ledger"
-config/version="0.1.0"
+config/version="0.2.0"
 config/description="A physically simulated fishing game with real fish in real places."
 run/main_scene="res://scenes/Main.tscn"
 config/features=PackedStringArray("4.7", "C#", "Mobile")

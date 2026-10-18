@@ -2,6 +2,19 @@
 
 Newest first. Each version handed to the owner gets an entry: what changed, what to try, known issues.
 
+## v0.2.0: M1 Water surface (2026-10-18)
+
+- The pond's water is simulated. Wind makes real-sized waves: a breeze on a small pond gives centimetre ripples, and a
+  storm gives choppy whitecaps. The numbers come from the standard wind-wave formulas for that wind and that much open
+  water.
+- Anything that touches the water pushes it: ripples spread at the right speed, fade, and are absorbed at the edges
+  instead of bouncing back. Splashes throw droplets that fall back and dimple the surface. Rain pocks the whole
+  surface.
+- Ripple rings are drawn exactly where the simulation was hit.
+- Try: middle-click the water to drop stones; F4 toggles rain; F1 → "Debug conditions" to change wind, fetch and
+  swell live. Start with `-- --weather storm` (or calm, breeze, windy, rain) from the command line.
+- Known: the water, sky and bank are placeholders until the art pass (M8); there's no rod or line physics yet (M2).
+
 ## v0.1.0: M0 Foundations (2026-10-18)
 
 - The game project exists: Godot 4.7.2 (.NET) with the simulation in its own C# library and automatic tests.

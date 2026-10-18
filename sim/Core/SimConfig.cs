@@ -64,6 +64,67 @@ public sealed class SimConfig
     [Tunable("Hands", 0f, 3.2f, Help = "Highest rod angle the arms allow, rad (π/2 = vertical)")]
     public float HandMaxAngle = 2.6f;
 
+    // ---------- water (docs/04_PHYSICS_SPEC.md §7) ----------
+
+    [Tunable("Water", 0.1f, 3f, Help = "Ripple speed on simulated patches, m/s")]
+    public float RippleSpeed = 0.7f;
+
+    [Tunable("Water", 0f, 5f, Help = "Ripple damping, 1/s (higher = ripples die sooner)")]
+    public float RippleDamping = 0.6f;
+
+    [Tunable("Water", 0.02f, 0.2f, Help = "Patch column spacing, m (applies to new worlds)")]
+    public float PatchSpacing = 0.05f;
+
+    [Tunable("Water", 64, 2048, Help = "Columns per simulated patch (applies to new worlds)")]
+    public int PatchColumns = 512;
+
+    [Tunable("Water", 4, 300, Help = "Absorbing columns at each patch edge")]
+    public int SpongeColumns = 48;
+
+    [Tunable("Water", 0f, 40f, Help = "How fast steep or fast water turns to foam")]
+    public float FoamGain = 4f;
+
+    [Tunable("Water", 0.05f, 10f, Help = "How fast foam fades, 1/s")]
+    public float FoamDecay = 1.2f;
+
+    [Tunable("Water", 0f, 5f, Help = "Scale of the surface push from impacts")]
+    public float SplashImpulseScale = 1f;
+
+    [Tunable("Water", 0f, 1000f, Help = "Droplets thrown per joule of impact (max 64 per splash)")]
+    public float DropletsPerJoule = 150f;
+
+    [Tunable("Water", 0f, 1f, Help = "Surface tap when a droplet falls back, m/s")]
+    public float DropletTapImpulse = 0.05f;
+
+    [Tunable("Water", 0f, 40f, Help = "Simulated rain drops per second per metre of surface, per mm/h")]
+    public float RainDropsPerMmPerMetre = 6f;
+
+    [Tunable("Water", 0f, 1f, Help = "Surface tap from one rain drop, m/s")]
+    public float RainDropImpulse = 0.12f;
+
+    // ---------- debug conditions (until spots and weather exist, M8+) ----------
+
+    [Tunable("Debug conditions", 0f, 30f, Help = "Wind speed, m/s")]
+    public float DebugWindSpeed = 2f;
+
+    [Tunable("Debug conditions", -1f, 1f, Help = "Wind direction: +1 toward +x, -1 toward -x")]
+    public float DebugWindDir = 1f;
+
+    [Tunable("Debug conditions", 1f, 200000f, Help = "Fetch (open water upwind), m")]
+    public float DebugFetch = 60f;
+
+    [Tunable("Debug conditions", 0.5f, 500f, Help = "Water depth for wave dispersion, m")]
+    public float DebugDepth = 3f;
+
+    [Tunable("Debug conditions", 0f, 4f, Help = "Swell height, m")]
+    public float DebugSwellHeight = 0f;
+
+    [Tunable("Debug conditions", 2f, 20f, Help = "Swell period, s")]
+    public float DebugSwellPeriod = 8f;
+
+    [Tunable("Debug conditions", 0f, 80f, Help = "Rain, mm/h (light 1, moderate 4, heavy 10+)")]
+    public float DebugRainRate = 0f;
+
     public SimConfig Clone() => (SimConfig)MemberwiseClone();
 
     // ---------- tunable reflection ----------
