@@ -159,11 +159,15 @@ public partial class SimDriver : Node
             r => Godot.FileAccess.FileExists($"{dir}/{r}") ? Godot.FileAccess.GetFileAsString($"{dir}/{r}") : null,
             errors);
         foreach (string e in errors) GD.Print($"Species: {e}");
+        Species = species;
         var stock = TheLedger.Sim.Fish.SpotStock.Load(Info.Json);
         World.Populate(stock, species);
         AddLegends(species);
         GD.Print($"{Info.Name}: {World.Fish.Count} fish of {stock.Stock.Count} species");
     }
+
+    /// <summary>Every species in the game data (for the guide and checklists).</summary>
+    public IReadOnlyList<TheLedger.Sim.Fish.SpeciesSpec> Species { get; private set; } = Array.Empty<TheLedger.Sim.Fish.SpeciesSpec>();
 
     /// <summary>Every outfit and lure in the game data (the shop's catalogue).</summary>
     public List<TheLedger.Sim.Angler.Outfit> AllOutfits { get; private set; } = new();

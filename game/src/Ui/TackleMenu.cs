@@ -16,6 +16,7 @@ public partial class TackleMenu : PanelContainer
     public Action OpenShop { get; set; } = () => { };
     public Action OpenTravel { get; set; } = () => { };
     public Action OpenStory { get; set; } = () => { };
+    public Action OpenGuide { get; set; } = () => { };
 
     private Button _lure = null!, _rod = null!;
     private Label _note = null!, _title = null!;
@@ -36,6 +37,7 @@ public partial class TackleMenu : PanelContainer
         _lure = MakeButton(box, () => Router.PulseRig = true);
         _rod = MakeButton(box, () => Router.PulseRack = true);
         _notes = MakeButton(box, () => { Visible = false; OpenStory(); });
+        MakeButton(box, () => { Visible = false; OpenGuide(); }).Text = "Species guide";
         MakeButton(box, () => { Visible = false; OpenShop(); }).Text = "Bait & tackle shop";
         MakeButton(box, () => { Visible = false; OpenTravel(); }).Text = "Travel";
         MakeButton(box, () => { Visible = false; OpenLedger(); }).Text = "The Ledger (catch log)";

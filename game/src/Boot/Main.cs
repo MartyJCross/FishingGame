@@ -29,6 +29,7 @@ public partial class Main : Node2D
     private Label _toast = null!, _radio = null!;
     private double _radioTime;
     private StoryPanel _story = null!;
+    private SpeciesGuide _guide = null!;
     private Label _card = null!;
     private LedgerPanel _ledger = null!;
     private TheLedger.Ui.TackleMenu _menu = null!;
@@ -156,8 +157,9 @@ public partial class Main : Node2D
         hud.AddChild(new TheLedger.Ui.ControlsHud { Name = "Controls", Driver = _driver, Router = _router });
         _shop = new TheLedger.Ui.ShopPanel { Name = "Shop", Driver = _driver };
         _travel = new TheLedger.Ui.TravelPanel { Name = "Travel", Driver = _driver };
-        _story = new StoryPanel { Name = "Story", Finished = StoryMoment };
-        _menu = new TheLedger.Ui.TackleMenu { Name = "TackleMenu", Driver = _driver, Router = _router, OpenLedger = () => _ledger.Toggle(), OpenShop = () => _shop.Open(), OpenTravel = () => _travel.Open(), OpenStory = () => _story.Open() };
+        _story = new StoryPanel { Name = "Story", Finished = StoryMoment, Driver = _driver };
+        _guide = new SpeciesGuide { Name = "Guide", Driver = _driver };
+        _menu = new TheLedger.Ui.TackleMenu { Name = "TackleMenu", Driver = _driver, Router = _router, OpenLedger = () => _ledger.Toggle(), OpenShop = () => _shop.Open(), OpenTravel = () => _travel.Open(), OpenStory = () => _story.Open(), OpenGuide = () => _guide.Open() };
 
         _reelHud = new Label { AnchorLeft = 1f, AnchorRight = 1f, OffsetLeft = -420f, OffsetRight = -16f, OffsetTop = 12f, HorizontalAlignment = HorizontalAlignment.Right, GrowHorizontal = Control.GrowDirection.Begin };
         _reelHud.AddThemeFontSizeOverride("font_size", 22);
@@ -194,6 +196,10 @@ public partial class Main : Node2D
         hud.AddChild(_shop);
         hud.AddChild(_travel);
         hud.AddChild(_story);
+        hud.AddChild(_guide);
+        if (_args.Panel == "guide") _guide.CallDeferred(nameof(SpeciesGuide.Open));
+        if (_args.Panel?.StartsWith("guide:") == true) _guide.CallDeferred(nameof(SpeciesGuide.OpenSpecies), _args.Panel[6..]);
+        if (_args.Panel == "notes") _story.CallDeferred(nameof(StoryPanel.Open));
     }
 
     private void Toast(string text, double seconds = 2.5)
@@ -472,8 +478,8 @@ public partial class Main : Node2D
         _router.ShoulderPx = SimSpace.ToPx(_driver.World.Anglers[0].Shoulder);
         _router.RodAngle = _driver.World.Anglers[0].Hands.Angle;
         _router.ArmMax = _driver.Config.HandMaxAngle; // the backswing stops where the arms do
-        bool panel = _menu.Visible || _shop.Visible || _travel.Visible || _story.Visible || _ledger.Visible || GameMenu.IsOpen;
-        PanelOpen = _menu.Visible || _shop.Visible || _travel.Visible || _story.Visible;
+        bool panel = _menu.Visible || _shop.Visible || _travel.Visible || _story.Visible || _guide.Visible || _ledger.Visible || GameMenu.IsOpen;
+        PanelOpen = _menu.Visible || _shop.Visible || _travel.Visible || _story.Visible || _guide.Visible;
         if (!_briefed && !_automated && !GameMenu.IsOpen) { _briefed = true; StoryBriefing(); } // after the title
         _radioTime -= delta;
         _radio.Visible = _radioTime > 0;

@@ -33,6 +33,8 @@ public sealed class CommandLine
     public string? Spot;
     /// <summary>--menu: show the title menu even in an automated run (screenshot checks).</summary>
     public bool Menu;
+    /// <summary>--panel guide|notes: open that panel at start (screenshot checks).</summary>
+    public string? Panel;
     /// <summary>Start with this outfit (id from data/gear/combos).</summary>
     public string? Outfit;
     /// <summary>Start with an empty pond (tackle and water work).</summary>
@@ -86,6 +88,7 @@ public sealed class CommandLine
                 case "--lure": c.Lure = Next(); break;
                 case "--spot": c.Spot = Next(); break;
                 case "--menu": c.Menu = true; break;
+                case "--panel": c.Panel = Next(); break;
                 case "--outfit": c.Outfit = Next(); break;
                 case "--no-fish": c.NoFish = true; break;
                 case "--background": c.Background = true; break;

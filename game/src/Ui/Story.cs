@@ -106,6 +106,8 @@ public static class Story
 /// <summary>Field notes (Tab menu): the current task, its checklist, and Wren's pages found so far.</summary>
 public partial class StoryPanel : PanelContainer
 {
+    public TheLedger.SimGlue.SimDriver Driver { get; set; } = null!;
+
     /// <summary>Called when a step finishes from inside the panel (paying), so Main can show the moment.</summary>
     public Action<StoryStep> Finished { get; set; } = _ => { };
 
@@ -145,9 +147,9 @@ public partial class StoryPanel : PanelContainer
         Text("Field notes", 28);
         Text(step.Title, 22, new Color(0.45f, 0.2f, 0.1f));
         Text($"{step.Giver}: \"{step.Intro}\"", 17);
-        var (have, need, items) = Story.Progress();
+        var (have, need, _) = Story.Progress();
         if (need > 0 && step.Goal.Type != "pay") Text($"Progress: {have} / {need}", 18, new Color(0.15f, 0.35f, 0.2f));
-        foreach (var (t, done) in items) Text($"{(done ? "[x]" : "[  ]")}  {t}", 16);
+        Checklist(step.Goal);
         if (step.Goal.Type == "pay")
         {
             var p = ProfileStore.Current;
@@ -177,6 +179,40 @@ public partial class StoryPanel : PanelContainer
         var close = new Button { Text = "Close", CustomMinimumSize = new Vector2(0, 36), FocusMode = FocusModeEnum.None };
         close.Pressed += () => Visible = false;
         _box.AddChild(close);
+    }
+
+    /// <summary>The fish this goal is about, each with its picture: in colour with a tick once done, grey until then.</summary>
+    private void Checklist(StoryGoal g)
+    {
+        if (g.Type is not ("releaseSpecies" or "catchSpecies")) return;
+        var ids = g.Type == "catchSpecies" ? g.Species
+            : TheLedger.Sim.Fish.SpotStock.Load(TheLedger.SimGlue.SpotInfo.Load(g.Spot).Json).Stock.Select(e => e.Species).Distinct().ToList();
+        string verb = g.Type == "releaseSpecies" ? "released" : "caught";
+        var grid = new GridContainer { Columns = 2 };
+        grid.AddThemeConstantOverride("h_separation", 18);
+        grid.AddThemeConstantOverride("v_separation", 6);
+        _box.AddChild(grid);
+        foreach (var id in ids)
+        {
+            var sp = Driver.Species.FirstOrDefault(s => s.Id == id);
+            if (sp == null) continue;
+            bool done = LedgerStore.Entries.Any(e => e.Species == id && e.Spot == g.Spot && (g.Type == "catchSpecies" || !e.Kept));
+            var row = new HBoxContainer();
+            row.AddThemeConstantOverride("separation", 8);
+            row.AddChild(new FishPortrait { Species = sp, Faded = !done, CustomMinimumSize = new Vector2(130, 56) });
+            var col = new VBoxContainer { SizeFlagsVertical = SizeFlags.ShrinkCenter };
+            var name = new Label { Text = sp.CommonName };
+            name.AddThemeFontSizeOverride("font_size", 17);
+            name.AddThemeColorOverride("font_color", Ink);
+            var state = new Label { Text = done ? $"✓ {verb}" : "not yet" };
+            state.AddThemeFontSizeOverride("font_size", 14);
+            state.AddThemeColorOverride("font_color", done ? new Color(0.15f, 0.45f, 0.2f) : new Color(0.45f, 0.4f, 0.35f));
+            col.AddChild(name);
+            col.AddChild(state);
+            row.AddChild(col);
+            grid.AddChild(row);
+        }
+        if (g.Type == "releaseSpecies") Text($"Any {g.Count} of these, measured and released at {TheLedger.SimGlue.SpotInfo.Load(g.Spot).Name}. The species guide (Tab) says how to catch each.", 15);
     }
 
     public override void _UnhandledInput(InputEvent e)
