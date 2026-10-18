@@ -1,0 +1,12 @@
+{
+  "id": "sinker_half_oz",
+  "name": "Half-ounce bank sinker",
+  "kind": "sinker",
+  "massKg": 0.014,
+  "volumeM3": 1.24e-06,
+  "diameterM": 0.012,
+  "dragCoefficient": 0.5,
+  "lengthM": 0.025,
+  "planing": 0.15,
+  "price": 0.5
+}

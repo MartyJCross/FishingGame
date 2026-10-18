@@ -99,6 +99,12 @@ public sealed class SimConfig
     [Tunable("Water entry", 0f, 0.8f, Help = "Horizontal speed lost per skip")]
     public float SkipSpeedLoss = 0.2f;
 
+    [Tunable("Lures", 2f, 60f, Help = "A popper pops when it accelerates harder than this at the surface, m/s²")]
+    public float PopAcceleration = 12f;
+
+    [Tunable("Lures", 0.5f, 5f, Help = "Most line out at which you can change what's tied on, m")]
+    public float RetieMaxLineOut = 2.5f;
+
     [Tunable("Hands", 1f, 60f, Help = "Fastest the arms can swing the rod, rad/s")]
     public float HandMaxAngularSpeed = 18f;
 

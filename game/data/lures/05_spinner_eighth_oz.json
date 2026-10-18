@@ -1,0 +1,19 @@
+{
+  "id": "spinner_eighth_oz",
+  "name": "1/8 oz inline spinner",
+  "kind": "spinner",
+  "massKg": 0.0035,
+  "volumeM3": 5e-07,
+  "diameterM": 0.012,
+  "dragCoefficient": 1.0,
+  "lengthM": 0.05,
+  "planing": 0.2,
+  "wobbleHzPerMps": 12.0,
+  "actionMinSpeed": 0.35,
+  "vibration": 0.6,
+  "flash": 0.9,
+  "bodyColor": "#c0c4c8",
+  "bellyColor": "#8a8e92",
+  "accentColor": "#d84a3a",
+  "price": 4.0
+}

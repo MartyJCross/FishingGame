@@ -110,7 +110,7 @@ public partial class Main : Node2D
         hint.AddThemeConstantOverride("outline_size", 4);
         hud.AddChild(hint);
 
-        _reelHud = new Label { AnchorLeft = 1f, AnchorRight = 1f, OffsetLeft = -420f, OffsetRight = -16f, OffsetTop = 12f, HorizontalAlignment = HorizontalAlignment.Right };
+        _reelHud = new Label { AnchorLeft = 1f, AnchorRight = 1f, OffsetLeft = -420f, OffsetRight = -16f, OffsetTop = 12f, HorizontalAlignment = HorizontalAlignment.Right, GrowHorizontal = Control.GrowDirection.Begin };
         _reelHud.AddThemeFontSizeOverride("font_size", 22);
         _reelHud.AddThemeColorOverride("font_outline_color", Colors.Black);
         _reelHud.AddThemeConstantOverride("outline_size", 4);
@@ -137,7 +137,8 @@ public partial class Main : Node2D
         var a = _driver.World.Anglers[0];
         var r = a.Reel;
         var line = a.Rig.Line;
-        _reelHud.Text = $"Bail {(r.BailOpen ? "OPEN" : "closed")}   drag {r.DragForce / 9.81f:0.0} kg ({r.DragClick}/{r.Spec.DragDetents})\n" +
+        _reelHud.Text = $"{line.Terminal.Name}  (R/X to change when reeled in)\n" +
+                        $"Bail {(r.BailOpen ? "OPEN" : "closed")}   drag {r.DragForce / 9.81f:0.0} kg ({r.DragClick}/{r.Spec.DragDetents})\n" +
                         $"line out {line.LineOut:0.0} m   spool {r.LineOnSpool:0} m\n" +
                         $"tension {line.TipTension:0.0} N{(r.DragSlipping ? "   DRAG SLIPPING" : "")}";
     }

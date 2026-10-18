@@ -34,7 +34,17 @@ public sealed class Line
     }
 
     public LineSpec Spec { get; }
-    public TerminalSpec Terminal { get; }
+    public TerminalSpec Terminal { get; private set; }
+
+    /// <summary>Line node carrying the bobber (−1 = none): the node about FloatDepthM above the terminal.</summary>
+    public int FloatIndex { get; private set; } = -1;
+
+    /// <summary>Swaps what's tied on (gear change; allocation-free).</summary>
+    public void SetTerminal(TerminalSpec terminal)
+    {
+        Terminal = terminal;
+        RecomputeMasses();
+    }
 
     /// <summary>Nodes in use; node Count−1 is the terminal tackle.</summary>
     public int Count { get; private set; }
@@ -129,10 +139,19 @@ public sealed class Line
 
     private void RecomputeMasses()
     {
+        FloatIndex = -1;
+        if (Terminal.FloatDepthM > 0f)
+        {
+            float along = 0f;
+            int k = Count - 1;
+            while (k > 0 && along + Rest[k - 1] * 0.5f < Terminal.FloatDepthM) { along += Rest[k - 1]; k--; }
+            FloatIndex = Math.Max(k, 0);
+        }
         for (int k = 0; k < Count; k++)
         {
             Mass[k] = NodeLineMass(k);
             if (k == Count - 1) Mass[k] += Terminal.MassKg;
+            if (k == FloatIndex) Mass[k] += Terminal.FloatMassKg;
             W[k] = 1f / Mass[k];
             SolverW[k] = 1f / MathF.Max(Mass[k], SolverMassFloor);
         }

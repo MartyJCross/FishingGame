@@ -19,6 +19,8 @@
   "SkipMaxAngleDeg": 24.0,
   "SkipRestitution": 0.35,
   "SkipSpeedLoss": 0.2,
+  "PopAcceleration": 12.0,
+  "RetieMaxLineOut": 2.5,
   "HandMaxAngularSpeed": 18,
   "HandMaxAngularAccel": 220,
   "HandStiffness": 160,

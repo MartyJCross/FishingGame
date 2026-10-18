@@ -73,6 +73,16 @@ public partial class SimDriver : Node
         }
         ulong seed = _replay?.Seed ?? args.Seed;
         World = new SimWorld(config, seed, anglers);
+        var lures = LoadTerminals();
+        foreach (var a in World.Anglers)
+        {
+            a.TackleBox.Clear();
+            a.TackleBox.AddRange(lures);
+            int pick = Math.Max(0, lures.FindIndex(l => l.Id == args.Lure));
+            if (args.Lure != null && lures[pick].Id != args.Lure) GD.PushWarning($"--lure {args.Lure}: no such lure");
+            a.TackleIndex = pick;
+            a.Rig.Line.SetTerminal(a.TackleBox[pick]);
+        }
         _frames = new InputFrame[anglers];
         _lockstep = args.Lockstep;
         _ticksPerFrame = Math.Max(1, config.TickHz / 60);
@@ -81,6 +91,21 @@ public partial class SimDriver : Node
             _recordPath = args.RecordPath;
             _recording = new InputRecording { Seed = seed, AnglerCount = anglers, TickHz = config.TickHz, Setup = $"scene={args.Scene}" };
         }
+    }
+
+    /// <summary>Everything in data/lures, in file-name order (replays rely on the same order).</summary>
+    private static List<TheLedger.Sim.Tackle.TerminalSpec> LoadTerminals()
+    {
+        var list = new List<TheLedger.Sim.Tackle.TerminalSpec>();
+        const string dir = "res://data/lures";
+        var files = DirAccess.GetFilesAt(dir).Where(f => f.EndsWith(".json")).OrderBy(f => f, StringComparer.Ordinal);
+        foreach (string f in files)
+        {
+            try { list.Add(TheLedger.Sim.Tackle.GearJson.Terminal(Godot.FileAccess.GetFileAsString($"{dir}/{f}"))); }
+            catch (Exception ex) { GD.PushError($"Lure {f}: {ex.Message}"); }
+        }
+        if (list.Count == 0) list.Add(TheLedger.Sim.Tackle.TerminalSpec.HalfOunceSinker());
+        return list;
     }
 
     public override void _PhysicsProcess(double delta)

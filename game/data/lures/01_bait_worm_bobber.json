@@ -1,0 +1,22 @@
+{
+  "id": "bait_worm_bobber",
+  "name": "Nightcrawler under a bobber",
+  "kind": "bait",
+  "natural": true,
+  "massKg": 0.0035,
+  "volumeM3": 2.1e-06,
+  "diameterM": 0.006,
+  "dragCoefficient": 1.0,
+  "lengthM": 0.08,
+  "planing": 0.3,
+  "scent": 0.8,
+  "vibration": 0.15,
+  "floatDepthM": 0.9,
+  "floatVolumeM3": 8.2e-06,
+  "floatMassKg": 0.0025,
+  "floatDiameterM": 0.025,
+  "bodyColor": "#b0605a",
+  "bellyColor": "#8c4a46",
+  "accentColor": "#d8d0c8",
+  "price": 1.0
+}

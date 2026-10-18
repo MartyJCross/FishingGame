@@ -1,0 +1,17 @@
+{
+  "id": "jig_quarter_oz",
+  "name": "1/4 oz skirted jig, craw trailer",
+  "kind": "jig",
+  "massKg": 0.009,
+  "volumeM3": 1.6e-06,
+  "diameterM": 0.02,
+  "dragCoefficient": 0.9,
+  "lengthM": 0.075,
+  "planing": 0.9,
+  "wobbleHzPerMps": 2.0,
+  "vibration": 0.15,
+  "bodyColor": "#1d2333",
+  "bellyColor": "#2d3d6a",
+  "accentColor": "#4a6ab0",
+  "price": 4.5
+}

@@ -36,6 +36,11 @@ public sealed class AnglerState
 
     public int Index { get; }
 
+    /// <summary>Terminals this angler can tie on (lures, bait rigs). R / X cycles them while the line is in.</summary>
+    public List<TerminalSpec> TackleBox { get; } = new() { TerminalSpec.HalfOunceSinker() };
+    public int TackleIndex;
+    private bool _rigHeld;
+
     /// <summary>Feet position in world space, metres.</summary>
     public Vec2 Position;
     public Vec2 PrevPosition;
@@ -55,6 +60,14 @@ public sealed class AnglerState
         LastInput = input;
         PrevPosition = Position;
         Hands.Step(c, dt, input.RodTargetAngle, input.RodReach);
+
+        bool rigButton = input.Has(InputButtons.RigMenu);
+        if (rigButton && !_rigHeld && TackleBox.Count > 1 && Rig.Line.LineOut <= c.RetieMaxLineOut)
+        {
+            TackleIndex = (TackleIndex + 1) % TackleBox.Count;
+            Rig.Line.SetTerminal(TackleBox[TackleIndex]);
+        }
+        _rigHeld = rigButton;
 
         Reel.BeginTick(c, dt, input, Rig.Line.Spec, Rig.Line.TipTension);
         Rig.Line.SegmentLength = MathF.Max(c.LineSegmentLength, Rig.Line.LineOut / MathF.Max(c.LineNodesTarget, 1f));

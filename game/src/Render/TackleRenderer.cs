@@ -138,10 +138,8 @@ public partial class TackleRenderer : Node2D
         float px = 1f / MathF.Max(GetViewport().GetCanvasTransform().X.Length(), 0.05f);
         if (m >= 1) DrawPolylineColors(_linePts.AsSpan(0, m + 1).ToArray(), _lineCols.AsSpan(0, m + 1).ToArray(), (loads ? 2.5f : 1.6f) * px, true);
 
-        // Terminal: a lead sinker (teardrop as a low-poly diamond) until lures exist.
-        Vector2 term = _linePts[m];
-        float r = Math.Max(rig.Line.Terminal.DiameterM * 0.5f * SimSpace.PixelsPerMetre, 3f);
-        DrawColoredPolygon(new[] { term + new Vector2(0, -r * 0.6f), term + new Vector2(r, r * 0.6f), term + new Vector2(0, r * 1.8f), term + new Vector2(-r, r * 0.6f) }, Lead);
+        if (line.FloatIndex >= 0 && line.FloatIndex < m) DrawBobber(_linePts[line.FloatIndex + 1], line.Terminal, px);
+        DrawTerminal(rig, _linePts[m], px);
 
         BuildBlankStrip(rod, n, loads);
         RenderingServer.CanvasItemAddTriangleArray(GetCanvasItem(), _stripIdx, _strip, _stripCols);
@@ -214,6 +212,82 @@ public partial class TackleRenderer : Node2D
                 bottom = top.Darkened(0.25f);
             }
             _stripCols[v] = top; _stripCols[v + 1] = top; _stripCols[v + 2] = bottom;
+        }
+    }
+
+    /// <summary>Red-over-white round bobber.</summary>
+    private void DrawBobber(Vector2 c, TerminalSpec t, float px)
+    {
+        float r = MathF.Max(t.FloatDiameterM * 0.5f * SimSpace.PixelsPerMetre, 6f * px);
+        var pts = new Vector2[8];
+        for (int i = 0; i < 8; i++) pts[i] = c + Vector2.FromAngle(i * Mathf.Tau / 8f) * r;
+        DrawColoredPolygon(pts, new Color(0.95f, 0.93f, 0.88f));
+        DrawColoredPolygon(new[] { pts[4], pts[5], pts[6], pts[7], pts[0] }, new Color(0.85f, 0.15f, 0.12f));
+    }
+
+    /// <summary>
+    /// The lure (or bait/sinker) as a small flat low-poly shape along its heading, wobbling with its action.
+    /// Drawn at least ~14 px long so it reads at any zoom.
+    /// </summary>
+    private void DrawTerminal(Rig rig, Vector2 at, float px)
+    {
+        var t = rig.Line.Terminal;
+        var lure = rig.Lure;
+        float len = MathF.Max(t.LengthM * SimSpace.PixelsPerMetre * 1.5f, 18f * px);
+        float wob = MathF.Sin(lure.Phase) * lure.Wobble;
+        float ang = -lure.Heading + wob * (t.Kind == "crankbait" ? 0.35f : 0.15f);
+        var xf = new Transform2D(ang, at);
+        Color body = Color.FromHtml(t.BodyColor), belly = Color.FromHtml(t.BellyColor), accent = Color.FromHtml(t.AccentColor);
+        Vector2 P(float x, float y) => xf * new Vector2(x * len, -y * len);
+
+        switch (t.Kind)
+        {
+            case "crankbait":
+            case "popper":
+                DrawColoredPolygon(new[] { P(0.5f, 0.02f), P(0.3f, 0.2f), P(-0.3f, 0.17f), P(-0.5f, 0.04f), P(-0.5f, -0.02f), P(0f, 0f), P(0.5f, 0f) }, body);
+                DrawColoredPolygon(new[] { P(0.5f, 0f), P(0f, 0f), P(-0.5f, -0.02f), P(-0.3f, -0.15f), P(0.3f, -0.19f), P(0.5f, -0.04f) }, belly);
+                if (t.Kind == "crankbait") DrawColoredPolygon(new[] { P(0.48f, -0.02f), P(0.78f, -0.2f), P(0.62f, -0.26f) }, accent with { A = 0.85f });
+                else DrawColoredPolygon(new[] { P(0.5f, 0.02f), P(0.42f, 0f), P(0.5f, -0.04f) }, accent);
+                DrawCircle(P(0.32f, 0.07f), 0.045f * len, new Color(0.08f, 0.08f, 0.08f));
+                break;
+            case "jig":
+                DrawCircle(P(0.38f, 0f), 0.11f * len, body.Darkened(0.2f));
+                DrawColoredPolygon(new[] { P(0.32f, 0.08f), P(-0.5f, 0.18f + 0.05f * wob), P(-0.42f, 0f), P(-0.5f, -0.18f - 0.05f * wob), P(0.32f, -0.08f) }, body);
+                DrawColoredPolygon(new[] { P(0.2f, 0.03f), P(-0.55f, 0.08f), P(-0.55f, -0.08f), P(0.2f, -0.03f) }, accent);
+                break;
+            case "softplastic":
+            case "bait":
+            {
+                // A worm: a strip whose tail swims in a travelling wave.
+                const int n = 8;
+                var top = new Vector2[n * 2];
+                for (int i = 0; i < n; i++)
+                {
+                    float s = i / (float)(n - 1);
+                    float x = 0.5f - s;
+                    float y = MathF.Sin(lure.Phase - s * 4f) * 0.07f * s * (0.3f + lure.Wobble) + (t.Kind == "bait" ? MathF.Sin(s * 6f) * 0.04f : 0f);
+                    float w = 0.05f * (1f - 0.6f * s);
+                    top[i] = P(x, y + w);
+                    top[2 * n - 1 - i] = P(x, y - w);
+                }
+                DrawColoredPolygon(top, body);
+                if (t.Kind == "softplastic") DrawCircle(P(0.52f, 0f), 0.05f * len, Lead);
+                break;
+            }
+            case "spinner":
+            {
+                DrawColoredPolygon(new[] { P(0.4f, 0f), P(0.1f, 0.06f), P(-0.3f, 0.05f), P(-0.3f, -0.05f), P(0.1f, -0.06f) }, body);
+                float bl = 0.12f + 0.1f * MathF.Abs(MathF.Cos(lure.Phase));
+                DrawColoredPolygon(new[] { P(0.32f, 0f), P(0.1f, bl), P(-0.12f, 0f), P(0.1f, -bl * 0.3f) }, body.Lightened(0.35f));
+                DrawColoredPolygon(new[] { P(-0.3f, 0.04f), P(-0.55f, 0.1f), P(-0.55f, -0.1f), P(-0.3f, -0.04f) }, accent);
+                break;
+            }
+            default:
+            {
+                float r = MathF.Max(t.DiameterM * 0.5f * SimSpace.PixelsPerMetre, 3.5f * px);
+                DrawColoredPolygon(new[] { at + new Vector2(0, -r * 0.6f), at + new Vector2(r, r * 0.6f), at + new Vector2(0, r * 1.8f), at + new Vector2(-r, r * 0.6f) }, Lead);
+                break;
+            }
         }
     }
 

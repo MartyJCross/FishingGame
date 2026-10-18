@@ -26,11 +26,29 @@ public readonly struct TackleEnvironment
 /// One angler's rod + line + terminal tackle, stepped together with XPBD substeps (docs/04_PHYSICS_SPEC.md §2).
 /// Order per substep: forces → predict → drive handle → solve rod → solve line (direct) → contacts → velocities.
 /// </summary>
-/// <summary>The terminal hitting the water: an entry or a skip.</summary>
+public enum ContactKind : byte { Entry, Skip, Pop }
+
+/// <summary>The terminal disturbing the surface: an entry, a skip, or a popper's pop.</summary>
 public struct WaterContact
 {
     public float X, VX, VY, Mass, Radius;
-    public bool Skipped;
+    public ContactKind Kind;
+}
+
+/// <summary>
+/// What the lure is doing this tick, for drawing and for fish senses (docs/04 §6.2): heading, wobble, and the
+/// stimulus it puts out.
+/// </summary>
+public struct LureState
+{
+    /// <summary>Nose direction, radians (sim space).</summary>
+    public float Heading;
+    /// <summary>Wobble phase and current amplitude 0..1.</summary>
+    public float Phase, Wobble;
+    /// <summary>Speed through the water, m/s, and depth below the surface, m (≤ 0 above it).</summary>
+    public float Speed, Depth;
+    public float Vibration, Flash, Sound;
+    public bool Wet;
 }
 
 public sealed class Rig
@@ -69,6 +87,11 @@ public sealed class Rig
     public readonly WaterContact[] Entries = new WaterContact[4];
     public int EntryCount { get; private set; }
     private bool _terminalWet = true;
+    private float _popCooldown;
+    private float _prevSpeed;
+
+    /// <summary>The lure's action and stimulus after the last tick.</summary>
+    public LureState Lure;
 
     /// <summary>
     /// Advances the rig one tick. The handle moves from its last target to (grip, angle) over the tick.
@@ -118,6 +141,47 @@ public sealed class Rig
         }
         Rod.EndTick();
         Line.EndTick();
+        UpdateLure(c, dt, env);
+    }
+
+    private void UpdateLure(SimConfig c, float dt, in TackleEnvironment env)
+    {
+        var l = Line;
+        var spec = l.Terminal;
+        int k = l.TerminalIndex;
+        float surface = env.Water.Height(l.X[k], env.Time + dt);
+        bool wet = l.Y[k] < surface;
+        Vec2 u = wet ? env.Water.WaveVelocity(l.X[k], l.Y[k], env.Time + dt) : env.Wind;
+        float rvx = l.VX[k] - u.X, rvy = l.VY[k] - u.Y;
+        float speed = MathF.Sqrt(rvx * rvx + rvy * rvy);
+
+        // The line pulls the nose toward the previous node; moving fast, the body trails its motion.
+        float px = k > 0 ? l.X[k - 1] : Rod.X[Rod.Tip], py = k > 0 ? l.Y[k - 1] : Rod.Y[Rod.Tip];
+        float lineHeading = MathF.Atan2(py - l.Y[k], px - l.X[k]);
+        float target = speed > 0.3f ? MathF.Atan2(rvy, rvx) : lineHeading;
+        if (l.Tension[Math.Max(k - 1, 0)] > 0.02f) target = lineHeading;
+        Lure.Heading += Angles.Wrap(target - Lure.Heading) * MathF.Min(1f, dt * 12f);
+
+        float active = wet && speed > spec.ActionMinSpeed ? MathF.Min(1f, (speed - spec.ActionMinSpeed) / 0.3f) : 0f;
+        Lure.Phase = (Lure.Phase + 2f * MathF.PI * spec.WobbleHzPerMps * speed * dt * active) % (2f * MathF.PI);
+        Lure.Wobble += (active - Lure.Wobble) * MathF.Min(1f, dt * 10f);
+        Lure.Speed = speed;
+        Lure.Depth = surface - l.Y[k];
+        Lure.Wet = wet;
+        Lure.Vibration = spec.Vibration * MathF.Min(speed, 2f) * Lure.Wobble;
+        Lure.Flash = spec.Flash * Lure.Wobble;
+        Lure.Sound = spec.Sound * Lure.Wobble;
+
+        // Poppers: a sharp twitch at the surface cups water and pops (docs/04 §6.2).
+        _popCooldown -= dt;
+        if (spec.Kind == "popper" && MathF.Abs(Lure.Depth) < 0.04f && _popCooldown <= 0f
+            && (speed - _prevSpeed) / dt > c.PopAcceleration && speed > 0.4f && EntryCount < Entries.Length)
+        {
+            Entries[EntryCount++] = new WaterContact { X = l.X[k], VX = l.VX[k], VY = -speed * 0.5f, Mass = spec.MassKg * 4f, Radius = 0.02f, Kind = ContactKind.Pop };
+            Lure.Sound = MathF.Max(Lure.Sound, 1f);
+            _popCooldown = 0.2f;
+        }
+        _prevSpeed = speed;
     }
 
     private void IntegrateRod(SimConfig c, float h, in TackleEnvironment env, double t)
@@ -185,9 +249,33 @@ public sealed class Rig
                 // Plus the line's own drag around this node.
                 kk += 0.5f * rho * c.LineNormalDrag * d * segAround * w;
                 Drag(ref vx, ref vy, u, kk, h);
+
+                // A diving lip pulled through water: lift across the motion, toward the bottom (docs/04 §6.2).
+                if (wet && l.Terminal.LipLiftArea > 0f)
+                {
+                    float rx = vx - u.X, ry = vy - u.Y;
+                    float sp = MathF.Sqrt(rx * rx + ry * ry);
+                    if (sp > 0.05f)
+                    {
+                        float nx = ry / sp, ny = -rx / sp;
+                        if (ny > 0f) { nx = -nx; ny = -ny; }
+                        float lift = 0.5f * rho * l.Terminal.LipLiftArea * sp * sp * (MathF.Abs(rx) / sp);
+                        vx += nx * lift * w * h;
+                        vy += ny * lift * w * h;
+                    }
+                }
             }
             else
             {
+                if (k == l.FloatIndex)
+                {
+                    // The bobber: buoyant in proportion to how much of it is under, plus its own drag.
+                    float fd = l.Terminal.FloatDiameterM;
+                    float under = Math.Clamp((surface - l.Y[k]) / fd + 0.5f, 0f, 1f);
+                    vy += env.Water.Density * l.Terminal.FloatVolumeM3 * under * c.Gravity * w * h;
+                    float rhoF = under > 0f ? env.Water.Density : AirDensity;
+                    Drag(ref vx, ref vy, u, 0.5f * rhoF * 0.6f * fd * fd * w, h);
+                }
                 // Line: strong drag across the line, weak along it (that difference is what makes line belly).
                 float tx = (k + 1 < l.Count ? l.X[k + 1] : l.X[k]) - (k > 0 ? l.X[k - 1] : Rod.X[Rod.Tip]);
                 float ty = (k + 1 < l.Count ? l.Y[k + 1] : l.Y[k]) - (k > 0 ? l.Y[k - 1] : Rod.Y[Rod.Tip]);
@@ -237,7 +325,7 @@ public sealed class Rig
                 wet = false;
             }
             if (EntryCount < Entries.Length)
-                Entries[EntryCount++] = new WaterContact { X = l.X[k], VX = vx, VY = vy, Mass = l.Terminal.MassKg, Radius = 0.5f * l.Terminal.DiameterM, Skipped = skip };
+                Entries[EntryCount++] = new WaterContact { X = l.X[k], VX = vx, VY = vy, Mass = l.Terminal.MassKg, Radius = 0.5f * l.Terminal.DiameterM, Kind = skip ? ContactKind.Skip : ContactKind.Entry };
         }
         _terminalWet = wet;
     }

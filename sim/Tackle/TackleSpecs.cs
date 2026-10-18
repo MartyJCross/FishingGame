@@ -108,17 +108,54 @@ public sealed class LineSpec
     public static LineSpec Mono10() => new();
 }
 
-/// <summary>What's on the end of the line until lures and rigs exist (M4): a plain weight.</summary>
+/// <summary>
+/// What's on the end of the line: a lure, or a hook with bait and its weights, optionally under a fixed bobber
+/// (data: game/data/lures/*.json). Simulated as one body at the line's end (docs/04 §6); its action (lip dive,
+/// wobble, blade, pop) and what fish sense from it come from these numbers.
+/// </summary>
 public sealed class TerminalSpec
 {
+    public string Id { get; set; } = "sinker_half_oz";
+    public string Name { get; set; } = "Half-ounce bank sinker";
+    /// <summary>sinker, bait, jig, softplastic, crankbait, spinner, spoon, popper.</summary>
+    public string Kind { get; set; } = "sinker";
     public float MassKg { get; set; } = 0.014f;
-    /// <summary>Volume for buoyancy, m³ (a 14 g lead sinker is ~1.2 cm³).</summary>
+    /// <summary>Volume for buoyancy, m³ (a 14 g lead sinker is ~1.2 cm³; a floating crankbait is more than its mass/1000).</summary>
     public float VolumeM3 { get; set; } = 1.24e-6f;
     /// <summary>Effective diameter for drag, m.</summary>
     public float DiameterM { get; set; } = 0.012f;
     public float DragCoefficient { get; set; } = 0.5f;
+    /// <summary>Body length, m (drawing; fish judge size by it).</summary>
+    public float LengthM { get; set; } = 0.025f;
     /// <summary>How well it planes on the water, 0..1 (skirted jigs, soft plastics high; sinkers, crankbaits low).</summary>
     public float Planing { get; set; } = 0.15f;
+    /// <summary>Diving lip: lift area × coefficient, m². Pulled through water it dives (crankbaits ~2-4e-4).</summary>
+    public float LipLiftArea { get; set; }
+    /// <summary>Wobble / tail / blade beats per second per m/s of speed through the water.</summary>
+    public float WobbleHzPerMps { get; set; }
+    /// <summary>Speed below which the action stops (spinner blades stall, cranks stop wobbling), m/s.</summary>
+    public float ActionMinSpeed { get; set; } = 0.15f;
+    /// <summary>Vibration put out at 1 m/s, 0..1 (lateral line).</summary>
+    public float Vibration { get; set; }
+    /// <summary>Flash (blades, chrome, spoons), 0..1.</summary>
+    public float Flash { get; set; }
+    /// <summary>Rattles or pops: sound, 0..1.</summary>
+    public float Sound { get; set; }
+    /// <summary>Scent (natural or scented baits), 0..1.</summary>
+    public float Scent { get; set; }
+    /// <summary>Live or natural bait (fish treat it as food, not a lure).</summary>
+    public bool Natural { get; set; }
+
+    /// <summary>Fixed bobber this far above the hook, m (0 = none).</summary>
+    public float FloatDepthM { get; set; }
+    public float FloatVolumeM3 { get; set; }
+    public float FloatMassKg { get; set; }
+    public float FloatDiameterM { get; set; } = 0.025f;
+
+    public string BodyColor { get; set; } = "#5a5d63";
+    public string BellyColor { get; set; } = "#3e4146";
+    public string AccentColor { get; set; } = "#8a8d93";
+    public float Price { get; set; }
 
     public static TerminalSpec HalfOunceSinker() => new();
 }
@@ -138,4 +175,6 @@ public static class GearJson
 
     public static RodSpec Rod(string json) => JsonSerializer.Deserialize<RodSpec>(json, Options) ?? throw new InvalidDataException("Empty rod");
     public static LineSpec Line(string json) => JsonSerializer.Deserialize<LineSpec>(json, Options) ?? throw new InvalidDataException("Empty line");
+    public static ReelSpec Reel(string json) => JsonSerializer.Deserialize<ReelSpec>(json, Options) ?? throw new InvalidDataException("Empty reel");
+    public static TerminalSpec Terminal(string json) => JsonSerializer.Deserialize<TerminalSpec>(json, Options) ?? throw new InvalidDataException("Empty terminal");
 }

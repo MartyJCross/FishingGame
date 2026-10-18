@@ -1,0 +1,18 @@
+{
+  "id": "popper_2in",
+  "name": "Popper, 2.5 in.",
+  "kind": "popper",
+  "massKg": 0.0085,
+  "volumeM3": 1.6e-05,
+  "diameterM": 0.02,
+  "dragCoefficient": 0.9,
+  "lengthM": 0.064,
+  "planing": 0.3,
+  "wobbleHzPerMps": 2.0,
+  "vibration": 0.3,
+  "sound": 0.4,
+  "bodyColor": "#3a6a3a",
+  "bellyColor": "#e8e0b0",
+  "accentColor": "#c8402a",
+  "price": 6.0
+}

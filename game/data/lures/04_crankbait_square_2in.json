@@ -1,0 +1,20 @@
+{
+  "id": "crankbait_square_2in",
+  "name": "Squarebill crankbait, 2 in.",
+  "kind": "crankbait",
+  "massKg": 0.011,
+  "volumeM3": 1.57e-05,
+  "diameterM": 0.018,
+  "dragCoefficient": 0.6,
+  "lengthM": 0.055,
+  "planing": 0.1,
+  "lipLiftArea": 0.0004,
+  "wobbleHzPerMps": 8.0,
+  "actionMinSpeed": 0.2,
+  "vibration": 0.8,
+  "sound": 0.5,
+  "bodyColor": "#d8b84a",
+  "bellyColor": "#f0e6c0",
+  "accentColor": "#c84a2a",
+  "price": 7.0
+}
