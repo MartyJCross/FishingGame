@@ -286,6 +286,8 @@ public sealed class SpotInfo
         info.Spot = new TheLedger.Sim.World.Spot(info.Id, profile)
         {
             AnglerStart = V(r.GetProperty("anglerStart")), WaterlineX = r.GetProperty("waterlineX").GetSingle(),
+            SpringC = r.TryGetProperty("springC", out var sc) ? sc.GetSingle() : 22.5f,
+            SpringMix = r.TryGetProperty("springMix", out var sm) ? sm.GetSingle() : 0f,
         };
         return info;
     }

@@ -95,5 +95,7 @@
       "species": "atlantic_needlefish",
       "count": 4
     }
-  ]
+  ],
+  "springC": 22.8,
+  "springMix": 0.75
 }

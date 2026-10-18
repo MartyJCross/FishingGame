@@ -59,8 +59,10 @@ public partial class TravelPanel : PanelContainer
             };
             go.Pressed += () =>
             {
+                (GetTree().CurrentScene as TheLedger.Boot.Main)?.SaveClock();
                 p.Money -= s.TravelCost;
                 p.Spot = s.Id;
+                p.Hour = MathF.Min(23.5f, p.Hour + (s.TravelCost > 0f ? 1f : 0.75f)); // the drive takes a while
                 ProfileStore.Save();
                 GetTree().ReloadCurrentScene();
             };

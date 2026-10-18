@@ -20,6 +20,9 @@ public sealed class Profile
     public List<CoolerFish> Cooler { get; set; } = new();
     /// <summary>Where the angler is fishing (data/spots id).</summary>
     public string Spot { get; set; } = "station_pond";
+    /// <summary>The in-game calendar: day of the year (0 = 1 January) and hour, carried between sessions.</summary>
+    public float Day { get; set; } = 120f;
+    public float Hour { get; set; } = 7f;
 }
 
 /// <summary>Shop prices and the fish market (game/data/shop.json).</summary>

@@ -13,6 +13,7 @@ public sealed class SpeciesSpec
     public string ScientificName { get; set; } = "";
     public string Tier { get; set; } = "S";
     public HabitatSpec Habitat { get; set; } = new();
+    public WaterSpec Water { get; set; } = new();
     public SizeSpec Size { get; set; } = new();
     public ActivitySpec Activity { get; set; } = new();
     public FeedingSpec Feeding { get; set; } = new();
@@ -69,6 +70,25 @@ public sealed class ActivitySpec
 {
     /// <summary>dawn, day, dusk, night multipliers 0..1.</summary>
     public Dictionary<string, float> Diel { get; set; } = new();
+    /// <summary>winter, spring, summer, autumn multipliers 0..1.</summary>
+    public Dictionary<string, float> Seasonal { get; set; } = new();
+
+    private float _seasonalMax = -1f;
+    /// <summary>The species' best seasonal value (cached: read every tick).</summary>
+    public float SeasonalMax => _seasonalMax >= 0f ? _seasonalMax : (_seasonalMax = Seasonal.Count > 0 ? Seasonal.Values.Max() : 1f);
+}
+
+/// <summary>The water a species lives in (only temperature is used so far).</summary>
+public sealed class WaterSpec
+{
+    public TemperatureSpec TemperatureC { get; set; } = new();
+}
+
+public sealed class TemperatureSpec
+{
+    public float LethalMin { get; set; } = 2f;
+    public float[] Optimum { get; set; } = Array.Empty<float>();
+    public float LethalMax { get; set; } = 38f;
 }
 
 public sealed class FeedingSpec

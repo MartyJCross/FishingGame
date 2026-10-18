@@ -72,6 +72,7 @@ public partial class Main : Node2D
         foreach (string w in warnings) GD.PushWarning($"Tuning: {w}");
         ApplyWeather(config, _args.Weather);
         if (_args.TimeOfDay is float hour) config.StartHour = hour;
+        else if (!_automated) { config.StartHour = ProfileStore.Current.Hour; config.StartDayOfYear = ProfileStore.Current.Day; }
 
         _worldRoot = new Node2D { Name = "World" };
         AddChild(_worldRoot);
@@ -305,8 +306,23 @@ public partial class Main : Node2D
         var r = a.Reel;
         var line = a.Rig.Line;
         _reelHud.Text = r.Backlashed ? $"BIRD'S NEST - hold R / Y to pick it out {Bar(r.ClearProgress)}"
-                      : $"{(int)_driver.World.Hour:00}:{(int)(_driver.World.Hour % 1f * 60f):00}";
+                      : $"{new DateTime(2026, 1, 1).AddDays(_driver.World.DayOfYear):MMM d}   " +
+                        $"{(int)_driver.World.Hour:00}:{(int)(_driver.World.Hour % 1f * 60f):00}   water {_driver.World.WaterTempC:0.0} °C";
         _ = line;
+    }
+
+    /// <summary>Keeps the calendar going between sessions: the date and time are saved on quit (and on travel).</summary>
+    public override void _Notification(int what)
+    {
+        if (what == NotificationWMCloseRequest && !_automated) SaveClock();
+    }
+
+    public void SaveClock()
+    {
+        var p = ProfileStore.Current;
+        p.Day = _driver.World.DayOfYear;
+        p.Hour = _driver.World.Hour;
+        ProfileStore.Save();
     }
 
     public override void _UnhandledInput(InputEvent e)

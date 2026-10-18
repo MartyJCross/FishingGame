@@ -48,6 +48,9 @@ public readonly ref struct FishContext
     public SpotStock Stock { get; }
     public double Time { get; }
     public float Hour { get; }
+    /// <summary>Water temperature, °C, and the season name ("winter", "spring", "summer", "autumn").</summary>
+    public float WaterTempC { get; init; } = 25f;
+    public string Season { get; init; } = "spring";
     public ReadOnlySpan<LureView> Lures { get; }
     public ReadOnlySpan<SplashView> Splashes { get; }
     public IReadOnlyList<Fish> All { get; }
@@ -170,6 +173,30 @@ public sealed class Fish
 
     // ---------------------------------------------------------------- brain
 
+    /// <summary>
+    /// How active the fish is now, 0..1: time of day × season (relative to the species' best season) × water
+    /// temperature (full inside the comfortable band, falling off toward the lethal limits).
+    /// </summary>
+    public float Activity(in FishContext ctx)
+    {
+        float act = Activity(ctx.Hour);
+        var seasonal = Species.Activity.Seasonal;
+        if (seasonal.Count > 0 && seasonal.TryGetValue(ctx.Season, out float s))
+            act *= s / MathF.Max(Species.Activity.SeasonalMax, 1e-3f);
+        return act * TemperatureFactor(ctx.WaterTempC);
+    }
+
+    /// <summary>1 from 5 °C under the optimum to 1 °C over it; down to 0.15 a degree inside the lethal limits.</summary>
+    public float TemperatureFactor(float tempC)
+    {
+        var t = Species.Water.TemperatureC;
+        if (t.Optimum.Length < 2) return 1f;
+        float lo = t.Optimum[0] - 5f, hi = t.Optimum[1] + 1f;
+        if (tempC < lo) return Math.Clamp(0.15f + 0.85f * (tempC - (t.LethalMin + 1f)) / MathF.Max(lo - t.LethalMin - 1f, 0.5f), 0.15f, 1f);
+        if (tempC > hi) return Math.Clamp(0.15f + 0.85f * ((t.LethalMax - 1f) - tempC) / MathF.Max(t.LethalMax - 1f - hi, 0.5f), 0.15f, 1f);
+        return 1f;
+    }
+
     /// <summary>Activity 0..1 at this hour from the species' diel data (dawn, day, dusk, night).</summary>
     public float Activity(float hour)
     {
@@ -239,7 +266,7 @@ public sealed class Fish
         _cooldown -= dt;
         Spook = MathF.Max(0f, Spook - dt * 0.05f);
         var feed = Species.Feeding;
-        float act = Activity(ctx.Hour);
+        float act = Activity(ctx);
 
         // Splashes: small ones nearby draw attention, big close ones spook (docs/05 §3.3, §3.6).
         foreach (var sp in ctx.Splashes)

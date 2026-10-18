@@ -51,6 +51,29 @@ public sealed class SimWorld
     /// <summary>Hour of day, 0..24 (from <see cref="SimConfig.StartHour"/> and <see cref="SimConfig.TimeScale"/>).</summary>
     public float Hour => (float)((Config.StartHour + Time * Config.TimeScale / 3600.0) % 24.0);
 
+    /// <summary>Day of the year, 0..365 (whole days since 1 January; advances at midnight).</summary>
+    public int DayOfYear => (int)((Config.StartDayOfYear + Math.Floor((Config.StartHour + Time * Config.TimeScale / 3600.0) / 24.0)) % 365.0);
+
+    /// <summary>Season name for the species' seasonal activity data (meteorological seasons).</summary>
+    public string Season => DayOfYear switch
+    {
+        < 59 => "winter", < 151 => "spring", < 243 => "summer", < 334 => "autumn", _ => "winter",
+    };
+
+    /// <summary>
+    /// Water temperature, °C: a Florida shallow-water year (about 15 °C in mid January to 30 °C in mid July) plus an
+    /// afternoon warm-up, blended with spring water where the spot has springs (they hold about 22-23 °C all year).
+    /// </summary>
+    public float WaterTempC
+    {
+        get
+        {
+            float season = 22.5f - 7.5f * MathF.Cos(2f * MathF.PI * (DayOfYear - 15f) / 365f);
+            float day = 1.2f * MathF.Sin(2f * MathF.PI * (Hour - 10f) / 24f);
+            return season + day + (Spot.SpringC - (season + day)) * Spot.SpringMix;
+        }
+    }
+
     /// <summary>
     /// Stocks the spot (setup only; allocates). Sizes come from each species' growth curve: a random age, von
     /// Bertalanffy length with ±10% spread, clamped to the species' record.
@@ -207,7 +230,10 @@ public sealed class SimWorld
                 Taken = l.Pinned,
             };
         }
-        var ctx = new FishContext(Water, Spot, Stock, Time, Hour, _lureViews, _splashViews.AsSpan(0, _splashCount), _fish);
+        var ctx = new FishContext(Water, Spot, Stock, Time, Hour, _lureViews, _splashViews.AsSpan(0, _splashCount), _fish)
+        {
+            WaterTempC = WaterTempC, Season = Season,
+        };
         for (int f = 0; f < _fish.Count; f++)
         {
             var fish = _fish[f];

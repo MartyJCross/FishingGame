@@ -34,6 +34,10 @@ public sealed class Spot
     /// <summary>Where the bank meets still water, m.</summary>
     public float WaterlineX { get; init; }
 
+    /// <summary>Spring water temperature, °C, and how much of the spot's water it makes up (0 = none, 1 = all).</summary>
+    public float SpringC { get; init; } = 22.5f;
+    public float SpringMix { get; init; }
+
     /// <summary>Ground height at x (flat beyond the ends).</summary>
     public float GroundHeight(float x)
     {

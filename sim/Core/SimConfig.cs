@@ -120,6 +120,9 @@ public sealed class SimConfig
     [Tunable("World", 0f, 24f, Help = "Hour of day when a session starts")]
     public float StartHour = 8f;
 
+    /// <summary>Day of the year (0 = 1 January) when a session starts; the game keeps it in the profile.</summary>
+    public float StartDayOfYear = 120f;
+
     [Tunable("World", 0f, 600f, Help = "Game seconds per real second (60 = an hour passes in a minute)")]
     public float TimeScale = 24f;
 
