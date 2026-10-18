@@ -120,6 +120,10 @@ public sealed class SimConfig
     [Tunable("World", 0f, 24f, Help = "Hour of day when a session starts")]
     public float StartHour = 8f;
 
+    /// <summary>Sky cover 0..1 and whether a cold front just passed (set by the game's weather; fish read them).</summary>
+    public float CloudCover = 0f;
+    public bool PostColdFront = false;
+
     /// <summary>Day of the year (0 = 1 January) when a session starts; the game keeps it in the profile.</summary>
     public float StartDayOfYear = 120f;
 

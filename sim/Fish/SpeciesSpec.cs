@@ -72,6 +72,8 @@ public sealed class ActivitySpec
     public Dictionary<string, float> Diel { get; set; } = new();
     /// <summary>winter, spring, summer, autumn multipliers 0..1.</summary>
     public Dictionary<string, float> Seasonal { get; set; } = new();
+    /// <summary>Activity change under overcast, rain, after a cold front, and while the water is warming (+/−).</summary>
+    public Dictionary<string, float> Weather { get; set; } = new();
 
     private float _seasonalMax = -1f;
     /// <summary>The species' best seasonal value (cached: read every tick).</summary>

@@ -233,6 +233,8 @@ public sealed class SimWorld
         var ctx = new FishContext(Water, Spot, Stock, Time, Hour, _lureViews, _splashViews.AsSpan(0, _splashCount), _fish)
         {
             WaterTempC = WaterTempC, Season = Season,
+            Overcast = Config.CloudCover > 0.6f, Raining = Config.DebugRainRate > 1f, PostColdFront = Config.PostColdFront,
+            WaterWarming = DayOfYear is > 30 and < 180,
         };
         for (int f = 0; f < _fish.Count; f++)
         {

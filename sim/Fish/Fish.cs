@@ -51,6 +51,11 @@ public readonly ref struct FishContext
     /// <summary>Water temperature, °C, and the season name ("winter", "spring", "summer", "autumn").</summary>
     public float WaterTempC { get; init; } = 25f;
     public string Season { get; init; } = "spring";
+    /// <summary>Weather the fish respond to (species activity.weather data).</summary>
+    public bool Overcast { get; init; }
+    public bool Raining { get; init; }
+    public bool PostColdFront { get; init; }
+    public bool WaterWarming { get; init; }
     public ReadOnlySpan<LureView> Lures { get; }
     public ReadOnlySpan<SplashView> Splashes { get; }
     public IReadOnlyList<Fish> All { get; }
@@ -183,7 +188,14 @@ public sealed class Fish
         var seasonal = Species.Activity.Seasonal;
         if (seasonal.Count > 0 && seasonal.TryGetValue(ctx.Season, out float s))
             act *= s / MathF.Max(Species.Activity.SeasonalMax, 1e-3f);
-        return act * TemperatureFactor(ctx.WaterTempC);
+        var w = Species.Activity.Weather;
+        float Get(string k) => w.TryGetValue(k, out float v) ? v : 0f;
+        float weather = 1f;
+        if (ctx.Overcast) weather += Get("overcast");
+        if (ctx.Raining) weather += Get("rain");
+        if (ctx.PostColdFront) weather += Get("postColdFront");
+        if (ctx.WaterWarming) weather += Get("risingWaterTemp");
+        return Math.Clamp(act * TemperatureFactor(ctx.WaterTempC) * Math.Clamp(weather, 0.1f, 1.6f), 0f, 1f);
     }
 
     /// <summary>1 from 5 °C under the optimum to 1 °C over it; down to 0.15 a degree inside the lethal limits.</summary>

@@ -19,6 +19,7 @@ public partial class Main : Node2D
     private DebugOverlay _overlay = null!;
     private TuningPanel _tuning = null!;
     private bool _automated;
+    private TheLedger.SimGlue.WeatherDirector? _weather;
     private Camera2D _camera = null!;
     private Node2D _worldRoot = null!;
     private Label _reelHud = null!;
@@ -84,6 +85,11 @@ public partial class Main : Node2D
         if (_args.Spot != null) _driver.SpotId = _args.Spot;
         else if (!_automated) _driver.SpotId = ProfileStore.Current.Spot;
         _driver.Setup(config, _args);
+        if (!_automated && _args.Weather == null)
+        {
+            _weather = new TheLedger.SimGlue.WeatherDirector { Name = "Weather", Driver = _driver };
+            AddChild(_weather);
+        }
         _driver.Routers.Add(_router);
         _driver.MouseWorldPx = () => _worldRoot.GetGlobalMousePosition();
         _driver.EventRaised += OnSimEvent;
@@ -270,7 +276,10 @@ public partial class Main : Node2D
         var warm = new Color(1f, 0.78f, 0.62f);
         var c = night.Lerp(Colors.White, day);
         float golden = Mathf.Clamp(1f - Mathf.Abs(day - 0.5f) * 2f, 0f, 1f);
-        _daylight.Color = c.Lerp(c * warm, golden * 0.8f);
+        c = c.Lerp(c * warm, golden * 0.8f);
+        // Cloud cover dims and greys the light.
+        float cloud = _driver.Config.CloudCover;
+        _daylight.Color = c.Lerp(c * new Color(0.72f, 0.75f, 0.8f), cloud);
     }
 
     private static string Bar(float frac)
@@ -307,7 +316,8 @@ public partial class Main : Node2D
         var line = a.Rig.Line;
         _reelHud.Text = r.Backlashed ? $"BIRD'S NEST - hold R / Y to pick it out {Bar(r.ClearProgress)}"
                       : $"{new DateTime(2026, 1, 1).AddDays(_driver.World.DayOfYear):MMM d}   " +
-                        $"{(int)_driver.World.Hour:00}:{(int)(_driver.World.Hour % 1f * 60f):00}   water {_driver.World.WaterTempC:0.0} °C";
+                        $"{(int)_driver.World.Hour:00}:{(int)(_driver.World.Hour % 1f * 60f):00}   water {_driver.World.WaterTempC:0.0} °C" +
+                        (_weather != null ? $"   {_weather.Describe}" : "");
         _ = line;
     }
 
