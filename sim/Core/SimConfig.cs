@@ -64,7 +64,7 @@ public sealed class SimConfig
     public float LineSegmentLength = 0.1f;
 
     [Tunable("Line", 0f, 20f, Help = "Line node solver mass grows with tension × this (keeps a taut line from zigzagging)")]
-    public float LineTensionMassFactor = 6f;
+    public float LineTensionMassFactor = 3f;
 
     [Tunable("Line", 0f, 0.5f, Help = "Line internal damping per substep (pulls node velocities toward their neighbours'; kills sawtooth)")]
     public float LineInternalDamping = 0.3f;

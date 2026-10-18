@@ -248,7 +248,7 @@ input from a `.rec` recording), `--record FILE` (save this session's input on ex
   only on the part under water (a wet/dry flicker dragged them toward the wind at water strength). Fish turn
   with a stored yaw target + 0.8 s cooldown; the renderer never blends across a facing flip.
 - **v0.4.3 lessons:** a taut line of light nodes zigzags (sideways stiffness 2T/segment outruns the substep): the solver
-  mass floor now also scales with tension (`LineTensionMassFactor`), plus `LineInternalDamping`; kinks went from 20°
+  mass floor now also scales with tension (`LineTensionMassFactor` = 3; 6 soaked up hooksets on bobber rigs), plus `LineInternalDamping`; kinks went from 20°
   mean to 0.07°. Shorter sim segments (6 cm) or a lower base floor (1e-5) broke casts (phantom inertia / tension
   spikes that snapped the line), so segments stay 10 cm and the renderer draws a Catmull-Rom curve through the nodes.
   Free fish turn about their middle (the mouth jumps to the mirror point on the facing flip); held fish pivot on the

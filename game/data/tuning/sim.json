@@ -7,7 +7,7 @@
   "TackleSettleDamping": 0.0,
   "MaxNodeSpeed": 120.0,
   "LineSegmentLength": 0.1,
-  "LineTensionMassFactor": 6.0,
+  "LineTensionMassFactor": 3.0,
   "LineInternalDamping": 0.3,
   "LineNodeMinMassKg": 5e-05,
   "LineMassRatioLimit": 2000.0,
