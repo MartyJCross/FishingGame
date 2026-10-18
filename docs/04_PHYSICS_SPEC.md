@@ -158,7 +158,8 @@ distance) and gives a small loss under load.
   rod), compliance `α_i = segLen_i / EI(s_i)`.
 - **Stiffness profile** from the rod's **power** and **action**:
   `EI(s) = EI_tip + (EI_butt − EI_tip)·(1 − s)^a`, where power scales `EI_butt` and `EI_tip`, and action sets `a`
-  (extra-fast ≈ 0.35, fast ≈ 0.6, moderate-fast ≈ 1.0, moderate ≈ 1.5, slow ≈ 2.5). Tune so tests pass:
+  (extra-fast ≈ 3.0, fast ≈ 2.2, moderate-fast ≈ 1.6, moderate ≈ 1.2, slow ≈ 0.7: a larger exponent makes
+  stiffness fall away toward the tip, which concentrates the bend there; corrected in M2). Tune so tests pass:
   - fast action: ≥ 70% of the total bend angle under a reference load is in the top 30% of the blank;
   - moderate: the bend spreads over the top 50-60%;
   - slow: bends along most of the length.

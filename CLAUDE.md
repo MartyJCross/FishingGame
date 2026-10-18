@@ -238,7 +238,16 @@ input from a `.rec` recording), `--record FILE` (save this session's input on ex
   tunables until weather exists. `game/src/Render/WaterRenderer.cs` (volume gradient, surface line, near band with
   ripple rings, droplets). `--weather calm|breeze|windy|rain|storm`, `--scene water_test`, middle-click splash, F4 rain.
   `tools/sync_tuning.py` keeps `sim.json` in step with `SimConfig`. 32 tests.
-  - Next: M2 rod and line.
+- **M2 in progress (2026-10-18, sim side done, not yet rendered):** `sim/Tackle/`: `Rod` (XPBD chain, EI taper,
+  strength taper, moments), `Line` (variable length, pay-out/merge, solver mass floor), `TackleSolver` (direct banded
+  Cholesky over rod stretch + bend + line, double precision, Rayleigh damping), `Rig` (substeps, drag, buoyancy,
+  wind, ground contact, guide forces), `TackleSpecs` + data in `game/data/gear/{rods,lines}`, `Spot` terrain in the sim.
+  Temporary line control until M3: Bail pays out, cranking retrieves. Tests: rod bands, action ordering, solver
+  independence, vibration, line stretch per material, slack sag, pay-out, floating vs sinking line.
+  - Lessons: Gauss-Seidel made the rod far too soft (deflection depended on substeps); real-weight line nodes go
+    chaotic next to heavy loads, so the solver uses a node mass floor (gravity/drag keep real mass).
+  - **Next (remaining M2 pieces):** RodRenderer + LineRenderer in `game/` (replace the rigid rod in `TestView`),
+    debug overlay for tension and moments, mouse relative mode, screenshots, then tick M2 and bump to v0.3.0.
 
 (Replace this list with a short, accurate description of what exists as the game grows: systems, controls, data
 counts, known issues.)

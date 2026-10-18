@@ -1,0 +1,14 @@
+{
+  "id": "line_mono_10lb",
+  "name": "Clear Monofilament 10 lb",
+  "material": "mono",
+  "ratedLb": 10,
+  "diameterMm": 0.28,
+  "density": 1140,
+  "stretchAtBreak": 0.20,
+  "abrasionResistance": 0.6,
+  "visibility": 0.45,
+  "knotFactor": 0.9,
+  "color": "#dfe9e4",
+  "price": 8
+}

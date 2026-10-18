@@ -1,5 +1,6 @@
 using TheLedger.Sim.Core;
 using TheLedger.Sim.Input;
+using TheLedger.Sim.Tackle;
 
 namespace TheLedger.Sim.Angler;
 
@@ -9,10 +10,26 @@ namespace TheLedger.Sim.Angler;
 /// </summary>
 public sealed class AnglerState
 {
-    public AnglerState(int index, Vec2 position)
+    public AnglerState(int index, Vec2 position, SimConfig config)
     {
         Index = index;
         Position = PrevPosition = position;
+        SetTackle(config, RodSpec.MediumSpinning(), LineSpec.Mono10(), TerminalSpec.HalfOunceSinker(), 1.2f);
+    }
+
+    /// <summary>This angler's rod, line and terminal tackle.</summary>
+    public Rig Rig { get; private set; } = null!;
+
+    /// <summary>Where the hands hold the rod, world space.</summary>
+    public Vec2 Grip => Shoulder + Hands.GripOffset;
+
+    /// <summary>Replaces the tackle (allocates: setup and gear changes only).</summary>
+    public void SetTackle(SimConfig config, RodSpec rod, LineSpec line, TerminalSpec terminal, float lineOut)
+    {
+        Rig = new Rig(rod, line, terminal, config.MaxLineNodes);
+        Rig.Line.SegmentLength = config.LineSegmentLength;
+        Hands.Step(config, 0f, Hands.Angle, Hands.Reach);
+        Rig.Reset(Grip, Hands.Angle, lineOut);
     }
 
     public int Index { get; }
@@ -31,18 +48,27 @@ public sealed class AnglerState
 
     public Vec2 Shoulder => Position + new Vec2(0f, ShoulderHeight);
 
-    public void Step(SimConfig c, float dt, in InputFrame input)
+    public void Step(SimConfig c, float dt, in InputFrame input, in TackleEnvironment env)
     {
         LastInput = input;
         PrevPosition = Position;
         Hands.Step(c, dt, input.RodTargetAngle, input.RodReach);
+
+        // TEMP until the reel exists (M3): Bail pays line out, cranking retrieves it.
+        float payOut = 0f;
+        if (input.Has(InputButtons.Bail)) payOut += c.TempPayOutSpeed * dt;
+        if (input.CrankRate > 0f) payOut -= input.CrankRate * c.TempRetrievePerTurn * dt;
+
+        Rig.Line.SegmentLength = c.LineSegmentLength;
+        Rig.Step(c, dt, env, Grip, Hands.Angle, payOut);
     }
 
     public void Hash(ref StateHasher h)
     {
         h.Add(Position);
         Hands.Hash(ref h);
+        Rig.Hash(ref h);
     }
 
-    public bool IsFinite => Position.IsFinite && Hands.IsFinite;
+    public bool IsFinite => Position.IsFinite && Hands.IsFinite && Rig.IsFinite();
 }

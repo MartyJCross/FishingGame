@@ -1,6 +1,7 @@
 using TheLedger.Sim.Angler;
 using TheLedger.Sim.Core;
 using TheLedger.Sim.Input;
+using TheLedger.Sim.Tackle;
 using TheLedger.Sim.Water;
 
 namespace TheLedger.Sim.World;
@@ -13,15 +14,16 @@ public sealed class SimWorld
 {
     private readonly AnglerState[] _anglers;
 
-    public SimWorld(SimConfig config, ulong seed, int anglerCount = 1)
+    public SimWorld(SimConfig config, ulong seed, int anglerCount = 1, Spot? spot = null)
     {
         if (anglerCount < 1) throw new ArgumentOutOfRangeException(nameof(anglerCount));
         Config = config;
         Seed = seed;
         Rng = new SimRng(SimRng.Mix(seed, 1));
+        Spot = spot ?? Spot.TestPond();
         _anglers = new AnglerState[anglerCount];
         for (int i = 0; i < anglerCount; i++)
-            _anglers[i] = new AnglerState(i, new Vec2(-2f - 1.5f * i, 0.6f));
+            _anglers[i] = new AnglerState(i, Spot.AnglerStart - new Vec2(1.5f * i, 0f), config);
 
         Water = new WaterSurface(seed);
         Water.Conditions = ConditionsFromConfig();
@@ -29,6 +31,12 @@ public sealed class SimWorld
         float span = (config.PatchColumns - 1) * config.PatchSpacing;
         Water.CreatePatch(0, config.PatchColumns, config.PatchSpacing, -1f + 0.5f * span);
     }
+
+    /// <summary>The spot being fished (terrain now; structure and fish later).</summary>
+    public Spot Spot { get; }
+
+    /// <summary>Wind as a velocity, m/s (from the debug conditions until weather exists).</summary>
+    public Vec2 Wind => new(Config.DebugWindSpeed * (Config.DebugWindDir < 0f ? -1f : 1f), 0f);
 
     /// <summary>The spot's water surface.</summary>
     public WaterSurface Water { get; }
@@ -91,8 +99,9 @@ public sealed class SimWorld
             throw new ArgumentException($"Expected {_anglers.Length} input frames, got {inputs.Length}");
 
         float dt = Config.Dt;
+        var env = new TackleEnvironment(Water, Spot, Wind, Time);
         for (int i = 0; i < _anglers.Length; i++)
-            _anglers[i].Step(Config, dt, inputs[i]);
+            _anglers[i].Step(Config, dt, inputs[i], env);
 
         if (ConditionsFromDebugConfig) Water.Conditions = ConditionsFromConfig();
         Water.Step(Config, dt, Time);
@@ -113,10 +122,11 @@ public sealed class SimWorld
         {
             var a = _anglers[i];
             if (a.IsFinite) continue;
-            // M0 repair: reset the broken angler's hands. Later systems restore their last good snapshot.
+            // Repair: reset the broken angler's hands and rig. Later systems may restore a last good snapshot instead.
             a.Hands.Angle = a.Hands.PrevAngle = 0.6f;
             a.Hands.AngularVelocity = 0f;
             a.Hands.Reach = a.Hands.PrevReach = 0f;
+            a.Rig.Reset(a.Grip, a.Hands.Angle, MathF.Max(Config.MinLineOut, 1.2f));
             FaultCount++;
             Events.Push(new SimEvent { Type = SimEventType.SimFault, Tick = Tick, Angler = i });
         }

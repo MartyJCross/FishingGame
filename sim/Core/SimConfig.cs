@@ -46,6 +46,47 @@ public sealed class SimConfig
     [Tunable("Solver", 16, 400, Help = "Most nodes a line may use")]
     public int MaxLineNodes = 160;
 
+    // ---------- tackle solver (docs/04_PHYSICS_SPEC.md §2-§5) ----------
+
+    [Tunable("Solver", 1, 6, Help = "Direct solves (re-linearisations) of rod + line per substep")]
+    public int TackleIterations = 2;
+
+    [Tunable("Solver", 0f, 1e-5f, Help = "Rod blank stretch compliance, m/N (0 = rigid)")]
+    public float RodStretchCompliance = 1e-8f;
+
+    [Tunable("Solver", 0f, 50f, Help = "Extra velocity damping on all tackle nodes, 1/s. Tests use it to settle static poses; keep 0 in play")]
+    public float TackleSettleDamping = 0f;
+
+    [Tunable("Solver", 10f, 300f, Help = "Speed limit for any tackle node, m/s")]
+    public float MaxNodeSpeed = 120f;
+
+    [Tunable("Line", 0.02f, 0.5f, Help = "Line node spacing, m")]
+    public float LineSegmentLength = 0.1f;
+
+    [Tunable("Line", 0f, 0.002f, Help = "Minimum line node mass inside the solver, kg (stability; gravity and drag use the real mass)")]
+    public float LineNodeMinMassKg = 5e-5f;
+
+    [Tunable("Line", 100f, 20000f, Help = "Line nodes are at least terminal mass / this inside the solver (stability)")]
+    public float LineMassRatioLimit = 2000f;
+
+    [Tunable("Line", 0.05f, 2f, Help = "Shortest line out from the tip, m")]
+    public float MinLineOut = 0.3f;
+
+    [Tunable("Line", 0.2f, 2.5f, Help = "Drag coefficient across the line (cylinder about 1.2)")]
+    public float LineNormalDrag = 1.2f;
+
+    [Tunable("Line", 0f, 0.2f, Help = "Skin-friction drag coefficient along the line")]
+    public float LineTangentDrag = 0.02f;
+
+    [Tunable("Line", 0f, 1f, Help = "Ground friction for line and rod nodes (0 = ice, 1 = sticks)")]
+    public float GroundFriction = 0.6f;
+
+    [Tunable("Line", 0.05f, 1f, Help = "TEMP until the reel (M3): metres retrieved per crank turn")]
+    public float TempRetrievePerTurn = 0.25f;
+
+    [Tunable("Line", 0f, 5f, Help = "TEMP until the reel (M3): pay-out speed while Bail is held, m/s")]
+    public float TempPayOutSpeed = 1.0f;
+
     [Tunable("Hands", 1f, 60f, Help = "Fastest the arms can swing the rod, rad/s")]
     public float HandMaxAngularSpeed = 18f;
 

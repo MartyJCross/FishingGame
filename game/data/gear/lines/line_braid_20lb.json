@@ -1,0 +1,14 @@
+{
+  "id": "line_braid_20lb",
+  "name": "Hi-Vis Braid 20 lb",
+  "material": "braid",
+  "ratedLb": 20,
+  "diameterMm": 0.20,
+  "density": 970,
+  "stretchAtBreak": 0.04,
+  "abrasionResistance": 0.35,
+  "visibility": 0.85,
+  "knotFactor": 0.75,
+  "color": "#e9e21c",
+  "price": 22
+}

@@ -1,0 +1,14 @@
+{
+  "id": "line_fluoro_10lb",
+  "name": "Fluorocarbon 10 lb",
+  "material": "fluoro",
+  "ratedLb": 10,
+  "diameterMm": 0.28,
+  "density": 1780,
+  "stretchAtBreak": 0.12,
+  "abrasionResistance": 0.8,
+  "visibility": 0.2,
+  "knotFactor": 0.85,
+  "color": "#e8eef0",
+  "price": 18
+}
