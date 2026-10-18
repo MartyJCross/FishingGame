@@ -39,6 +39,7 @@ public partial class TackleMenu : PanelContainer
         MakeButton(box, () => { Visible = false; OpenShop(); }).Text = "Bait & tackle shop";
         MakeButton(box, () => { Visible = false; OpenTravel(); }).Text = "Travel";
         MakeButton(box, () => { Visible = false; OpenLedger(); }).Text = "The Ledger (catch log)";
+        MakeButton(box, () => (GetTree().CurrentScene as TheLedger.Boot.Main)?.CallItADay()).Text = "Call it a day (sleep until 6 am)";
         var sens = new Label { Text = $"Rod sensitivity  {Router.MouseSensitivity:0.00}" };
         box.AddChild(sens);
         var slider = new HSlider { MinValue = 0.2, MaxValue = 3, Step = 0.05, Value = Router.MouseSensitivity, FocusMode = FocusModeEnum.None };

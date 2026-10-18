@@ -124,8 +124,11 @@ public sealed class SimConfig
     public float CloudCover = 0f;
     public bool PostColdFront = false;
 
-    /// <summary>Day of the year (0 = 1 January) when a session starts; the game keeps it in the profile.</summary>
-    public float StartDayOfYear = 120f;
+    /// <summary>Game day when a session starts (days since the game began); the game keeps it in the profile.</summary>
+    public float StartDay = 8f;
+
+    /// <summary>Game days per season (docs/06 §9.1: 7, so a game year is 28 days).</summary>
+    public int DaysPerSeason = 7;
 
     [Tunable("World", 0f, 600f, Help = "Game seconds per real second (60 = an hour passes in a minute)")]
     public float TimeScale = 24f;

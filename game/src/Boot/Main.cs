@@ -75,7 +75,7 @@ public partial class Main : Node2D
         foreach (string w in warnings) GD.PushWarning($"Tuning: {w}");
         ApplyWeather(config, _args.Weather);
         if (_args.TimeOfDay is float hour) config.StartHour = hour;
-        else if (!_automated) { config.StartHour = ProfileStore.Current.Hour; config.StartDayOfYear = ProfileStore.Current.Day; }
+        else if (!_automated) { config.StartHour = ProfileStore.Current.Hour; config.StartDay = ProfileStore.Current.Day; }
 
         _worldRoot = new Node2D { Name = "World" };
         AddChild(_worldRoot);
@@ -209,6 +209,14 @@ public partial class Main : Node2D
             case TheLedger.Sim.Core.SimEventType.FishLanded:
             {
                 var c = w.Catches[^1];
+                if (_driver.Legends.TryGetValue(c.FishId, out var legend) && !_automated)
+                {
+                    var p = ProfileStore.Current;
+                    bool first = !p.Legends.Contains(legend.id);
+                    if (first) { p.Legends.Add(legend.id); ProfileStore.Save(); }
+                    Radio("Odile", first ? $"Is that... that's {legend.name}. Junie's going to be insufferable. Measure her, photograph her, and for the love of God put her back."
+                                         : $"{legend.name} again? She likes you. Put her back gently.", 12);
+                }
                 int rule = w.KeepRule(0, c);
                 string pad = _router.ActiveDevice == InputRouter.Device.Gamepad ? "Y" : "R";
                 string rel = _router.ActiveDevice == InputRouter.Device.Gamepad ? "RB / A" : "F";
@@ -219,7 +227,7 @@ public partial class Main : Node2D
                     3 => $"Must be released here.   Release: {rel}",
                     _ => $"Keep: {pad}     Release: {rel}",
                 };
-                _card.Text = CatchLine(c) + $"\n[ {choice} ]";
+                _card.Text = (_driver.Legends.TryGetValue(c.FishId, out var named) ? $"*  {named.name}  *\n" : "") + CatchLine(c) + $"\n[ {choice} ]";
                 _cardTime = 1e9;
                 _toast.Text = "";
                 break;
@@ -240,6 +248,7 @@ public partial class Main : Node2D
                 {
                     Species = c.Species.Id, CommonName = c.Species.CommonName, LengthCm = c.LengthCm, WeightKg = c.WeightKg,
                     Kept = kept, Lure = w.Anglers[0].Rig.Line.Terminal.Name, GameHour = c.Hour, Spot = _driver.Info.Id,
+                    Legend = _driver.Legends.TryGetValue(c.FishId, out var lg) ? lg.name : "",
                     When = DateTime.Now.ToString("yyyy-MM-dd HH:mm"),
                 });
                 if (!_automated && Story.CurrentComplete) StoryMoment(Story.Advance());
@@ -338,7 +347,7 @@ public partial class Main : Node2D
         var r = a.Reel;
         var line = a.Rig.Line;
         _reelHud.Text = r.Backlashed ? $"BIRD'S NEST - hold R / Y to pick it out {Bar(r.ClearProgress)}"
-                      : $"{new DateTime(2026, 1, 1).AddDays(_driver.World.DayOfYear):MMM d}   " +
+                      : $"{char.ToUpper(_driver.World.Season[0])}{_driver.World.Season[1..]}, day {_driver.World.DayOfSeason + 1}   " +
                         $"{(int)_driver.World.Hour:00}:{(int)(_driver.World.Hour % 1f * 60f):00}   water {_driver.World.WaterTempC:0.0} °C" +
                         (_weather != null ? $"   {_weather.Describe}" : "");
         _ = line;
@@ -371,10 +380,20 @@ public partial class Main : Node2D
         if (what == NotificationWMCloseRequest && !_automated) SaveClock();
     }
 
+    /// <summary>Sleep: on to 6 am the next day (a fresh day at the same spot), saving first.</summary>
+    public void CallItADay()
+    {
+        var p = ProfileStore.Current;
+        p.Day = _driver.World.Day + (_driver.World.Hour >= 6f ? 1 : 0);
+        p.Hour = 6f;
+        ProfileStore.Save();
+        GetTree().ReloadCurrentScene();
+    }
+
     public void SaveClock()
     {
         var p = ProfileStore.Current;
-        p.Day = _driver.World.DayOfYear;
+        p.Day = _driver.World.Day;
         p.Hour = _driver.World.Hour;
         ProfileStore.Save();
     }

@@ -51,14 +51,31 @@ public sealed class SimWorld
     /// <summary>Hour of day, 0..24 (from <see cref="SimConfig.StartHour"/> and <see cref="SimConfig.TimeScale"/>).</summary>
     public float Hour => (float)((Config.StartHour + Time * Config.TimeScale / 3600.0) % 24.0);
 
-    /// <summary>Day of the year, 0..365 (whole days since 1 January; advances at midnight).</summary>
-    public int DayOfYear => (int)((Config.StartDayOfYear + Math.Floor((Config.StartHour + Time * Config.TimeScale / 3600.0) / 24.0)) % 365.0);
+    /// <summary>Game days since the game began (advances at midnight).</summary>
+    public int Day => (int)(Config.StartDay + Math.Floor((Config.StartHour + Time * Config.TimeScale / 3600.0) / 24.0));
 
-    /// <summary>Season name for the species' seasonal activity data (meteorological seasons).</summary>
-    public string Season => DayOfYear switch
+    /// <summary>Day within the game year (0 .. 4 × DaysPerSeason − 1); the year starts with winter.</summary>
+    public int CalendarDay => Day % (4 * Math.Max(1, Config.DaysPerSeason));
+
+    /// <summary>0 winter, 1 spring, 2 summer, 3 autumn; and the day within the season (0-based).</summary>
+    public int SeasonIndex => CalendarDay / Math.Max(1, Config.DaysPerSeason);
+    public int DayOfSeason => CalendarDay % Math.Max(1, Config.DaysPerSeason);
+
+    /// <summary>Season name for the species' seasonal activity data.</summary>
+    public string Season => SeasonIndex switch { 0 => "winter", 1 => "spring", 2 => "summer", _ => "autumn" };
+
+    /// <summary>
+    /// The real-calendar day of the year this game moment stands for (0 = 1 January): the short game year is mapped
+    /// onto meteorological seasons, winter starting 1 December. Used for water temperature.
+    /// </summary>
+    public int DayOfYear
     {
-        < 59 => "winter", < 151 => "spring", < 243 => "summer", < 334 => "autumn", _ => "winter",
-    };
+        get
+        {
+            float yearFrac = (CalendarDay + Hour / 24f) / (4f * Math.Max(1, Config.DaysPerSeason));
+            return (int)((334f + yearFrac * 365f) % 365f);
+        }
+    }
 
     /// <summary>
     /// Water temperature, °C: a Florida shallow-water year (about 15 °C in mid January to 30 °C in mid July) plus an

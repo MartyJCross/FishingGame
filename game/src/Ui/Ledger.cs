@@ -13,6 +13,8 @@ public sealed class LedgerEntry
     public bool Kept { get; set; }
     public string Lure { get; set; } = "";
     public string Spot { get; set; } = "station_pond";
+    /// <summary>The legendary fish's name, if this was one.</summary>
+    public string Legend { get; set; } = "";
     public float GameHour { get; set; }
     public string When { get; set; } = "";
 }

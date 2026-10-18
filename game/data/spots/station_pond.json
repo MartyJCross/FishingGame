@@ -134,5 +134,19 @@
         7
       ]
     }
+  ],
+  "legends": [
+    {
+      "id": "duchess",
+      "name": "The Duchess",
+      "species": "florida_bass",
+      "lengthCm": 68,
+      "seasons": [
+        "winter",
+        "spring"
+      ],
+      "near": "wood",
+      "story": "Junie swears she's real: a bass the size of a dog's head that lives in the fallen oak and only shows before the spawn."
+    }
   ]
 }

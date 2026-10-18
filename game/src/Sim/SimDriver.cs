@@ -113,6 +113,34 @@ public partial class SimDriver : Node
         }
     }
 
+    /// <summary>Legendary fish in the water this session, by fish id (name, and the note about them).</summary>
+    public Dictionary<int, (string id, string name, string story)> Legends { get; } = new();
+
+    /// <summary>
+    /// Named giants from the spot data (docs/01 §7): one fish of a fixed size, present only in its seasons, starting in
+    /// the cover it's known for. It's an ordinary fish of its species in every other way.
+    /// </summary>
+    private void AddLegends(IReadOnlyList<TheLedger.Sim.Fish.SpeciesSpec> species)
+    {
+        using var doc = System.Text.Json.JsonDocument.Parse(Info.Json);
+        if (!doc.RootElement.TryGetProperty("legends", out var list)) return;
+        int id = 1000;
+        foreach (var l in list.EnumerateArray())
+        {
+            var seasons = l.GetProperty("seasons").EnumerateArray().Select(s => s.GetString()).ToList();
+            if (!seasons.Contains(World.Season)) continue;
+            var sp = species.FirstOrDefault(s => s.Id == l.GetProperty("species").GetString());
+            if (sp == null) continue;
+            string near = l.GetProperty("near").GetString()!;
+            var zone = World.Spot.Structures.FirstOrDefault(z => z.Kind == near);
+            float x = zone != null ? 0.5f * (zone.X0 + zone.X1) : 10f;
+            float y = zone != null ? 0.5f * (zone.Y0 + zone.Y1) : World.Spot.GroundHeight(x) + 0.5f;
+            World.AddFish(new TheLedger.Sim.Fish.Fish(id, sp, l.GetProperty("lengthCm").GetSingle() * 0.01f, new Vec2(x, y), false, World.Seed + 4242UL));
+            Legends[id] = (l.GetProperty("id").GetString()!, l.GetProperty("name").GetString()!, l.GetProperty("story").GetString()!);
+            id++;
+        }
+    }
+
     /// <summary>Which spot to load (data/spots/{id}.json); set before Setup. Automated runs keep the station pond.</summary>
     public string SpotId { get; set; } = "station_pond";
 
@@ -133,6 +161,7 @@ public partial class SimDriver : Node
         foreach (string e in errors) GD.Print($"Species: {e}");
         var stock = TheLedger.Sim.Fish.SpotStock.Load(Info.Json);
         World.Populate(stock, species);
+        AddLegends(species);
         GD.Print($"{Info.Name}: {World.Fish.Count} fish of {stock.Stock.Count} species");
     }
 

@@ -20,12 +20,14 @@ public sealed class Profile
     public List<CoolerFish> Cooler { get; set; } = new();
     /// <summary>Where the angler is fishing (data/spots id).</summary>
     public string Spot { get; set; } = "station_pond";
-    /// <summary>The in-game calendar: day of the year (0 = 1 January) and hour, carried between sessions.</summary>
-    public float Day { get; set; } = 120f;
+    /// <summary>The in-game calendar: game day (since the start; 7 per season, winter first) and hour, carried between sessions.</summary>
+    public float Day { get; set; } = 8f;
     /// <summary>Story progress: current step, spots it has opened, and Wren's pages found (step ids).</summary>
     public int StoryStep { get; set; }
     public List<string> Unlocked { get; set; } = new();
     public List<string> Pages { get; set; } = new();
+    /// <summary>Legendary fish landed (legend ids).</summary>
+    public List<string> Legends { get; set; } = new();
     public float Hour { get; set; } = 7f;
 }
 

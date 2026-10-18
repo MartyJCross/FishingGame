@@ -27,9 +27,9 @@ public partial class WeatherDirector : Node
     {
         var w = Driver.World;
         var c = Driver.Config;
-        int day = w.DayOfYear;
+        int day = w.Day;
         float hour = w.Hour;
-        var (kind, front) = DayType(day);
+        var (kind, front) = DayType(day, w.Season);
         // Summer: most afternoons build a storm (about 2-6 pm).
         if (w.Season == "summer" && Hash(day, 7) < 0.6f && hour > 14f + 1.5f * Hash(day, 8) && hour < 17.5f) kind = Kind.Storm;
         Now = kind;
@@ -51,10 +51,9 @@ public partial class WeatherDirector : Node
     }
 
     /// <summary>The day's weather type and whether it's the clear, breezy day behind a cold front (winter).</summary>
-    private static (Kind, bool) DayType(int day)
+    private static (Kind, bool) DayType(int day, string season)
     {
         float r = Hash(day, 1);
-        string season = day switch { < 59 => "winter", < 151 => "spring", < 243 => "summer", < 334 => "autumn", _ => "winter" };
         return season switch
         {
             "winter" => r < 0.45f ? (Kind.Clear, false) : r < 0.75f ? (Kind.Breezy, true) : r < 0.92f ? (Kind.Overcast, false) : (Kind.Rain, false),
