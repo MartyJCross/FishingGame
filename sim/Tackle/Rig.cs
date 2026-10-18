@@ -122,7 +122,7 @@ public sealed class Rig
             float f = (s + 1) / (float)n;
             double t = env.Time + f * dt;
             IntegrateRod(c, h, env, t);
-            IntegrateLine(c, h, env, t);
+            IntegrateLine(c, h, env, t, f, dt);
             Rod.DriveHandle(f, h);
 
             _solver.Solve(Rod, Line, h, Rod.Spec.MaterialDamping * 0.001f, c.RodStretchCompliance, c.TackleIterations, slipForce);
@@ -214,7 +214,7 @@ public sealed class Rig
         r.PX[1] = r.X[1]; r.PY[1] = r.Y[1];
     }
 
-    private void IntegrateLine(SimConfig c, float h, in TackleEnvironment env, double t)
+    private void IntegrateLine(SimConfig c, float h, in TackleEnvironment env, double t, float f, float dt)
     {
         var l = Line;
         var spec = l.Spec;
@@ -222,6 +222,16 @@ public sealed class Rig
         int term = l.TerminalIndex;
         for (int k = 0; k < l.Count; k++)
         {
+            if (k == term && l.Pinned)
+            {
+                // In a fish's mouth: it goes where the fish goes.
+                l.PX[k] = l.X[k]; l.PY[k] = l.Y[k];
+                l.X[k] = l.PinPrevX + (l.PinX - l.PinPrevX) * f;
+                l.Y[k] = l.PinPrevY + (l.PinY - l.PinPrevY) * f;
+                l.VX[k] = (l.PinX - l.PinPrevX) / dt;
+                l.VY[k] = (l.PinY - l.PinPrevY) / dt;
+                continue;
+            }
             float vx = l.VX[k], vy = l.VY[k];
             vy -= c.Gravity * h;
 
@@ -310,7 +320,7 @@ public sealed class Rig
         int k = l.TerminalIndex;
         float surface = env.Water.Height(l.X[k], t);
         bool wet = l.Y[k] < surface;
-        if (wet && !_terminalWet)
+        if (wet && !_terminalWet && !l.Pinned)
         {
             float vx = l.VX[k], vy = l.VY[k];
             float speed = MathF.Sqrt(vx * vx + vy * vy);
@@ -353,6 +363,7 @@ public sealed class Rig
         var l = Line;
         for (int k = 0; k < l.Count; k++)
         {
+            if (k == l.TerminalIndex && l.Pinned) { l.InContact[k] = false; continue; }
             float rad = k == l.TerminalIndex ? 0.5f * l.Terminal.DiameterM : 0.5f * l.Spec.DiameterM;
             float g = spot.GroundHeight(l.X[k]) + rad;
             l.InContact[k] = l.Y[k] < g;

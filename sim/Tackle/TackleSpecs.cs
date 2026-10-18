@@ -145,6 +145,8 @@ public sealed class TerminalSpec
     public float Scent { get; set; }
     /// <summary>Live or natural bait (fish treat it as food, not a lure).</summary>
     public bool Natural { get; set; }
+    /// <summary>Key into the species' lureAttraction (or baitAttraction when Natural), e.g. "crankbait", "nightcrawler".</summary>
+    public string AttractKey { get; set; } = "";
 
     /// <summary>Fixed bobber this far above the hook, m (0 = none).</summary>
     public float FloatDepthM { get; set; }

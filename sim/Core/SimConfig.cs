@@ -102,6 +102,12 @@ public sealed class SimConfig
     [Tunable("Lures", 2f, 60f, Help = "A popper pops when it accelerates harder than this at the surface, m/s²")]
     public float PopAcceleration = 12f;
 
+    [Tunable("World", 0f, 24f, Help = "Hour of day when a session starts")]
+    public float StartHour = 8f;
+
+    [Tunable("World", 0f, 600f, Help = "Game seconds per real second (60 = an hour passes in a minute)")]
+    public float TimeScale = 24f;
+
     [Tunable("Lures", 0.5f, 5f, Help = "Most line out at which you can change what's tied on, m")]
     public float RetieMaxLineOut = 2.5f;
 

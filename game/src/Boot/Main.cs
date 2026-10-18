@@ -65,6 +65,7 @@ public partial class Main : Node2D
 
         _worldRoot.AddChild(new TestSky { Name = "Sky", ZIndex = -10 });
         _worldRoot.AddChild(new WaterRenderer { Name = "Water", Driver = _driver, WaterStartX = TestPond.WaterlineX, ZIndex = 0 });
+        _worldRoot.AddChild(new FishRenderer { Name = "Fish", Driver = _driver, ZIndex = 1 });
         _worldRoot.AddChild(new TestView { Name = "TestView", Driver = _driver, ZIndex = 10 });
         var tackle = new TackleRenderer { Name = "Tackle", Driver = _driver, ZIndex = 11 };
         _worldRoot.AddChild(tackle);
@@ -120,6 +121,12 @@ public partial class Main : Node2D
     /// <summary>Keeps the angler and the end of the line in view, zooming out for long casts (smoothed).</summary>
     private void FollowCamera(double delta)
     {
+        if (_args.Look is { } look)
+        {
+            _camera.Position = SimSpace.ToPx(look[0], look[1]);
+            _camera.Zoom = new Vector2(look[2], look[2]);
+            return;
+        }
         var a = _driver.World.Anglers[0];
         float left = a.Position.X - 2.5f;
         float right = MathF.Max(a.Position.X + 6f, a.Rig.Line.TerminalPos.X + 3f);

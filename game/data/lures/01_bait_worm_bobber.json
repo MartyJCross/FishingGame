@@ -18,5 +18,6 @@
   "bodyColor": "#b0605a",
   "bellyColor": "#8c4a46",
   "accentColor": "#d8d0c8",
-  "price": 1.0
+  "price": 1.0,
+  "attractKey": "nightcrawler"
 }

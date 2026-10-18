@@ -22,6 +22,10 @@ public enum SimEventType : byte
     FishJumped,
     FishLanded,
     Splash,
+    /// <summary>A fish lunged at a lure or bait (Id = fish id).</summary>
+    FishStrike,
+    /// <summary>A fish let go of the bait it was holding (Id = fish id).</summary>
+    FishSpit,
 }
 
 /// <summary>One event. Plain data, no references, so the buffer never allocates.</summary>

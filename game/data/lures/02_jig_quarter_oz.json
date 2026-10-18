@@ -13,5 +13,6 @@
   "bodyColor": "#1d2333",
   "bellyColor": "#2d3d6a",
   "accentColor": "#4a6ab0",
-  "price": 4.5
+  "price": 4.5,
+  "attractKey": "jig"
 }

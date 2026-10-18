@@ -20,6 +20,8 @@
   "SkipRestitution": 0.35,
   "SkipSpeedLoss": 0.2,
   "PopAcceleration": 12.0,
+  "StartHour": 8.0,
+  "TimeScale": 24.0,
   "RetieMaxLineOut": 2.5,
   "HandMaxAngularSpeed": 18,
   "HandMaxAngularAccel": 220,

@@ -1,5 +1,6 @@
 using TheLedger.Sim.Angler;
 using TheLedger.Sim.Core;
+using TheLedger.Sim.Fish;
 using TheLedger.Sim.Input;
 using TheLedger.Sim.Tackle;
 using TheLedger.Sim.Water;
@@ -25,11 +26,56 @@ public sealed class SimWorld
         for (int i = 0; i < anglerCount; i++)
             _anglers[i] = new AnglerState(i, Spot.AnglerStart - new Vec2(1.5f * i, 0f), config);
 
+        _lureViews = new LureView[anglerCount];
         Water = new WaterSurface(seed);
         Water.Conditions = ConditionsFromConfig();
         // Patch 0 covers the water in front of the angler (M3 adds the lure patch, M6 the fish patch).
         float span = (config.PatchColumns - 1) * config.PatchSpacing;
         Water.CreatePatch(0, config.PatchColumns, config.PatchSpacing, -1f + 0.5f * span);
+    }
+
+    private readonly List<Fish.Fish> _fish = new();
+    private readonly LureView[] _lureViews;
+    private readonly SplashView[] _splashViews = new SplashView[32];
+    private int _splashCount;
+
+    /// <summary>The fish in this spot.</summary>
+    public IReadOnlyList<Fish.Fish> Fish => _fish;
+
+    /// <summary>Who lives here and how clear the water is.</summary>
+    public SpotStock Stock { get; private set; } = new();
+
+    /// <summary>Hour of day, 0..24 (from <see cref="SimConfig.StartHour"/> and <see cref="SimConfig.TimeScale"/>).</summary>
+    public float Hour => (float)((Config.StartHour + Time * Config.TimeScale / 3600.0) % 24.0);
+
+    /// <summary>
+    /// Stocks the spot (setup only; allocates). Sizes come from each species' growth curve: a random age, von
+    /// Bertalanffy length with ±10% spread, clamped to the species' record.
+    /// </summary>
+    public void Populate(SpotStock stock, IReadOnlyList<SpeciesSpec> species)
+    {
+        Stock = stock;
+        _fish.Clear();
+        var rng = new SimRng(SimRng.Mix(Seed, 77));
+        int id = 0;
+        foreach (var entry in stock.Stock)
+        {
+            SpeciesSpec? sp = null;
+            foreach (var s in species) if (s.Id == entry.Species) { sp = s; break; }
+            if (sp == null) continue;
+            for (int i = 0; i < entry.Count; i++)
+            {
+                var g = sp.Size.Growth;
+                float age = rng.Range(1f, MathF.Max(2f, (g.MaxAgeYears ?? 8f) * 0.7f));
+                float lenCm = g.Linf_cm * (1f - MathF.Exp(-g.K * age)) * rng.Range(0.9f, 1.1f);
+                lenCm = Math.Clamp(lenCm, sp.Size.LengthCm.Typical[0] * 0.6f, sp.Size.LengthCm.Max);
+                float x = rng.Range(stock.RangeX[0] + 1f, stock.RangeX[1] - 1f);
+                float surface = Water.Height(x, 0.0), ground = Spot.GroundHeight(x);
+                float y = rng.Range(ground + 0.2f, surface - 0.2f);
+                _fish.Add(new Fish.Fish(id, sp, lenCm * 0.01f, new Vec2(x, y), rng.Chance(0.5f), Seed + (ulong)id * 7919UL));
+                id++;
+            }
+        }
     }
 
     /// <summary>The spot being fished (terrain now; structure and fish later).</summary>
@@ -100,6 +146,8 @@ public sealed class SimWorld
 
         float dt = Config.Dt;
         var env = new TackleEnvironment(Water, Spot, Wind, Time);
+        StepFish(dt);
+        _splashCount = 0;
         for (int i = 0; i < _anglers.Length; i++)
         {
             _anglers[i].Step(Config, dt, inputs[i], env);
@@ -109,6 +157,8 @@ public sealed class SimWorld
                 // Entries, skips and pops splash the surface; fish will hear these (docs/05 §3.4).
                 var w = rig.Entries[e];
                 float energy = Water.Splash(Config, w.X, MathF.Abs(w.VY), w.Mass, MathF.Max(w.Radius, 0.01f), w.VX);
+                if (_splashCount < _splashViews.Length)
+                    _splashViews[_splashCount++] = new SplashView { Pos = new Vec2(w.X, Water.Height(w.X, Time)), Energy = energy };
                 Events.Push(new SimEvent
                 {
                     Type = SimEventType.Splash, Tick = Tick, Angler = i, Id = (int)w.Kind,
@@ -117,11 +167,73 @@ public sealed class SimWorld
             }
         }
 
+        LineForcesOnFish();
+
         if (ConditionsFromDebugConfig) Water.Conditions = ConditionsFromConfig();
         Water.Step(Config, dt, Time);
 
         Tick++;
         GuardFinite();
+    }
+
+    /// <summary>Fish see the lures, think and swim; a fish holding a lure pins it to its mouth for the tackle step.</summary>
+    private void StepFish(float dt)
+    {
+        if (_fish.Count == 0) return;
+        for (int i = 0; i < _anglers.Length; i++)
+        {
+            var rig = _anglers[i].Rig;
+            var l = rig.Line;
+            int t = l.TerminalIndex;
+            _lureViews[i] = new LureView
+            {
+                Angler = i,
+                Pos = l.TerminalPos,
+                Vel = new Vec2(l.VX[t], l.VY[t]),
+                State = rig.Lure,
+                Spec = l.Terminal,
+                Tension = l.Tension[t],
+                Taken = l.Pinned,
+            };
+        }
+        var ctx = new FishContext(Water, Spot, Stock, Time, Hour, _lureViews, _splashViews.AsSpan(0, _splashCount), _fish);
+        for (int f = 0; f < _fish.Count; f++)
+        {
+            var fish = _fish[f];
+            var before = fish.State;
+            fish.Step(Config, dt, ctx);
+            if (fish.State == FishState.Strike && before != FishState.Strike)
+                Events.Push(new SimEvent { Type = SimEventType.FishStrike, Tick = Tick, Angler = fish.LureAngler, Id = fish.Id, Position = fish.Mouth });
+            if (fish.State == FishState.Hold && before != FishState.Hold)
+                Events.Push(new SimEvent { Type = SimEventType.Bite, Tick = Tick, Angler = fish.LureAngler, Id = fish.Id, Position = fish.Mouth });
+            if (before == FishState.Hold && fish.State != FishState.Hold && fish.State != FishState.Hooked)
+                Events.Push(new SimEvent { Type = SimEventType.FishSpit, Tick = Tick, Angler = -1, Id = fish.Id, Position = fish.Mouth });
+        }
+        // Pins: one fish per lure.
+        for (int i = 0; i < _anglers.Length; i++)
+        {
+            Fish.Fish? holder = null;
+            for (int f = 0; f < _fish.Count; f++)
+                if (_fish[f].Holding && _fish[f].LureAngler == i) { holder = _fish[f]; break; }
+            var line = _anglers[i].Rig.Line;
+            if (holder != null) line.Pin(holder.Mouth);
+            else line.Unpin();
+        }
+    }
+
+    /// <summary>The line pulls on the mouth of whatever fish holds the lure (tension along the last segment).</summary>
+    private void LineForcesOnFish()
+    {
+        for (int f = 0; f < _fish.Count; f++)
+        {
+            var fish = _fish[f];
+            if (!fish.Holding || fish.LureAngler < 0 || fish.LureAngler >= _anglers.Length) { fish.LineForce = Vec2.Zero; continue; }
+            var l = _anglers[fish.LureAngler].Rig.Line;
+            int t = l.TerminalIndex;
+            Vec2 toward = t > 0 ? new Vec2(l.X[t - 1] - l.X[t], l.Y[t - 1] - l.Y[t]) : Vec2.Zero;
+            float len = toward.Length;
+            fish.LineForce = len > 1e-6f ? toward * (l.Tension[t] / len) : Vec2.Zero;
+        }
     }
 
     private void GuardFinite()
@@ -152,6 +264,7 @@ public sealed class SimWorld
         var h = new StateHasher();
         h.Add(Tick);
         for (int i = 0; i < _anglers.Length; i++) _anglers[i].Hash(ref h);
+        for (int f = 0; f < _fish.Count; f++) _fish[f].Hash(ref h);
         Water.Hash(ref h);
         return h.Value;
     }

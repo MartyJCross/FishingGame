@@ -14,5 +14,6 @@
   "bodyColor": "#5b5a36",
   "bellyColor": "#46452a",
   "accentColor": "#7a5a2a",
-  "price": 0.6
+  "price": 0.6,
+  "attractKey": "soft_plastic_worm"
 }

@@ -15,5 +15,6 @@
   "bodyColor": "#c0c4c8",
   "bellyColor": "#8a8e92",
   "accentColor": "#d84a3a",
-  "price": 4.0
+  "price": 4.0,
+  "attractKey": "inline_spinner"
 }

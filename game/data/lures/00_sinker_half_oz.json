@@ -8,5 +8,6 @@
   "dragCoefficient": 0.5,
   "lengthM": 0.025,
   "planing": 0.15,
-  "price": 0.5
+  "price": 0.5,
+  "attractKey": ""
 }

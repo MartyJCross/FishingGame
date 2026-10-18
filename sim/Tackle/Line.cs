@@ -39,6 +39,28 @@ public sealed class Line
     /// <summary>Line node carrying the bobber (−1 = none): the node about FloatDepthM above the terminal.</summary>
     public int FloatIndex { get; private set; } = -1;
 
+    /// <summary>A fish's mouth holds the terminal: it moves where the fish takes it, and the line pulls on the fish.</summary>
+    public bool Pinned { get; private set; }
+    public float PinX, PinY, PinPrevX, PinPrevY;
+
+    /// <summary>Holds the terminal at <paramref name="p"/> at the end of the next tick (moving there smoothly).</summary>
+    public void Pin(Vec2 p)
+    {
+        int t = Count - 1;
+        if (!Pinned) { PinPrevX = X[t]; PinPrevY = Y[t]; }
+        else { PinPrevX = PinX; PinPrevY = PinY; }
+        PinX = p.X; PinY = p.Y;
+        Pinned = true;
+        SolverW[t] = 0f;
+    }
+
+    public void Unpin()
+    {
+        if (!Pinned) return;
+        Pinned = false;
+        RecomputeMasses();
+    }
+
     /// <summary>Swaps what's tied on (gear change; allocation-free).</summary>
     public void SetTerminal(TerminalSpec terminal)
     {
@@ -155,6 +177,7 @@ public sealed class Line
             W[k] = 1f / Mass[k];
             SolverW[k] = 1f / MathF.Max(Mass[k], SolverMassFloor);
         }
+        if (Pinned) SolverW[Count - 1] = 0f;
     }
 
     /// <summary>

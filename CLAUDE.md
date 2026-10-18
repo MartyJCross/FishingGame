@@ -271,8 +271,23 @@ input from a `.rec` recording), `--record FILE` (save this session's input on ex
   stimulus fish will read in M5.** Renderer draws each kind as a small flat shape that wobbles, plus the bobber.
   - Deferred past the demo: 2-node lure body, walk-the-dog, spoon flutter, sub-chain rigs (Carolina, drop shot,
     slip float), bait tear-off, live bait agents.
-  - **Next: M5 fish** (bodies, senses, bites) for the Station Pond's tier-S species, then M6 (hookset, fight,
-    landing) = the demo.
+- **M5 (lite, 2026-10-18):** `sim/Fish/`: `SpeciesSpec` (reads the parts of species JSON the sim uses; extra keys
+  ignored), `ShapeSpec` (`game/data/species/shapes/*.json`: 5 pond shapes; other species fall back to a default
+  outline), `SpotStock` (`game/data/spots/station_pond.json`: 31 fish of the 6 tier-S species, visibility 1.8 m),
+  `SpeciesLibrary`, `Fish` (head driven by thrust/drag/line force; body behind the head kept in **body space**
+  (forward = +x) and mirrored by facing, so turning never folds it; `Yaw` on the pseudo-axis; brain states Cruise →
+  Investigate → Follow → Strike → Hold → spit, Flee on big splashes, `Hooked` stub; detection from vision ×
+  visibility × light, lateral line × vibration, smell × scent, hearing × sound; strike odds from activity (diel),
+  attraction (`TerminalSpec.AttractKey` into lure/bait attraction), size vs gape, speed preference, twitch trigger,
+  hunger, spook; bite styles from data: nibble tugs, inhale backs off, run swims away; resistance felt through the
+  line makes them drop it). `SimWorld.Populate(stock, species)` sizes fish from growth curves; the world steps fish
+  first, **pins the line's terminal to a holding fish's mouth** (`Line.Pin`, kinematic in the solver) and feeds the
+  last segment's tension back as `Fish.LineForce`. Events: FishStrike, Bite, FishSpit. `SimWorld.Hour` from
+  `StartHour` + `TimeScale`. `game/src/Render/FishRenderer.cs`: one triangle batch for all bodies (shape profile,
+  dorsal/flank/belly colours, bars, ear flap, spots, fins, beating tail, barbels; yaw foreshortening; depth fade).
+  `--no-fish`, `--look x,y,zoom`. Perf: step mean 0.50 ms with 31 fish.
+  - **Next: M6** (hookset from rod motion during Hold, fight brain + stamina, line/hook failures, landing, catch
+    log, basic day/night) = the demo.
   - **Species data:** 17 sourced species files in `game/data/species/` (all tier-S pond species plus early
     Nature Coast fish), validated by `python tools/species_check.py` (0 errors). The agent worktree is removed.
   - **Owner (2026-10-18): save cost until the first demo (M6): less testing.** Key tests only, one test + build run

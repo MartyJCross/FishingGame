@@ -73,6 +73,7 @@ public partial class SimDriver : Node
         }
         ulong seed = _replay?.Seed ?? args.Seed;
         World = new SimWorld(config, seed, anglers);
+        PopulateFish(args);
         var lures = LoadTerminals();
         foreach (var a in World.Anglers)
         {
@@ -91,6 +92,23 @@ public partial class SimDriver : Node
             _recordPath = args.RecordPath;
             _recording = new InputRecording { Seed = seed, AnglerCount = anglers, TickHz = config.TickHz, Setup = $"scene={args.Scene}" };
         }
+    }
+
+    /// <summary>Stocks the spot from data/spots/station_pond.json with the species in data/species (--no-fish skips).</summary>
+    private void PopulateFish(CommandLine args)
+    {
+        if (args.NoFish) return;
+        const string dir = "res://data/species";
+        var files = DirAccess.GetFilesAt(dir).Where(f => f.EndsWith(".json")).OrderBy(f => f, StringComparer.Ordinal);
+        var errors = new List<string>();
+        var species = TheLedger.Sim.Fish.SpeciesLibrary.Load(
+            files.Select(f => Godot.FileAccess.GetFileAsString($"{dir}/{f}")),
+            r => Godot.FileAccess.FileExists($"{dir}/{r}") ? Godot.FileAccess.GetFileAsString($"{dir}/{r}") : null,
+            errors);
+        foreach (string e in errors) GD.Print($"Species: {e}");
+        var stock = TheLedger.Sim.Fish.SpotStock.Load(Godot.FileAccess.GetFileAsString("res://data/spots/station_pond.json"));
+        World.Populate(stock, species);
+        GD.Print($"Station Pond: {World.Fish.Count} fish of {stock.Stock.Count} species");
     }
 
     /// <summary>Everything in data/lures, in file-name order (replays rely on the same order).</summary>

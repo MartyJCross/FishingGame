@@ -14,5 +14,6 @@
   "bodyColor": "#3a6a3a",
   "bellyColor": "#e8e0b0",
   "accentColor": "#c8402a",
-  "price": 6.0
+  "price": 6.0,
+  "attractKey": "popper"
 }
