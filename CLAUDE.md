@@ -248,6 +248,12 @@ input from a `.rec` recording), `--record FILE` (save this session's input on ex
     chaotic next to heavy loads, so the solver uses a node mass floor (gravity/drag keep real mass).
   - **Next (remaining M2 pieces):** RodRenderer + LineRenderer in `game/` (replace the rigid rod in `TestView`),
     debug overlay for tension and moments, mouse relative mode, screenshots, then tick M2 and bump to v0.3.0.
+  - **Species data agent (stopped by a usage limit):** partial work is in the git worktree
+    `.claude/worktrees/agent-a2366193d8b0027c9` on branch `worktree-agent-a2366193d8b0027c9` (it was writing redear,
+    Florida bass, black crappie). Check what it committed or left uncommitted there, finish the tier-S species, and
+    merge into `development`.
+  - **Owner (2026-10-18): save cost until the first demo (M6): less testing.** Key tests only, one test + build run
+    per commit, one screenshot per visual change, CI checked once per milestone.
 
 (Replace this list with a short, accurate description of what exists as the game grows: systems, controls, data
 counts, known issues.)
