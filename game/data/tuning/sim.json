@@ -1,0 +1,11 @@
+{
+  "Gravity": 9.81,
+  "TackleSubsteps": 8,
+  "MaxLineNodes": 160,
+  "HandMaxAngularSpeed": 18,
+  "HandMaxAngularAccel": 220,
+  "HandStiffness": 160,
+  "HandDamping": 24,
+  "HandMinAngle": -1.2,
+  "HandMaxAngle": 2.6
+}
