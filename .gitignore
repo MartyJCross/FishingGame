@@ -1,0 +1,22 @@
+# Godot
+.godot/
+*.import.tmp
+export_credentials.cfg
+
+# .NET
+bin/
+obj/
+*.user
+*.suo
+.vs/
+
+# Build output
+build/
+
+# Raw downloads (never committed, never executed)
+asset-downloads/
+
+# Local test output
+*.png.tmp
+bench.json
+screenshots/
