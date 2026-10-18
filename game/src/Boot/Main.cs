@@ -236,7 +236,7 @@ public partial class Main : Node2D
         var a = _driver.World.Anglers[0];
         var r = a.Reel;
         var line = a.Rig.Line;
-        _reelHud.Text = $"{line.Terminal.Name}  (R/X to change when reeled in)\n" +
+        _reelHud.Text = $"{line.Terminal.Name}  (R / X / D-pad right to change when reeled in)\n" +
                         $"Bail {(r.BailOpen ? "OPEN" : "closed")}   drag {r.DragForce / 9.81f:0.0} kg ({r.DragClick}/{r.Spec.DragDetents})\n" +
                         $"line out {line.LineOut:0.0} m   spool {r.LineOnSpool:0} m\n" +
                         $"tension {line.TipTension:0.0} N {Bar(line.TipTension / (line.Spec.BreakingForceN * line.Spec.KnotFactor))}" +

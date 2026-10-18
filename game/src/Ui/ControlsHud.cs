@@ -108,24 +108,24 @@ public partial class ControlsHud : Control
             bool close = MathF.Abs(on.HeadX - a.Position.X) < w.Config.LandReach && on.HeadY > surface - 0.6f;
             bool beat = on.StaminaA < w.Config.LandStamina || on.MassKg < w.Config.SwingInKg;
             if (close && beat)
-                return $"[b]FISH ON[/b] - it's beaten and close: press {K("F", "A")} to land it!" + help;
-            return $"[b]FISH ON[/b] - keep the rod up ({rod}), crank {K("RMB / wheel", "RT")} when it rests, let the drag work ({K("Q / E", "LB / RB")}).\n" +
-                   $"Bring it in close to the bank, tired and near the surface, then {K("F", "A")} to land." + help;
+                return $"[b]FISH ON[/b] - it's beaten and close: press {K("F", "RB")} to land it!" + help;
+            return $"[b]FISH ON[/b] - keep the rod up ({rod}), crank {K("RMB / wheel", "RT or circle the left stick")} when it rests, let the drag work ({K("Q / E", "D-pad down / up")}).\n" +
+                   $"Bring it in close to the bank, tired and near the surface, then {K("F", "RB")} to land." + help;
         }
         if (reel.BailOpen)
         {
             if (line.LineOut < 3f)
                 return $"Bail open. Hold {K("LMB", "LT")} (finger on the line), swing the rod back and forward with the {rod}, " +
-                       $"let go of {K("LMB", "LT")} as it comes forward.\nChanged your mind? Crank {K("RMB / wheel", "RT")} to close the bail." + help;
-            return $"[b]Lure's out - close the bail:[/b] turn the handle once ({K("RMB / wheel up", "RT")}).\n" +
+                       $"let go of {K("LMB", "LT")} as it comes forward.\nChanged your mind? Crank {K("RMB / wheel", "RT or circle the left stick")} to close the bail." + help;
+            return $"[b]Lure's out - close the bail:[/b] turn the handle once ({K("RMB / wheel up", "RT / circle left stick")}).\n" +
                    "With the bail open the line just runs off the spool: you can't set the hook or fight a fish." + help;
         }
         if (line.LineOut < 3f)
-            return $"[b]Ready.[/b] {K("Space", "B")} opens the bail to cast.   {K("R", "X")} changes lure ({line.Terminal.Name}).\n" +
+            return $"[b]Ready.[/b] {K("Space", "LB")} opens the bail to cast.   {K("R", "X / D-pad right")} changes lure ({line.Terminal.Name}).\n" +
                    $"Point the rod with the {rod}{(Pad ? "" : ", W / S reach")}." + help;
         string watch = line.FloatIndex >= 0 ? "watch the float: a twitch is a nibble, when it [b]goes under[/b]"
                                             : "watch the line and the lure cam: when a fish [b]takes it[/b]";
-        return $"Fishing. Crank {K("RMB / wheel", "RT")} to retrieve, twitch the rod for action, or wait.\n" +
+        return $"Fishing. Crank {K("RMB / wheel", "RT or circle the left stick")} to retrieve, twitch the rod for action, or wait.\n" +
                $"Bites: {watch}, sweep the rod up hard ({rod} up) to set the hook." + help;
     }
 
@@ -135,13 +135,13 @@ public partial class ControlsHud : Control
         return "[b]Controls[/b]\n" +
                $"{K("Mouse", "Right stick")}   point the rod (sweep up to set the hook)\n" +
                (Pad ? "" : $"{K("W / S", "")}   reach out / in\n") +
-               $"{K("Space", "B")}   open / close the bail\n" +
+               $"{K("Space", "LB")}   open / close the bail\n" +
                $"{K("Hold LMB", "Hold LT")}   finger on the line (release to cast; feather to slow it)\n" +
-               $"{K("RMB / wheel up", "RT")}   crank (closes the bail){(Pad ? "" : $"   {K("Z / C", "")} steady crank speed")}\n" +
-               $"{K("Q / E", "LB / RB")}   drag looser / tighter\n" +
-               $"{K("F", "A")}   land the fish (net / lip)\n" +
-               $"{K("R", "X")}   change lure (when reeled in)\n" +
-               $"{K("A / D", "Left stick")}   (walk: later)\n" +
+               $"{K("RMB / wheel up", "RT / circle left stick")}   crank (closes the bail){(Pad ? "" : $"   {K("Z / C", "")} steady crank speed")}\n" +
+               $"{K("Q / E", "D-pad down / up")}   drag looser / tighter\n" +
+               $"{K("F", "RB")}   land the fish (net / lip)\n" +
+               $"{K("R", "X / D-pad right")}   change lure (when reeled in)\n" +
+               (Pad ? "" : $"{K("A / D", "")}   (walk: later)\n") +
                $"{K("F11", "F11")} fullscreen   {K("F3", "F3")} rod and line loads   {K("F4", "F4")} rain   {K("F1", "F1")} tuning   {K("Middle click", "-")} splash\n" +
                $"[color=#8a9aa0]{rod} sets where the rod points; the rod and line are simulated, so speed matters.[/color]";
     }

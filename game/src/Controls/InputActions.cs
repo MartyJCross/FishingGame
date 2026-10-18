@@ -33,15 +33,16 @@ public static class InputActions
     {
         Add(LineHold, 0.05f, Mouse(MouseButton.Left), Axis(JoyAxis.TriggerLeft, 1f));
         Add(Crank, 0.05f, Mouse(MouseButton.Right), Axis(JoyAxis.TriggerRight, 1f));
-        Add(DragTighter, 0.5f, KeyEv(Key.E), Button(JoyButton.RightShoulder));
-        Add(DragLooser, 0.5f, KeyEv(Key.Q), Button(JoyButton.LeftShoulder));
+        Add(DragTighter, 0.5f, KeyEv(Key.E), Button(JoyButton.DpadUp));
+        Add(DragLooser, 0.5f, KeyEv(Key.Q), Button(JoyButton.DpadDown));
         Add(CrankSpeedUp, 0.5f, KeyEv(Key.C));
         Add(CrankSpeedDown, 0.5f, KeyEv(Key.Z));
-        Add(Bail, 0.5f, KeyEv(Key.Space), Button(JoyButton.B));
-        Add(Land, 0.5f, KeyEv(Key.F), Button(JoyButton.A));
-        Add(RigMenu, 0.5f, KeyEv(Key.R), Button(JoyButton.X));
-        Add(MoveLeft, 0.2f, KeyEv(Key.A), Axis(JoyAxis.LeftX, -1f));
-        Add(MoveRight, 0.2f, KeyEv(Key.D), Axis(JoyAxis.LeftX, 1f));
+        // Bail on LB so both thumbs stay on the sticks (owner, 2026-10-18); B still works.
+        Add(Bail, 0.5f, KeyEv(Key.Space), Button(JoyButton.LeftShoulder), Button(JoyButton.B));
+        Add(Land, 0.5f, KeyEv(Key.F), Button(JoyButton.RightShoulder), Button(JoyButton.A));
+        Add(RigMenu, 0.5f, KeyEv(Key.R), Button(JoyButton.X), Button(JoyButton.DpadRight));
+        Add(MoveLeft, 0.2f, KeyEv(Key.A)); // the left stick reels (rotate it)
+        Add(MoveRight, 0.2f, KeyEv(Key.D));
         Add(ReachUp, 0.2f, KeyEv(Key.W));
         Add(ReachDown, 0.2f, KeyEv(Key.S));
         Add(RodLeft, 0.15f, Axis(JoyAxis.RightX, -1f));

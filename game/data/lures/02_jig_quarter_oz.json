@@ -15,5 +15,6 @@
   "accentColor": "#4a6ab0",
   "price": 4.5,
   "attractKey": "jig",
-  "hookEase": 0.9
+  "hookEase": 0.9,
+  "balanceForward": 0.3
 }

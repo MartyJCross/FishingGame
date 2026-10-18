@@ -136,8 +136,8 @@ public sealed class Rig
         // Solver mass floor: an absolute minimum, a share of the terminal's mass, and enough that a taut line's sideways
         // vibration (stiffness ~ 2T/segment) stays slower than the substep, or the chain zigzags under load.
         float hSub = dt / Math.Max(1, c.TackleSubsteps);
-        float tensionFloor = c.LineTensionMassFactor * Line.MaxTension * hSub * hSub / MathF.Max(c.LineSegmentLength, 0.02f);
-        Line.SetSolverMassFloor(MathF.Max(MathF.Max(c.LineNodeMinMassKg, Line.Terminal.MassKg / MathF.Max(c.LineMassRatioLimit, 1f)), tensionFloor));
+        float tensionCoef = c.LineTensionMassFactor * hSub * hSub / MathF.Max(c.LineSegmentLength, 0.02f);
+        Line.SetSolverMassFloor(MathF.Max(c.LineNodeMinMassKg, Line.Terminal.MassKg / MathF.Max(c.LineMassRatioLimit, 1f)), tensionCoef);
         if (payOutDelta != 0f)
         {
             float before = Line.LineOut;
@@ -188,6 +188,7 @@ public sealed class Rig
         }
         Rod.EndTick();
         Line.EndTick();
+        Line.TrackSustainedTension(dt);
         UpdateLure(c, dt, env);
     }
 
@@ -202,12 +203,8 @@ public sealed class Rig
         float rvx = l.VX[k] - u.X, rvy = l.VY[k] - u.Y;
         float speed = MathF.Sqrt(rvx * rvx + rvy * rvy);
 
-        // The line pulls the nose toward the previous node; moving fast, the body trails its motion.
         float px = k > 0 ? l.X[k - 1] : Rod.X[Rod.Tip], py = k > 0 ? l.Y[k - 1] : Rod.Y[Rod.Tip];
-        float lineHeading = MathF.Atan2(py - l.Y[k], px - l.X[k]);
-        float target = speed > 0.3f ? MathF.Atan2(rvy, rvx) : lineHeading;
-        if (l.Tension[Math.Max(k - 1, 0)] > 0.02f) target = lineHeading;
-        Lure.Heading += Angles.Wrap(target - Lure.Heading) * MathF.Min(1f, dt * 12f);
+        RotateLure(c, dt, spec, wet, rvx, rvy, speed, MathF.Atan2(py - l.Y[k], px - l.X[k]), l.Tension[k]);
 
         float active = wet && speed > spec.ActionMinSpeed ? MathF.Min(1f, (speed - spec.ActionMinSpeed) / 0.3f) : 0f;
         Lure.Phase = (Lure.Phase + 2f * MathF.PI * spec.WobbleHzPerMps * speed * dt * active) % (2f * MathF.PI);
@@ -357,6 +354,49 @@ public sealed class Rig
             l.X[k] += vx * h;
             l.Y[k] += vy * h;
         }
+    }
+
+    private float _lureOmega;
+
+    /// <summary>
+    /// The lure's orientation as a rigid body (docs/04 §6.1): the line pulls at the nose eye, water drag across the
+    /// body weathervanes the tail behind its motion, and weight and buoyancy act a little apart (nose-heavy jigs tip
+    /// nose down, tail-weighted poppers sit tail down). The line and weathervane torques are stiff, so they are
+    /// integrated implicitly (backward Euler on a linearised spring), over a few sub-steps.
+    /// </summary>
+    private void RotateLure(SimConfig c, float dt, TerminalSpec spec, bool wet, float rvx, float rvy, float speed,
+        float lineDir, float tension)
+    {
+        float len = MathF.Max(spec.LengthM, 0.01f);
+        float m = MathF.Max(spec.MassKg, 1e-4f);
+        float rho = wet ? 1000f : AirDensity;
+        float inertia = m * len * len / 12f * (wet ? 2f : 1f); // water adds mass to a turning body
+        float d = spec.BalanceForward * len;                   // centre of mass ahead of the body centre
+        float rEye = 0.5f * len - d;                            // eye (line tie) ahead of the centre of mass
+        float rCp = 0.2f * len + d;                             // drag acts behind the centre of mass
+        float side = len * MathF.Max(spec.DiameterM, 0.004f);
+        float buoy = wet ? rho * spec.VolumeM3 * c.Gravity : 0f;
+        float damp = wet ? 25f : 3f;                            // rotational drag, 1/s
+        const int n = 6;
+        float h = dt / n;
+        float th = Lure.Heading;
+        for (int i = 0; i < n; i++)
+        {
+            // Line at the eye: a torsion spring toward the line direction, stiffness T·r.
+            float dl = Angles.Wrap(th - lineDir);
+            float kLine = MathF.Max(tension, 0f) * rEye;
+            // Weathervane: drag across the body behind the CoM turns the nose into the flow.
+            float dv = speed > 0.05f ? Angles.Wrap(th - MathF.Atan2(rvy, rvx)) : 0f;
+            float kVane = 0.5f * rho * 1.1f * side * speed * speed * rCp;
+            // Buoyancy pushes up at the body centre, a distance d behind the CoM: a nose-heavy lure (d > 0) tips nose down.
+            float tauBuoy = -buoy * d * MathF.Cos(th);
+            float stiff = (kLine * MathF.Max(MathF.Cos(dl), 0.1f) + kVane * MathF.Max(MathF.Cos(dv), 0.1f)) / inertia;
+            float accel = (-kLine * MathF.Sin(dl) - kVane * MathF.Sin(dv) + tauBuoy) / inertia;
+            _lureOmega = (_lureOmega + h * accel) / (1f + h * damp + h * h * stiff);
+            th = Angles.Wrap(th + _lureOmega * h);
+        }
+        if (!float.IsFinite(th)) { th = lineDir; _lureOmega = 0f; }
+        Lure.Heading = th;
     }
 
     /// <summary>

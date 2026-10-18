@@ -17,5 +17,6 @@
   "accentColor": "#d84a3a",
   "price": 4.0,
   "attractKey": "inline_spinner",
-  "hookEase": 1.3
+  "hookEase": 1.3,
+  "balanceForward": 0.15
 }

@@ -18,5 +18,6 @@
   "accentColor": "#c84a2a",
   "price": 7.0,
   "attractKey": "crankbait",
-  "hookEase": 1.5
+  "hookEase": 1.5,
+  "balanceForward": -0.05
 }

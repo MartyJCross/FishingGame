@@ -129,6 +129,11 @@ public sealed class TerminalSpec
     public float LengthM { get; set; } = 0.025f;
     /// <summary>How well it planes on the water, 0..1 (skirted jigs, soft plastics high; sinkers, crankbaits low).</summary>
     public float Planing { get; set; } = 0.15f;
+    /// <summary>
+    /// Where the weight sits along the body, as a fraction of length ahead of the centre: + nose-heavy (jig heads,
+    /// bullet weights), − tail-heavy (poppers sit tail down), 0 balanced.
+    /// </summary>
+    public float BalanceForward { get; set; }
     /// <summary>Diving lip: lift area × coefficient, m². Pulled through water it dives (crankbaits ~2-4e-4).</summary>
     public float LipLiftArea { get; set; }
     /// <summary>Wobble / tail / blade beats per second per m/s of speed through the water.</summary>

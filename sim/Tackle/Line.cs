@@ -151,11 +151,25 @@ public sealed class Line
         return MathF.Max(1e-7f, Spec.MassPerMetre * lenAround);
     }
 
-    /// <summary>Sets the solver mass floor and refreshes inverse masses if it changed.</summary>
-    public void SetSolverMassFloor(float floor)
+    /// <summary>Share of this tick's peak tension that also counts at once (covers the first moments of a fight).</summary>
+    private const float InstantShare = 0.5f;
+
+    /// <summary>Peak line tension averaged over ~1.5 s: a cast's brief load stays low, a fight's steady pull counts.</summary>
+    public float SustainedTension { get; private set; }
+
+    /// <summary>Updates <see cref="SustainedTension"/> from this tick's peak tension.</summary>
+    public void TrackSustainedTension(float dt) =>
+        SustainedTension += (MaxTension - SustainedTension) * MathF.Min(1f, dt / 1.5f);
+
+    /// <summary>Per-node extra solver mass per newton of sustained tension (keeps taut segments from zigzagging).</summary>
+    public float TensionMassCoef { get; private set; }
+
+    /// <summary>Sets the solver mass floor (absolute, and per newton of each node's own segment tension) and refreshes.</summary>
+    public void SetSolverMassFloor(float floor, float tensionCoef = 0f)
     {
-        if (floor == SolverMassFloor) return;
+        if (floor == SolverMassFloor && tensionCoef == 0f && TensionMassCoef == 0f) return;
         SolverMassFloor = floor;
+        TensionMassCoef = tensionCoef;
         RecomputeMasses();
     }
 
@@ -175,7 +189,8 @@ public sealed class Line
             if (k == Count - 1) Mass[k] += Terminal.MassKg;
             if (k == FloatIndex) Mass[k] += Terminal.FloatMassKg;
             W[k] = 1f / Mass[k];
-            SolverW[k] = 1f / MathF.Max(Mass[k], SolverMassFloor);
+            float local = TensionMassCoef * MathF.Max(SustainedTension, InstantShare * MaxTension);
+            SolverW[k] = 1f / MathF.Max(Mass[k], MathF.Max(SolverMassFloor, local));
         }
         if (Pinned) SolverW[Count - 1] = 0f;
     }

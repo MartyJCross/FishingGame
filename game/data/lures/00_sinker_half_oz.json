@@ -10,5 +10,6 @@
   "planing": 0.15,
   "price": 0.5,
   "attractKey": "",
-  "hookEase": 0.0
+  "hookEase": 0.0,
+  "balanceForward": 0.0
 }

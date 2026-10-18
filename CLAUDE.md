@@ -253,6 +253,12 @@ input from a `.rec` recording), `--record FILE` (save this session's input on ex
   spikes that snapped the line), so segments stay 10 cm and the renderer draws a Catmull-Rom curve through the nodes.
   Free fish turn about their middle (the mouth jumps to the mirror point on the facing flip); held fish pivot on the
   mouth. Test: `TurningFishStayWhereTheyAre`.
+- **v0.4.5:** the lure is a rigid body for orientation (`Rig.RotateLure`: line torque at the eye, weathervane drag,
+  buoyancy vs `TerminalSpec.BalanceForward`, implicit sub-stepped). The anti-zigzag line mass now follows
+  `Line.SustainedTension` (~1.5 s average, plus half the instant peak): per-tick peak tension made the whole line heavy
+  during a cast's loading and cut the scripted cast from 21 m to 13 m. Controller: LB bail (B too), RB / A land,
+  D-pad up/down drag, X / D-pad right lure, rotate the left stick clockwise to reel (`InputRouter.StickCrank`).
+  Hands: critically damped follow (stiffness 100, damping 20), speed limits unchanged (slower arms cut casts to 12 m).
 - **Owner ideas backlog:** `docs/IDEAS.md` (check it when planning a milestone; add new owner ideas there).
 - **M2 done (2026-10-18, v0.3.0):** `sim/Tackle/`: `Rod` (XPBD chain, EI taper,
   strength taper, moments), `Line` (variable length, pay-out/merge, solver mass floor), `TackleSolver` (direct banded

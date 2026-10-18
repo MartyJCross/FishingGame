@@ -133,10 +133,10 @@ public sealed class SimConfig
     public float HandMaxAngularAccel = 220f;
 
     [Tunable("Hands", 1f, 400f, Help = "How hard the hands chase the input target (spring)")]
-    public float HandStiffness = 160f;
+    public float HandStiffness = 100f;
 
     [Tunable("Hands", 0f, 60f, Help = "Hand spring damping")]
-    public float HandDamping = 24f;
+    public float HandDamping = 20f;
 
     [Tunable("Hands", -3.2f, 0f, Help = "Lowest rod angle the arms allow, rad (0 = horizontal)")]
     public float HandMinAngle = -1.2f;

@@ -41,6 +41,11 @@ public partial class InputRouter : Node
     private float _lineHold;
     private float _pendingWheelTurns;
     private int _pendingDragDelta;
+    private float _stickAngle, _stickTurns, _stickCrank;
+    private bool _stickTracking;
+
+    /// <summary>The left stick must be pushed at least this far for its rotation to count as cranking.</summary>
+    public float StickCrankDeadzone = 0.55f;
 
     public override void _UnhandledInput(InputEvent e)
     {
@@ -119,6 +124,7 @@ public partial class InputRouter : Node
             _pendingWheelTurns -= take;
             crank += take / dt;
         }
+        crank += StickCrank(dt);
         f.CrankRate = crank;
 
         f.DragDelta = (sbyte)Math.Clamp(_pendingDragDelta, -8, 8);
@@ -132,6 +138,36 @@ public partial class InputRouter : Node
         if (Input.IsActionPressed(InputActions.RigMenu)) b |= InputButtons.RigMenu;
         f.Buttons = b;
         return f;
+    }
+
+    /// <summary>
+    /// Reeling by rotating the left stick like a reel handle: clockwise turns count (anti-reverse ignores the other
+    /// way), one full circle = one handle turn. Smoothed over ~0.1 s so a hand-drawn circle gives a steady rate.
+    /// </summary>
+    private float StickCrank(float dt)
+    {
+        var pads = Input.GetConnectedJoypads();
+        if (pads.Count == 0) return 0f;
+        int pad = pads[0];
+        var v = new Vector2(Input.GetJoyAxis(pad, JoyAxis.LeftX), Input.GetJoyAxis(pad, JoyAxis.LeftY));
+        if (v.Length() > StickCrankDeadzone)
+        {
+            float a = Mathf.Atan2(v.Y, v.X); // screen space (y down): increasing = clockwise
+            if (_stickTracking)
+            {
+                float d = Mathf.Wrap(a - _stickAngle, -Mathf.Pi, Mathf.Pi);
+                if (d > 0f) _stickTurns += d / Mathf.Tau;
+                ActiveDevice = Device.Gamepad;
+            }
+            _stickAngle = a;
+            _stickTracking = true;
+        }
+        else _stickTracking = false;
+        float rate = _stickTurns / dt;
+        _stickTurns = 0f;
+        _stickCrank += (rate - _stickCrank) * MathF.Min(1f, dt / 0.1f);
+        if (_stickCrank < 0.05f && !_stickTracking) _stickCrank = 0f;
+        return MathF.Min(_stickCrank, 6f);
     }
 
     /// <summary>Text for the debug overlay: connected controllers and their raw axes.</summary>

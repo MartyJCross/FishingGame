@@ -16,5 +16,6 @@
   "accentColor": "#c8402a",
   "price": 6.0,
   "attractKey": "popper",
-  "hookEase": 1.4
+  "hookEase": 1.4,
+  "balanceForward": -0.25
 }
