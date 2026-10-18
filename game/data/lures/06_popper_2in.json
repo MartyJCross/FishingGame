@@ -15,5 +15,6 @@
   "bellyColor": "#e8e0b0",
   "accentColor": "#c8402a",
   "price": 6.0,
-  "attractKey": "popper"
+  "attractKey": "popper",
+  "hookEase": 1.4
 }

@@ -17,5 +17,6 @@
   "bellyColor": "#f0e6c0",
   "accentColor": "#c84a2a",
   "price": 7.0,
-  "attractKey": "crankbait"
+  "attractKey": "crankbait",
+  "hookEase": 1.5
 }

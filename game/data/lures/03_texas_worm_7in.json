@@ -15,5 +15,6 @@
   "bellyColor": "#46452a",
   "accentColor": "#7a5a2a",
   "price": 0.6,
-  "attractKey": "soft_plastic_worm"
+  "attractKey": "soft_plastic_worm",
+  "hookEase": 0.6
 }

@@ -40,6 +40,10 @@ public sealed class AnglerState
     public List<TerminalSpec> TackleBox { get; } = new() { TerminalSpec.HalfOunceSinker() };
     public int TackleIndex;
     private bool _rigHeld;
+    private bool _landHeld;
+
+    /// <summary>The land button went down this tick (net / grip / swing).</summary>
+    public bool LandPressed { get; private set; }
 
     /// <summary>Feet position in world space, metres.</summary>
     public Vec2 Position;
@@ -61,6 +65,10 @@ public sealed class AnglerState
         PrevPosition = Position;
         Hands.Step(c, dt, input.RodTargetAngle, input.RodReach);
 
+        bool land = input.Has(InputButtons.Land);
+        LandPressed = land && !_landHeld;
+        _landHeld = land;
+
         bool rigButton = input.Has(InputButtons.RigMenu);
         if (rigButton && !_rigHeld && TackleBox.Count > 1 && Rig.Line.LineOut <= c.RetieMaxLineOut)
         {
@@ -81,6 +89,20 @@ public sealed class AnglerState
         Hands.Hash(ref h);
         Rig.Hash(ref h);
         Reel.Hash(ref h);
+    }
+
+    /// <summary>
+    /// Brings the end of the line back to the rod (after a catch or a break): a short drop below the tip, and the line
+    /// that was out goes back on the spool (minus what a break lost).
+    /// </summary>
+    public void RetrieveToTip(SimConfig c, float lost)
+    {
+        float before = Rig.Line.LineOut;
+        float drop = MathF.Max(c.MinLineOut, 0.8f);
+        Rig.Line.Unpin();
+        Rig.Line.Reset(Rig.Rod.TipPos, new Vec2(0f, -1f), drop);
+        Reel.LineOnSpool += before - drop - lost;
+        Reel.BailOpen = false;
     }
 
     public bool IsFinite => Position.IsFinite && Hands.IsFinite && Rig.IsFinite();

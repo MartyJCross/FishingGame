@@ -286,8 +286,18 @@ input from a `.rec` recording), `--record FILE` (save this session's input on ex
   `StartHour` + `TimeScale`. `game/src/Render/FishRenderer.cs`: one triangle batch for all bodies (shape profile,
   dorsal/flank/belly colours, bars, ear flap, spots, fins, beating tail, barbels; yaw foreshortening; depth fade).
   `--no-fish`, `--look x,y,zoom`. Perf: step mean 0.50 ms with 31 fish.
-  - **Next: M6** (hookset from rod motion during Hold, fight brain + stamina, line/hook failures, landing, catch
-    log, basic day/night) = the demo.
+- **M6 (lite) = first playable demo, v0.4.0 (2026-10-18):** hook penetration builds while a fish holds and the
+  line force at its mouth exceeds `(0.3 + 2.5·hardness) / TerminalSpec.HookEase` (a sharp sweep, or a fish running
+  against a closed bail); spitting from felt resistance takes ≥ ~0.3 s. Hooked fish fight with `FightMove`s picked
+  from species fight styles, two stamina pools, and a hook hold that slack, headshakes and tearing wear down
+  (`HookPulled`). Line breaks above breaking force × knot factor, the rod above moment/limit 1 (`Failures`).
+  Land (F / A): fish within `LandReach` of the angler's feet, near the surface, and tired (`LandStamina`) or small
+  (`SwingInKg`) → `Catch` in `SimWorld.Catches`, `FishLanded`, released back out. Game: toasts (no bite alerts:
+  watch the float), catch card, tension and rod-load bars, clock, `CanvasModulate` day/night, `--time H`,
+  `--bench N` (real-time FPS report). Bench: 174 fps at 1280x720 on the owner's AMD iGPU, sim 0.7 ms/tick.
+  Tests: hookset on a real take (not a nibble), a 2 kg bass on 10 lb mono at ~25% drag lands in ~25 s.
+  - Not in the demo yet (from the M6 DoD): audio, the spincast and baitcaster rods, jumps, keep/bucket, saved log.
+  - **Next after the owner's feedback:** M7 (HUD/menus/Ledger) or whatever the demo shows is weakest.
   - **Species data:** 17 sourced species files in `game/data/species/` (all tier-S pond species plus early
     Nature Coast fish), validated by `python tools/species_check.py` (0 errors). The agent worktree is removed.
   - **Owner (2026-10-18): save cost until the first demo (M6): less testing.** Key tests only, one test + build run
@@ -306,10 +316,10 @@ Tick items as they land (commit hash + date). The full Definition of Done for ea
   (2026-10-18, commits 49779c1..1ba3030, CI run 39103364556 green; owner still to confirm the GameSir shows in F3)
 - [x] M1 Water surface sim + rendering (pond test scene) (2026-10-18, v0.2.0)
 - [x] M2 Rod + line sim driven by mouse and controller
-- [ ] M3 Reel, spool, casting (spinning + baitcaster), lure flight, water entry, skipping, snags
-- [ ] M4 Lure and rig hydrodynamics, retrieves, floats and bottom rigs
-- [ ] M5 Fish bodies (procedural mesh, spine bending, swimming modes) + perception + bite model, 6 pond species
-- [ ] M6 Hookset, fight, drag, breakage, landing, keep/release → **vertical slice playtest gate**
+- [~] M3 Reel, spool, casting (spinning + baitcaster), lure flight, water entry, skipping, snags (spinning done; baitcaster, snags, lawn later)
+- [~] M4 Lure and rig hydrodynamics, retrieves, floats and bottom rigs (lite: 7 terminals, lip, bobber, popper)
+- [~] M5 Fish bodies (procedural mesh, spine bending, swimming modes) + perception + bite model, 6 pond species (lite)
+- [~] M6 Hookset, fight, drag, breakage, landing, keep/release → **vertical slice playtest gate** (lite demo v0.4.0, awaiting owner playtest)
 - [ ] M7 Controller polish (GameSir), haptics, remapping, information assists, Purist mode, feel tuning pass
 - [ ] M8 Art pass on the pond: low-poly world builder, sky, day/night, weather, post, audio
 - [ ] M9 Meta layer: save/load, money, shop, gear stats, customization, Ledger, licences

@@ -39,6 +39,9 @@ public sealed class SimWorld
     private readonly SplashView[] _splashViews = new SplashView[32];
     private int _splashCount;
 
+    /// <summary>Fish landed this session (the temporary Ledger). Pre-sized; adding never allocates in play.</summary>
+    public List<Catch> Catches { get; } = new(512);
+
     /// <summary>The fish in this spot.</summary>
     public IReadOnlyList<Fish.Fish> Fish => _fish;
 
@@ -77,6 +80,9 @@ public sealed class SimWorld
             }
         }
     }
+
+    /// <summary>Adds one fish (tests and debug scenes; allocates).</summary>
+    public void AddFish(Fish.Fish fish) => _fish.Add(fish);
 
     /// <summary>The spot being fished (terrain now; structure and fish later).</summary>
     public Spot Spot { get; }
@@ -168,6 +174,8 @@ public sealed class SimWorld
         }
 
         LineForcesOnFish();
+        Failures();
+        Landing();
 
         if (ConditionsFromDebugConfig) Water.Conditions = ConditionsFromConfig();
         Water.Step(Config, dt, Time);
@@ -206,6 +214,10 @@ public sealed class SimWorld
                 Events.Push(new SimEvent { Type = SimEventType.FishStrike, Tick = Tick, Angler = fish.LureAngler, Id = fish.Id, Position = fish.Mouth });
             if (fish.State == FishState.Hold && before != FishState.Hold)
                 Events.Push(new SimEvent { Type = SimEventType.Bite, Tick = Tick, Angler = fish.LureAngler, Id = fish.Id, Position = fish.Mouth });
+            if (fish.State == FishState.Hooked && before != FishState.Hooked)
+                Events.Push(new SimEvent { Type = SimEventType.HookSet, Tick = Tick, Angler = fish.LureAngler, Id = fish.Id, Position = fish.Mouth });
+            if (fish.HookPulledOut)
+                Events.Push(new SimEvent { Type = SimEventType.HookPulled, Tick = Tick, Angler = fish.PulledFrom, Id = fish.Id, Position = fish.Mouth });
             if (before == FishState.Hold && fish.State != FishState.Hold && fish.State != FishState.Hooked)
                 Events.Push(new SimEvent { Type = SimEventType.FishSpit, Tick = Tick, Angler = -1, Id = fish.Id, Position = fish.Mouth });
         }
@@ -218,6 +230,71 @@ public sealed class SimWorld
             var line = _anglers[i].Rig.Line;
             if (holder != null) line.Pin(holder.Mouth);
             else line.Unpin();
+        }
+    }
+
+    private Fish.Fish? FishOn(int angler)
+    {
+        for (int f = 0; f < _fish.Count; f++)
+            if (_fish[f].Holding && _fish[f].LureAngler == angler) return _fish[f];
+        return null;
+    }
+
+    /// <summary>Line breaks above its breaking force (× knot), the rod breaks above its moment limit (docs/04 §4.3).</summary>
+    private void Failures()
+    {
+        for (int i = 0; i < _anglers.Length; i++)
+        {
+            var a = _anglers[i];
+            var l = a.Rig.Line;
+            float limit = l.Spec.BreakingForceN * l.Spec.KnotFactor;
+            bool lineBroke = l.MaxTension > limit;
+            bool rodBroke = a.Rig.Rod.PeakLoadRatio > 1f;
+            if (!lineBroke && !rodBroke) continue;
+            var fish = FishOn(i);
+            fish?.Lose();
+            Events.Push(new SimEvent
+            {
+                Type = rodBroke ? SimEventType.RodBroke : SimEventType.LineBroke, Tick = Tick, Angler = i,
+                Id = fish?.Id ?? -1, Value = rodBroke ? a.Rig.Rod.PeakLoadRatio : l.MaxTension, Position = l.TerminalPos,
+            });
+            // The line parts near the lure; the rest comes back. (A broken rod is swapped for a spare for now.)
+            a.RetrieveToTip(Config, lost: lineBroke ? 1f : 0f);
+            if (rodBroke) a.Rig.Reset(a.Grip, a.Hands.Angle, MathF.Max(Config.MinLineOut, 0.8f));
+        }
+    }
+
+    /// <summary>
+    /// The land button: net, lip or swing in a hooked fish that is close to the rod tip, near the surface and tired
+    /// (or small enough to swing). Logs the catch and releases the fish.
+    /// </summary>
+    private void Landing()
+    {
+        for (int i = 0; i < _anglers.Length; i++)
+        {
+            var a = _anglers[i];
+            if (!a.LandPressed) continue;
+            var fish = FishOn(i);
+            if (fish == null || fish.State != FishState.Hooked) continue;
+            // Net or hand from where the angler stands: within reach of the bank and up near the surface.
+            float surface = Water.Height(fish.HeadX, Time);
+            bool close = MathF.Abs(fish.HeadX - a.Position.X) < Config.LandReach && fish.HeadY > surface - 0.6f;
+            bool ready = fish.StaminaA < Config.LandStamina || fish.MassKg < Config.SwingInKg;
+            if (!close || !ready)
+            {
+                Events.Push(new SimEvent { Type = SimEventType.LandFailed, Tick = Tick, Angler = i, Id = fish.Id, Position = fish.Mouth });
+                continue;
+            }
+            if (Catches.Count < Catches.Capacity)
+                Catches.Add(new Catch
+                {
+                    Angler = i, Species = fish.Species, LengthCm = fish.LengthM * 100f, WeightKg = fish.MassKg,
+                    Hour = Hour, Terminal = a.Rig.Line.Terminal.Id, Tick = Tick, FishId = fish.Id,
+                });
+            Events.Push(new SimEvent { Type = SimEventType.FishLanded, Tick = Tick, Angler = i, Id = fish.Id, Value = fish.MassKg, Position = fish.Mouth });
+            float x = Math.Clamp(fish.HeadX + 3f, Stock.RangeX[0], Stock.RangeX[1]);
+            fish.ReleaseAfterCatch(new Vec2(x, MathF.Max(Spot.GroundHeight(x) + 0.3f, Water.Height(x, Time) - 0.8f)));
+            a.RetrieveToTip(Config, 0f);
         }
     }
 

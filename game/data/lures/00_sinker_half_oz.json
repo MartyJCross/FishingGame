@@ -9,5 +9,6 @@
   "lengthM": 0.025,
   "planing": 0.15,
   "price": 0.5,
-  "attractKey": ""
+  "attractKey": "",
+  "hookEase": 0.0
 }

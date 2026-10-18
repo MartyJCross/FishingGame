@@ -145,6 +145,12 @@ public sealed class TerminalSpec
     public float Scent { get; set; }
     /// <summary>Live or natural bait (fish treat it as food, not a lure).</summary>
     public bool Natural { get; set; }
+    /// <summary>
+    /// How readily the hook point goes in, 0 = no hook (a plain sinker), 1 = a single sharp hook, ~1.5 trebles,
+    /// ~0.6 a Texas-rigged hook buried in plastic (the hookset has to drive it through).
+    /// </summary>
+    public float HookEase { get; set; } = 1f;
+    public bool Barbless { get; set; }
     /// <summary>Key into the species' lureAttraction (or baitAttraction when Natural), e.g. "crankbait", "nightcrawler".</summary>
     public string AttractKey { get; set; } = "";
 

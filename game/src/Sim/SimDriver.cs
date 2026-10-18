@@ -33,6 +33,9 @@ public partial class SimDriver : Node
     /// <summary>Events seen since start, by type (for the overlay and smoke checks).</summary>
     public long[] EventCounts { get; } = new long[Enum.GetValues<SimEventType>().Length];
 
+    /// <summary>Raised for every sim event as it's drained (on the main thread, inside the physics step).</summary>
+    public event Action<SimEvent>? EventRaised;
+
     /// <summary>Unhandled exceptions caught while stepping (smoke runs fail on any).</summary>
     public int ExceptionCount { get; private set; }
 
@@ -188,6 +191,7 @@ public partial class SimDriver : Node
         while (World.Events.TryPop(out var e))
         {
             EventCounts[(int)e.Type]++;
+            EventRaised?.Invoke(e);
             if (e.Type == SimEventType.SimFault) GD.PushWarning($"SimFault: {e}");
         }
     }

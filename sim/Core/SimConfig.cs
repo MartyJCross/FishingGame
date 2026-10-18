@@ -102,6 +102,15 @@ public sealed class SimConfig
     [Tunable("Lures", 2f, 60f, Help = "A popper pops when it accelerates harder than this at the surface, m/s²")]
     public float PopAcceleration = 12f;
 
+    [Tunable("Fight", 0.5f, 6f, Help = "How far out from the angler's feet a fish can be netted or lipped, m")]
+    public float LandReach = 3.2f;
+
+    [Tunable("Fight", 0f, 1f, Help = "A hooked fish can be landed once its burst stamina is below this")]
+    public float LandStamina = 0.4f;
+
+    [Tunable("Fight", 0f, 2f, Help = "Fish lighter than this can be swung in without a net, kg")]
+    public float SwingInKg = 0.35f;
+
     [Tunable("World", 0f, 24f, Help = "Hour of day when a session starts")]
     public float StartHour = 8f;
 

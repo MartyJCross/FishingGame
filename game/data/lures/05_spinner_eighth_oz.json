@@ -16,5 +16,6 @@
   "bellyColor": "#8a8e92",
   "accentColor": "#d84a3a",
   "price": 4.0,
-  "attractKey": "inline_spinner"
+  "attractKey": "inline_spinner",
+  "hookEase": 1.3
 }

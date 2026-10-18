@@ -7,6 +7,9 @@ namespace TheLedger.Sim.Fish;
 
 public enum FishState : byte { Cruise, Investigate, Follow, Strike, Hold, Flee, Hooked }
 
+/// <summary>What a hooked fish is doing (species data fight.styles).</summary>
+public enum FightMove : byte { Run, Dive, Shake, Circle, Sulk }
+
 /// <summary>How a fish takes the bait or lure (species data feeding.biteStyles).</summary>
 public enum BiteStyle : byte { Inhale, Nibble, Run, PickupDrop, Sip }
 
@@ -140,6 +143,21 @@ public sealed class Fish
     private Vec2 _fleeFrom;
     private Vec2 _lastLureVel;
 
+    /// <summary>How far the hook point has gone in while holding, 0..1 (1 = hooked).</summary>
+    public float HookDepth;
+    /// <summary>How well the hook holds once set, 0..1 (0 = it pulls out).</summary>
+    public float HookHold;
+    /// <summary>Anaerobic (bursts) and aerobic (sustained) stamina, 0..1 (docs/04 §9.3).</summary>
+    public float StaminaA = 1f, StaminaB = 1f;
+    public FightMove Move;
+    /// <summary>The hook pulled out on the last tick.</summary>
+    public bool HookPulledOut;
+    /// <summary>Whose line it threw the hook from (valid when <see cref="HookPulledOut"/>).</summary>
+    public int PulledFrom = -1;
+    private float _moveTime, _effort = 1f;
+    /// <summary>The terminal it holds or is hooked on (hook data).</summary>
+    public TerminalSpec? HeldTerminal;
+
     /// <summary>Strikes, holds and spits since spawn (debug and tests).</summary>
     public int Strikes, Holds, Spits;
 
@@ -191,12 +209,22 @@ public sealed class Fish
     {
         if (State == FishState.Hold) Spits++;
         LureAngler = -1;
+        HookDepth = 0f;
+        HeldTerminal = null;
         _cooldown = cooldown;
         SetState(FishState.Cruise);
     }
 
-    /// <summary>Called by the world when a line pull sets the hook (M6). For now fish only hold and spit.</summary>
-    public void SetHooked() => SetState(FishState.Hooked);
+    /// <summary>Hooks it directly (tests, debug scenes). In play the hook is set by line tension during a hold.</summary>
+    public void SetHooked(int angler, TerminalSpec terminal)
+    {
+        LureAngler = angler;
+        HeldTerminal = terminal;
+        HookDepth = 1f;
+        HookHold = 1f;
+        _moveTime = 0f;
+        SetState(FishState.Hooked);
+    }
 
     private void Think(float dt, in FishContext ctx)
     {
@@ -326,9 +354,26 @@ public sealed class Fish
                         _desiredSpeedCap = CruiseSpeed * 0.8f;
                         break;
                 }
+                // Hookset: line tension above what the hook point needs drives it in (sharp sweep, or a fish running
+                // against a closed bail sets itself). Threshold from mouth hardness and the hook (docs/04 §9.5).
+                if (li >= 0) HeldTerminal = lure.Spec;
+                float ease = HeldTerminal?.HookEase ?? 0f;
+                if (ease > 0f)
+                {
+                    float th = (0.3f + 2.5f * Species.Fight.Mouth.Hardness) / ease;
+                    float t = LineForce.Length;
+                    if (t > th) HookDepth += (t - th) / th * dt * 6f;
+                    if (HookDepth >= 1f)
+                    {
+                        HookHold = 1f;
+                        _moveTime = 0f;
+                        SetState(FishState.Hooked);
+                        break;
+                    }
+                }
                 // Resistance: line pull felt at the mouth makes it drop the bait sooner (docs/05 §4.3 refusal).
                 float feel = LineForce.Length / MathF.Max(0.3f, 2f * MassKg);
-                _resist += dt * MathF.Max(0f, feel - 0.4f) * (0.5f + Species.Senses.LineShy);
+                _resist += dt * Math.Clamp(feel - 0.4f, 0f, 1.5f) * (0.5f + Species.Senses.LineShy); // ~0.3 s reaction at the soonest
                 if (StateTime > _holdTime || _resist > 0.5f)
                 {
                     bool nibble = Style == BiteStyle.Nibble;
@@ -346,11 +391,125 @@ public sealed class Fish
                 break;
 
             case FishState.Hooked:
-                // M6: the fight brain. For now: pull away from the line.
-                _desired = -LineForce.Normalized() + new Vec2(0f, -0.3f);
-                _desiredSpeedCap = BurstSpeed * 0.6f;
+                Fight(dt, ctx);
                 break;
         }
+    }
+
+    /// <summary>The fight brain: moves from the species' fight styles, two stamina pools, and the hook's hold.</summary>
+    private void Fight(float dt, in FishContext ctx)
+    {
+        var fs = Species.Fight;
+        Vec2 head = new(HeadX, HeadY);
+        float t = LineForce.Length;
+        Vec2 away = t > 0.05f ? -LineForce / t : new Vec2(FacingSign, 0f);
+
+        _moveTime -= dt;
+        if (_moveTime <= 0f)
+        {
+            _moveTime = Rng.Range(0.8f, 2.6f);
+            Move = PickMove();
+        }
+        bool tired = StaminaA < 0.12f;
+        switch (tired ? FightMove.Sulk : Move)
+        {
+            case FightMove.Run:
+                _desired = new Vec2(away.X, MathF.Min(away.Y, 0f) - 0.15f);
+                _effort = 1f;
+                break;
+            case FightMove.Dive:
+                _desired = new Vec2(away.X * 0.3f, -1f);
+                _effort = 0.85f;
+                break;
+            case FightMove.Shake:
+                _desired = new Vec2(away.X * 0.2f, MathF.Sin(StateTime * 25f));
+                _effort = 0.6f;
+                break;
+            case FightMove.Circle:
+                // Sunfish turn their flat side to the pull and plane sideways: across the line, alternating.
+                _desired = new Vec2(-away.Y, away.X) * (MathF.Sin(StateTime * 1.3f) > 0f ? 1f : -1f) + away * 0.5f;
+                _effort = 0.7f;
+                break;
+            default:
+                _desired = new Vec2(away.X * 0.2f, -0.6f);
+                _effort = tired ? 0.15f : 0.4f;
+                break;
+        }
+        _desiredSpeedCap = BurstSpeed;
+
+        // Stamina: bursts drain the anaerobic pool fast; it recovers from the aerobic pool when easing off.
+        float use = _effort * (0.25f + 0.75f * StaminaA);
+        StaminaA = Math.Clamp(StaminaA - use * dt / 7f + (1f - _effort) * StaminaB * dt * 0.04f, 0f, 1f);
+        StaminaB = Math.Clamp(StaminaB - use * dt / 90f, 0f, 1f);
+
+        // Hook hold: slack lets it work loose (fast if barbless), headshakes worry it, and too much pull tears a soft mouth.
+        float hard = fs.Mouth.Hardness;
+        bool barbless = HeldTerminal?.Barbless ?? false;
+        if (t < 0.15f) HookHold -= dt * (barbless ? 0.25f : 0.008f);
+        if (Move == FightMove.Shake && t > 0.5f) HookHold -= dt * 0.015f * (1.2f - hard);
+        float tear = 4f + 26f * hard;
+        if (t > tear) HookHold -= (t - tear) / tear * dt * 2f;
+        if (HookHold <= 0f)
+        {
+            HookPulledOut = true;
+            PulledFrom = LureAngler;
+            HookDepth = 0f;
+            HeldTerminal = null;
+            _fleeFrom = head - away;
+            LureAngler = -1;
+            Spook = 1f;
+            _cooldown = 60f;
+            SetState(FishState.Flee);
+        }
+    }
+
+    private FightMove PickMove()
+    {
+        var styles = Species.Fight.Styles;
+        float total = 0f;
+        foreach (var kv in styles) total += kv.Value;
+        float r = Rng.Range(0f, MathF.Max(total, 1e-6f));
+        foreach (var kv in styles)
+        {
+            r -= kv.Value;
+            if (r > 0f) continue;
+            return kv.Key switch
+            {
+                "run" or "structureDash" => FightMove.Run,
+                "dive" or "bulldog" => FightMove.Dive,
+                "headshake" or "jump" or "roll" => FightMove.Shake,
+                "circle" => FightMove.Circle,
+                _ => FightMove.Sulk,
+            };
+        }
+        return FightMove.Run;
+    }
+
+    /// <summary>Landed and let go: back in the water a little way out, tired and wary, not biting for a while.</summary>
+    public void ReleaseAfterCatch(Vec2 at)
+    {
+        Teleport(at);
+        LureAngler = -1;
+        HookDepth = 0f;
+        HookHold = 0f;
+        HeldTerminal = null;
+        StaminaA = 0.2f;
+        Spook = 1f;
+        _fleeFrom = at - new Vec2(FacingSign, 0f);
+        _cooldown = 120f;
+        SetState(FishState.Flee);
+    }
+
+    /// <summary>The line or rod broke: it swims off (with the lure, for now it just shakes it).</summary>
+    public void Lose()
+    {
+        LureAngler = -1;
+        HookDepth = 0f;
+        HeldTerminal = null;
+        Spook = 1f;
+        _fleeFrom = new Vec2(HeadX - FacingSign, HeadY);
+        _cooldown = 90f;
+        SetState(FishState.Flee);
     }
 
     private int FindLure(in FishContext ctx)
@@ -450,6 +609,7 @@ public sealed class Fish
     {
         for (int i = 0; i < Count; i++) { PX[i] = X[i]; PY[i] = Y[i]; }
         PrevYaw = Yaw;
+        HookPulledOut = false;
         Think(dt, ctx);
 
         // Desired velocity → thrust (P-control on velocity, capped by the muscle limit).
@@ -457,7 +617,8 @@ public sealed class Fish
         float arrive = MathF.Min(1f, _desired.Length / MathF.Max(LengthM * 0.8f, 0.05f));
         Vec2 vDes = dir * (_desiredSpeedCap * arrive);
         float fx = MassKg * 6f * (vDes.X - VX), fy = MassKg * 6f * (vDes.Y - VY);
-        float burst = State is FishState.Strike or FishState.Flee or FishState.Hooked ? 1f : 0.35f;
+        float burst = State == FishState.Hooked ? _effort * (0.25f + 0.75f * StaminaA)
+            : State is FishState.Strike or FishState.Flee ? 1f : 0.35f;
         float fmax = MaxThrust * burst;
         float fl = MathF.Sqrt(fx * fx + fy * fy);
         if (fl > fmax) { fx *= fmax / fl; fy *= fmax / fl; }

@@ -20,6 +20,12 @@ public partial class Main : Node2D
     private Camera2D _camera = null!;
     private Node2D _worldRoot = null!;
     private Label _reelHud = null!;
+    private Label _toast = null!;
+    private Label _card = null!;
+    private CanvasModulate _daylight = null!;
+    private double _toastTime, _cardTime;
+    private double _benchTime, _benchWorst;
+    private int _benchFrames;
     private int _frame;
     private bool _capturing;
 
@@ -50,6 +56,7 @@ public partial class Main : Node2D
         var config = TuningStore.Load(warnings);
         foreach (string w in warnings) GD.PushWarning($"Tuning: {w}");
         ApplyWeather(config, _args.Weather);
+        if (_args.TimeOfDay is float hour) config.StartHour = hour;
 
         _worldRoot = new Node2D { Name = "World" };
         AddChild(_worldRoot);
@@ -61,8 +68,11 @@ public partial class Main : Node2D
         _driver.Setup(config, _args);
         _driver.Routers.Add(_router);
         _driver.MouseWorldPx = () => _worldRoot.GetGlobalMousePosition();
+        _driver.EventRaised += OnSimEvent;
         AddChild(_driver);
 
+        _daylight = new CanvasModulate { Name = "Daylight" };
+        AddChild(_daylight);
         _worldRoot.AddChild(new TestSky { Name = "Sky", ZIndex = -10 });
         _worldRoot.AddChild(new WaterRenderer { Name = "Water", Driver = _driver, WaterStartX = TestPond.WaterlineX, ZIndex = 0 });
         _worldRoot.AddChild(new FishRenderer { Name = "Fish", Driver = _driver, ZIndex = 1 });
@@ -102,7 +112,7 @@ public partial class Main : Node2D
         var hint = new Label
         {
             Text = "Cast: Space/B opens the bail, hold LMB/LT (finger on line), swing back and forward, let go  ·  " +
-                   "crank: RMB/RT/wheel  ·  drag: Q/E, Shift+wheel  ·  F1 tuning  ·  F3 loads",
+                   "crank: RMB/RT/wheel  ·  set the hook: sweep the rod  ·  land: F/A  ·  drag: Q/E  ·  F3 loads",
             AnchorLeft = 0f, AnchorRight = 1f, AnchorTop = 1f, AnchorBottom = 1f,
             OffsetTop = -44f, OffsetBottom = -12f, OffsetLeft = 16f,
         };
@@ -116,6 +126,69 @@ public partial class Main : Node2D
         _reelHud.AddThemeColorOverride("font_outline_color", Colors.Black);
         _reelHud.AddThemeConstantOverride("outline_size", 4);
         hud.AddChild(_reelHud);
+
+        _toast = new Label { AnchorLeft = 0.5f, AnchorRight = 0.5f, OffsetLeft = -400f, OffsetRight = 400f, OffsetTop = 110f, HorizontalAlignment = HorizontalAlignment.Center };
+        _toast.AddThemeFontSizeOverride("font_size", 34);
+        _toast.AddThemeColorOverride("font_outline_color", Colors.Black);
+        _toast.AddThemeConstantOverride("outline_size", 6);
+        hud.AddChild(_toast);
+
+        _card = new Label { AnchorLeft = 0.5f, AnchorRight = 0.5f, OffsetLeft = -420f, OffsetRight = 420f, OffsetTop = 170f, HorizontalAlignment = HorizontalAlignment.Center };
+        _card.AddThemeFontSizeOverride("font_size", 26);
+        _card.AddThemeColorOverride("font_color", new Color(1f, 0.95f, 0.8f));
+        _card.AddThemeColorOverride("font_outline_color", Colors.Black);
+        _card.AddThemeConstantOverride("outline_size", 6);
+        hud.AddChild(_card);
+    }
+
+    private void Toast(string text, double seconds = 2.5)
+    {
+        _toast.Text = text;
+        _toastTime = seconds;
+    }
+
+    /// <summary>What the angler would notice: hooksets, breaks, a thrown hook, a landed fish (no bite alerts: watch the float).</summary>
+    private void OnSimEvent(TheLedger.Sim.Core.SimEvent e)
+    {
+        if (e.Angler != 0) return;
+        var w = _driver.World;
+        switch (e.Type)
+        {
+            case TheLedger.Sim.Core.SimEventType.HookSet: Toast("Fish on!"); break;
+            case TheLedger.Sim.Core.SimEventType.LineBroke: Toast($"The line broke ({e.Value:0.0} N)", 3.5); break;
+            case TheLedger.Sim.Core.SimEventType.RodBroke: Toast("The rod snapped! (high-sticking under load)", 4); break;
+            case TheLedger.Sim.Core.SimEventType.HookPulled:
+                Toast("It threw the hook", 3);
+                break;
+            case TheLedger.Sim.Core.SimEventType.LandFailed: Toast("Not yet: bring it closer and tire it out", 2); break;
+            case TheLedger.Sim.Core.SimEventType.FishLanded:
+            {
+                var c = w.Catches[^1];
+                _card.Text = $"{c.Species.CommonName}  ({c.Species.ScientificName})\n{c.LengthCm:0.0} cm   {c.WeightKg * 1000f:0} g " +
+                             $"({c.WeightKg * 2.20462f:0.00} lb)   on {w.Anglers[0].Rig.Line.Terminal.Name}\nReleased.   Catches this session: {w.Catches.Count}";
+                _cardTime = 7;
+                _toast.Text = "";
+                break;
+            }
+        }
+    }
+
+    /// <summary>Night falls through a canvas tint: deep blue at night, warm at dawn and dusk.</summary>
+    private void UpdateDaylight()
+    {
+        float h = _driver.World.Hour;
+        float day = h < 5.5f || h > 20.5f ? 0f : h < 7.5f ? (h - 5.5f) / 2f : h > 18.5f ? (20.5f - h) / 2f : 1f;
+        var night = new Color(0.22f, 0.26f, 0.42f);
+        var warm = new Color(1f, 0.78f, 0.62f);
+        var c = night.Lerp(Colors.White, day);
+        float golden = Mathf.Clamp(1f - Mathf.Abs(day - 0.5f) * 2f, 0f, 1f);
+        _daylight.Color = c.Lerp(c * warm, golden * 0.8f);
+    }
+
+    private static string Bar(float frac)
+    {
+        int n = Math.Clamp((int)MathF.Round(frac * 10f), 0, 10);
+        return "[" + new string('|', n) + new string('.', 10 - n) + "]";
     }
 
     /// <summary>Keeps the angler and the end of the line in view, zooming out for long casts (smoothed).</summary>
@@ -147,7 +220,8 @@ public partial class Main : Node2D
         _reelHud.Text = $"{line.Terminal.Name}  (R/X to change when reeled in)\n" +
                         $"Bail {(r.BailOpen ? "OPEN" : "closed")}   drag {r.DragForce / 9.81f:0.0} kg ({r.DragClick}/{r.Spec.DragDetents})\n" +
                         $"line out {line.LineOut:0.0} m   spool {r.LineOnSpool:0} m\n" +
-                        $"tension {line.TipTension:0.0} N{(r.DragSlipping ? "   DRAG SLIPPING" : "")}";
+                        $"tension {line.TipTension:0.0} N {Bar(line.TipTension / (line.Spec.BreakingForceN * line.Spec.KnotFactor))}" +
+                        $"{(r.DragSlipping ? "   DRAG" : "")}\nrod load {Bar(a.Rig.Rod.PeakLoadRatio)}   {(int)_driver.World.Hour:00}:{(int)(_driver.World.Hour % 1f * 60f):00}";
     }
 
     public override void _UnhandledInput(InputEvent e)
@@ -198,6 +272,11 @@ public partial class Main : Node2D
         _router.ShoulderPx = SimSpace.ToPx(_driver.World.Anglers[0].Shoulder);
         _router.MouseRodEnabled = !_tuning.MouseOver;
         UpdateReelHud();
+        UpdateDaylight();
+        _toastTime -= delta;
+        _cardTime -= delta;
+        if (_toastTime <= 0) _toast.Text = "";
+        if (_cardTime <= 0) _card.Text = "";
         FollowCamera(delta);
 
         if (_args.SmokeSeconds is float smoke)
@@ -207,6 +286,21 @@ public partial class Main : Node2D
         }
 
         if (_args.Lockstep) _driver.StepFrame(_driver.TicksPerFrame);
+
+        if (_args.BenchSeconds is float bench)
+        {
+            // Real-time run (uncapped): report frame rate and frame-time spikes, then quit.
+            _benchTime += delta;
+            _benchFrames++;
+            if (_benchTime > 1.0 && delta > _benchWorst) _benchWorst = delta;
+            if (_benchTime >= bench)
+            {
+                GD.Print($"BENCH: {_benchFrames / _benchTime:0} fps average over {_benchTime:0.0} s, worst frame {_benchWorst * 1000:0.0} ms, " +
+                         $"sim step mean {_driver.MeanStepMs:0.000} ms, {_driver.World.Fish.Count} fish");
+                GetTree().Quit(0);
+                _args.BenchSeconds = null;
+            }
+        }
 
         _frame++;
         if (_args.ScreenshotPath != null && _frame >= _args.Frames && !_capturing)
