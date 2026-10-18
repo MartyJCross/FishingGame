@@ -70,7 +70,8 @@ public partial class FishRenderer : Node2D
         float yaw = flipped ? f.Yaw : Mathf.Lerp(f.PrevYaw, f.Yaw, alpha);
         // Facing the camera mid-turn: a short, full-bodied silhouette, never a sliver.
         float squash = 0.38f + 0.62f * MathF.Abs(MathF.Cos(yaw));
-        Vector2 c = _spine[n / 2];
+        // Free fish turn about their middle; a fish held by the line pivots on its mouth.
+        Vector2 c = f.Holding ? _spine[0] : _spine[n / 2];
         for (int i = 0; i < n; i++) _spine[i] = c + (_spine[i] - c) * squash;
         return n;
     }

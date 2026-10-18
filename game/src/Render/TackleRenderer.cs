@@ -141,7 +141,11 @@ public partial class TackleRenderer : Node2D
         }
         // Constant on-screen width whatever the camera zoom (a sub-pixel line breaks up into dashes).
         float px = 1f / MathF.Max(GetViewport().GetCanvasTransform().X.Length(), 0.05f);
-        if (m >= 1) DrawPolylineColors(_linePts.AsSpan(0, m + 1).ToArray(), _lineCols.AsSpan(0, m + 1).ToArray(), (loads ? 2.5f : 1.6f) * px, true);
+        if (m >= 1)
+        {
+            int count = Smooth(m + 1);
+            DrawPolylineColors(_smoothPts.AsSpan(0, count).ToArray(), _smoothCols.AsSpan(0, count).ToArray(), (loads ? 2.5f : 1.6f) * px, true);
+        }
 
         if (line.FloatIndex >= 0 && line.FloatIndex < m) DrawBobber(_linePts[line.FloatIndex + 1], line.Terminal, px);
         DrawTerminal(rig, _linePts[m], px);
@@ -175,6 +179,35 @@ public partial class TackleRenderer : Node2D
         Vector2 c = foot - hn * rr * 0.8f;
         DrawColoredPolygon(Hex(c, rr), ReelBody);
         DrawColoredPolygon(Hex(c + hdir * rr * 0.6f, rr * 0.7f), ReelSpool);
+    }
+
+    private Vector2[] _smoothPts = Array.Empty<Vector2>();
+    private Color[] _smoothCols = Array.Empty<Color>();
+    private const int SmoothSteps = 3;
+
+    /// <summary>
+    /// Centripetal-free Catmull-Rom through the line nodes (3 points per segment): the line reads as one continuous
+    /// curve instead of a chain of 10 cm straight pieces. Drawing only; the sim keeps its nodes.
+    /// </summary>
+    private int Smooth(int n)
+    {
+        int need = (n - 1) * SmoothSteps + 1;
+        if (_smoothPts.Length < need) { _smoothPts = new Vector2[need]; _smoothCols = new Color[need]; }
+        int o = 0;
+        for (int i = 0; i < n - 1; i++)
+        {
+            Vector2 p0 = _linePts[Math.Max(i - 1, 0)], p1 = _linePts[i], p2 = _linePts[i + 1], p3 = _linePts[Math.Min(i + 2, n - 1)];
+            for (int s = 0; s < SmoothSteps; s++)
+            {
+                float t = s / (float)SmoothSteps, t2 = t * t, t3 = t2 * t;
+                _smoothPts[o] = 0.5f * (2f * p1 + (-p0 + p2) * t + (2f * p0 - 5f * p1 + 4f * p2 - p3) * t2 + (-p0 + 3f * p1 - 3f * p2 + p3) * t3);
+                _smoothCols[o] = _lineCols[i].Lerp(_lineCols[i + 1], t);
+                o++;
+            }
+        }
+        _smoothPts[o] = _linePts[n - 1];
+        _smoothCols[o] = _lineCols[n - 1];
+        return o + 1;
     }
 
     /// <summary>Two-tone tapered strip: the upper half lighter, the lower half shaded (flat low-poly look).</summary>

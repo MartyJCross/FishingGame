@@ -69,6 +69,36 @@ public class FishTests
     }
 
     [Fact]
+    public void TurningFishStayWhereTheyAre()
+    {
+        // A fish reversing direction turns about its middle: its body centre never jumps (owner bug, v0.4.2).
+        var world = new SimWorld(new SimConfig(), 9);
+        world.Populate(PondStock(), LoadSpecies());
+        var frames = new InputFrame[1];
+        var last = world.Fish.Select(Centre).ToArray();
+        float worst = 0f;
+        int turns = 0;
+        var facing = world.Fish.Select(f => f.FacingSign).ToArray();
+        for (int t = 0; t < 120 * 60; t++)
+        {
+            world.Step(frames);
+            for (int i = 0; i < world.Fish.Count; i++)
+            {
+                var f = world.Fish[i];
+                float c = Centre(f);
+                if (f.FacingSign != facing[i]) { turns++; facing[i] = f.FacingSign; }
+                if (!f.Holding) worst = MathF.Max(worst, MathF.Abs(c - last[i]) / f.LengthM);
+                last[i] = c;
+            }
+        }
+        _out.WriteLine($"{turns} turns in 60 s; largest centre move in one tick {worst:0.000} body lengths");
+        Assert.True(turns > 10);
+        Assert.True(worst < 0.15f);
+
+        static float Centre(TheLedger.Sim.Fish.Fish f) => f.X.Average();
+    }
+
+    [Fact]
     public void BluegillTakeAWormUnderABobber()
     {
         var c = new SimConfig { StartHour = 9f };

@@ -638,9 +638,22 @@ public sealed class Fish
         float diff = want - Yaw;
         if (MathF.Abs(diff) > 1e-3f)
         {
+            float signBefore = FacingSign;
             float rate = (State is FishState.Strike or FishState.Flee ? 16f : 8f) * dt;
             if (MathF.Abs(diff) <= rate) Yaw = want;
             else Yaw += MathF.Sign(diff) * rate;
+            // The body is stored behind the mouth, so a facing flip mirrors it about the mouth. A free fish turns about
+            // its middle instead: move the mouth to the mirror point so the body stays where it was. (A fish held by
+            // the line pivots on its mouth, which is what a hooked fish does.)
+            if (FacingSign != signBefore && !Holding)
+            {
+                float mid = 0f;
+                for (int i = 0; i < Count; i++) mid += X[i];
+                mid /= Count;
+                float shift = 2f * (mid - HeadX);
+                HeadX += shift;
+                _lastHeadX += shift;
+            }
         }
         float facing = MathF.Abs(MathF.Cos(Yaw));
         if (fx * FacingSign < 0f) fx *= 0.15f;

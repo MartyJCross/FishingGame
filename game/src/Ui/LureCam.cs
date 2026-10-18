@@ -25,7 +25,7 @@ public partial class LureCam : SubViewportContainer
         MouseFilter = MouseFilterEnum.Ignore;
         _view = new SubViewport { World2D = GetViewport().World2D, TransparentBg = false, Msaa2D = Viewport.Msaa.Msaa2X };
         AddChild(_view);
-        _cam = new Camera2D { Zoom = new Vector2(1.7f, 1.7f) };
+        _cam = new Camera2D { Zoom = new Vector2(1.15f, 1.15f) };
         _view.AddChild(_cam);
         _cam.MakeCurrent();
 

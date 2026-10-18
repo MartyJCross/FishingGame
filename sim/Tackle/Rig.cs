@@ -133,7 +133,11 @@ public sealed class Rig
         TakenThisTick = 0f;
         EntryCount = 0;
         Rod.SetHandleTarget(grip, angle);
-        Line.SetSolverMassFloor(MathF.Max(c.LineNodeMinMassKg, Line.Terminal.MassKg / MathF.Max(c.LineMassRatioLimit, 1f)));
+        // Solver mass floor: an absolute minimum, a share of the terminal's mass, and enough that a taut line's sideways
+        // vibration (stiffness ~ 2T/segment) stays slower than the substep, or the chain zigzags under load.
+        float hSub = dt / Math.Max(1, c.TackleSubsteps);
+        float tensionFloor = c.LineTensionMassFactor * Line.MaxTension * hSub * hSub / MathF.Max(c.LineSegmentLength, 0.02f);
+        Line.SetSolverMassFloor(MathF.Max(MathF.Max(c.LineNodeMinMassKg, Line.Terminal.MassKg / MathF.Max(c.LineMassRatioLimit, 1f)), tensionFloor));
         if (payOutDelta != 0f)
         {
             float before = Line.LineOut;
@@ -436,6 +440,21 @@ public sealed class Rig
             if (l.InContact[k]) Friction(ref vx, ref vy, c.GroundFriction);
             Clamp(ref vx, ref vy, vmax);
             l.VX[k] = vx * settle; l.VY[k] = vy * settle;
+        }
+        // Internal damping: nudge each node's velocity toward its neighbours' average (the line's own friction).
+        // It removes the node-to-node sawtooth a stiff chain picks up under high tension, but leaves smooth motion alone.
+        float beta = c.LineInternalDamping;
+        if (beta > 0f && l.Count > 2)
+        {
+            float pvx = l.VX[0], pvy = l.VY[0];
+            int last = l.Pinned ? l.Count - 1 : l.Count - 1;
+            for (int k = 1; k < last; k++)
+            {
+                float cvx = l.VX[k], cvy = l.VY[k];
+                l.VX[k] = cvx + beta * (0.5f * (pvx + l.VX[k + 1]) - cvx);
+                l.VY[k] = cvy + beta * (0.5f * (pvy + l.VY[k + 1]) - cvy);
+                pvx = cvx; pvy = cvy;
+            }
         }
     }
 

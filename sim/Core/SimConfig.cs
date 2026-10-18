@@ -44,7 +44,7 @@ public sealed class SimConfig
     public int TackleSubsteps = 8;
 
     [Tunable("Solver", 16, 400, Help = "Most nodes a line may use")]
-    public int MaxLineNodes = 160;
+    public int MaxLineNodes = 200;
 
     // ---------- tackle solver (docs/04_PHYSICS_SPEC.md §2-§5) ----------
 
@@ -62,6 +62,12 @@ public sealed class SimConfig
 
     [Tunable("Line", 0.02f, 0.5f, Help = "Line node spacing, m")]
     public float LineSegmentLength = 0.1f;
+
+    [Tunable("Line", 0f, 20f, Help = "Line node solver mass grows with tension × this (keeps a taut line from zigzagging)")]
+    public float LineTensionMassFactor = 6f;
+
+    [Tunable("Line", 0f, 0.5f, Help = "Line internal damping per substep (pulls node velocities toward their neighbours'; kills sawtooth)")]
+    public float LineInternalDamping = 0.3f;
 
     [Tunable("Line", 0f, 0.002f, Help = "Minimum line node mass inside the solver, kg (stability; gravity and drag use the real mass)")]
     public float LineNodeMinMassKg = 5e-5f;
@@ -82,7 +88,7 @@ public sealed class SimConfig
     public float GroundFriction = 0.6f;
 
     [Tunable("Line", 50f, 400f, Help = "Line nodes target: spacing grows to line out / this (long casts stay affordable)")]
-    public float LineNodesTarget = 110f;
+    public float LineNodesTarget = 130f;
 
     [Tunable("Reel", 0.5f, 8f, Help = "Most torque a hand puts on the reel handle, N·m (sets the cranking stall force)")]
     public float HandCrankTorque = 3f;
