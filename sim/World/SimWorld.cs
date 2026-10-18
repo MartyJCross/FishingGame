@@ -367,8 +367,8 @@ public sealed class SimWorld
             float speed = MathF.Sqrt(l.VX[t] * l.VX[t] + l.VY[t] * l.VY[t]);
             foreach (var z in Spot.Structures)
             {
-                if (z.Snag <= 0f || !z.Contains(p)) continue;
-                if (!Rng.Chance(z.Snag * MathF.Min(1f, speed / 0.3f) * 0.8f * dt)) continue;
+                if (z.Snag <= 0f || !z.Touches(p)) continue;
+                if (!Rng.Chance(z.Snag * MathF.Min(1f, speed / 0.3f) * 1.5f * dt)) continue;
                 s.On = true;
                 s.At = p;
                 s.HoldN = Rng.Range(z.HoldMinN, z.HoldMaxN);

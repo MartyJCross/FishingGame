@@ -342,25 +342,13 @@ public partial class TestView : Node2D
         {
             case "wood":
             {
-                // A fallen tree: trunk from the bank end sloping down to the bottom, branches reaching up and out.
-                var a = new Vector2(z.X0, z.Y1);
-                var b = new Vector2(z.X1, w.Spot.GroundHeight(z.X1) + 0.25f);
-                Lp.Limb(this, Wood, a, b, 0.42f, 0.3f);
-                for (int i = 0; i < 9; i++)
+                // The fallen tree the sim lays out (hooks snag on exactly these pieces).
+                for (int i = 0; i < z.Parts.Length; i++)
                 {
-                    var root = a.Lerp(b, 0.12f + 0.85f * i / 8f);
-                    float ang = rng.RandfRange(0.5f, 2.6f) * (i % 3 == 2 ? -0.4f : 1f);
-                    float len = rng.RandfRange(0.7f, 1.7f);
-                    var tip = root + new Vector2(MathF.Cos(ang), MathF.Sin(ang)) * len;
-                    tip.Y = MathF.Min(tip.Y, -0.15f);
-                    Lp.Limb(this, i % 2 == 0 ? Wood : WoodLight, root, tip, 0.12f, 0.03f);
-                    var mid = root.Lerp(tip, 0.55f);
-                    float a2 = ang + rng.RandfRange(-0.9f, 0.9f);
-                    var twig = mid + new Vector2(MathF.Cos(a2), MathF.Sin(a2)) * len * 0.45f;
-                    twig.Y = MathF.Min(twig.Y, -0.12f);
-                    Lp.Limb(this, Wood, mid, twig, 0.05f, 0.015f);
+                    var part = z.Parts[i];
+                    Lp.Limb(this, i % 4 == 1 ? WoodLight : Wood, new Vector2(part.A.X, part.A.Y), new Vector2(part.B.X, part.B.Y), part.RA * 2f, part.RB * 2f);
                 }
-                Lp.Ngon(this, WoodLight, a, 0.23f, 7, 0.4f); // the broken-off root end at the bank
+                if (z.Parts.Length > 0) Lp.Ngon(this, WoodLight, new Vector2(z.Parts[0].A.X, z.Parts[0].A.Y), 0.23f, 7, 0.4f); // root end
                 break;
             }
             case "lilyPads":
