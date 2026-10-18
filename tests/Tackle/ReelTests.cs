@@ -15,7 +15,11 @@ public class ReelTests
     /// A scripted overhead cast with the half-ounce sinker: open the bail, finger on the line, rod back, sweep forward,
     /// let go at about 10 o'clock. Returns the world after it has landed and settled.
     /// </summary>
-    internal static SimWorld Cast(float releaseAngle, out float lineBefore, InputRecording? rec = null, float lip = -1f, Action<SimConfig>? configure = null)
+    [ThreadStatic] private static float LowestLure;
+    [ThreadStatic] private static bool TouchedGround;
+
+    internal static SimWorld Cast(float releaseAngle, out float lineBefore, InputRecording? rec = null, float lip = -1f, Action<SimConfig>? configure = null,
+        float lead = float.PositiveInfinity, float back = 2.5f)
     {
         var c = new SimConfig();
         configure?.Invoke(c);
@@ -29,10 +33,12 @@ public class ReelTests
         {
             float time = t * c.Dt;
             frame.Buttons = t == 2 ? InputButtons.Bail : InputButtons.None;
-            if (time < 1.0f) { frame.RodTargetAngle = 2.5f; frame.LineHold = 1f; }      // load up behind
+            float angle = world.Anglers[0].Hands.Angle;
+            // lead: how far the input may run ahead of the rod (the game's mouse router); infinite = scripted step.
+            if (time < 1.0f) { frame.RodTargetAngle = MathF.Min(back, angle + lead); frame.LineHold = 1f; } // load up behind
             else if (time < 1.6f)
             {
-                frame.RodTargetAngle = 0.35f;                                             // sweep forward
+                frame.RodTargetAngle = MathF.Max(0.35f, angle - lead);                   // sweep forward
                 if (!released && world.Anglers[0].Hands.Angle < releaseAngle) released = true;
                 frame.LineHold = released ? 0f : 1f;
             }
@@ -40,8 +46,24 @@ public class ReelTests
             frames[0] = frame;
             rec?.AddTick(frames);
             world.Step(frames);
+            var ln = world.Anglers[0].Rig.Line;
+            if (time < 1.6f) { LowestLure = MathF.Min(LowestLure, ln.TerminalPos.Y); if (ln.InContact[ln.TerminalIndex] && ln.TerminalPos.Y > 0.3f) TouchedGround = true; }
         }
         return world;
+    }
+
+    /// <summary>What a mouse cast gets: the input can only lead the rod by <paramref name="lead"/> rad (InputRouter.MaxLead).</summary>
+    [Theory]
+    [InlineData(0.6f, 2.5f)]
+    [InlineData(0.6f, 2.7f)] // the full backswing (HandMaxAngle): deeper ones fling the lure up, not out
+    public void MouseCastDistance(float lead, float back)
+    {
+        LowestLure = float.MaxValue; TouchedGround = false;
+        var world = Cast(1.1f, out _, lead: lead, back: back);
+        var a = world.Anglers[0];
+        float dist = a.Rig.Line.TerminalPos.X - a.Rig.Rod.TipPos.X;
+        _out.WriteLine($"lead {lead} rad, back to {back}: sinker {dist:0.0} m out, lowest lure y during the cast {LowestLure:0.00} m (bank top 0.6), touched ground {TouchedGround}");
+        Assert.True(dist > 12f, "a full mouse cast should go well past the near cover");
     }
 
     [Fact]

@@ -103,6 +103,12 @@ public sealed class Rod
     /// <summary>Highest moment / limit ratio over the joints last tick (1 = at the breaking point).</summary>
     public float PeakLoadRatio { get; private set; }
 
+    /// <summary>The load the rod breaks on: <see cref="PeakLoadRatio"/> averaged over ~40 ms (see Line.BreakLoad: the
+    /// solver's heavy line nodes make brief tension spikes real line wouldn't).</summary>
+    public float BreakLoadRatio { get; private set; }
+
+    public void TrackBreakLoad(float dt) => BreakLoadRatio += (PeakLoadRatio - BreakLoadRatio) * MathF.Min(1f, dt / 0.04f);
+
     public Vec2 Node(int i) => new(X[i], Y[i]);
     public Vec2 TipPos => new(X[Tip], Y[Tip]);
     public Vec2 TipPrev => new(PX[Tip], PY[Tip]);

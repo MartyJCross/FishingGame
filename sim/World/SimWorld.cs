@@ -386,15 +386,15 @@ public sealed class SimWorld
             var a = _anglers[i];
             var l = a.Rig.Line;
             float limit = l.Spec.BreakingForceN * l.Spec.KnotFactor;
-            bool lineBroke = l.MaxTension > limit;
-            bool rodBroke = a.Rig.Rod.PeakLoadRatio > 1f;
+            bool lineBroke = l.BreakLoad > limit;
+            bool rodBroke = a.Rig.Rod.BreakLoadRatio > 1f;
             if (!lineBroke && !rodBroke) continue;
             var fish = FishOn(i);
             fish?.Lose();
             Events.Push(new SimEvent
             {
                 Type = rodBroke ? SimEventType.RodBroke : SimEventType.LineBroke, Tick = Tick, Angler = i,
-                Id = fish?.Id ?? -1, Value = rodBroke ? a.Rig.Rod.PeakLoadRatio : l.MaxTension, Position = l.TerminalPos,
+                Id = fish?.Id ?? -1, Value = rodBroke ? a.Rig.Rod.BreakLoadRatio : l.BreakLoad, Position = l.TerminalPos,
             });
             // The line parts near the lure; the rest comes back. (A broken rod is swapped for a spare for now.)
             a.RetrieveToTip(Config, lost: lineBroke ? 1f : 0f);

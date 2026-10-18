@@ -157,9 +157,20 @@ public sealed class Line
     /// <summary>Peak line tension averaged over ~1.5 s: a cast's brief load stays low, a fight's steady pull counts.</summary>
     public float SustainedTension { get; private set; }
 
-    /// <summary>Updates <see cref="SustainedTension"/> from this tick's peak tension.</summary>
-    public void TrackSustainedTension(float dt) =>
+    /// <summary>
+    /// The load the line breaks on: peak tension averaged over ~40 ms. The solver's stabilising node mass (tens of
+    /// times the real line's) makes a sudden rod movement send a tension wave down the line that real line, being
+    /// that much lighter, wouldn't have; it passes in a couple of ticks. Real overloads (a locked drag, a big fish)
+    /// last far longer and still break the line.
+    /// </summary>
+    public float BreakLoad { get; private set; }
+
+    /// <summary>Updates <see cref="SustainedTension"/> and <see cref="BreakLoad"/> from this tick's peak tension.</summary>
+    public void TrackSustainedTension(float dt)
+    {
         SustainedTension += (MaxTension - SustainedTension) * MathF.Min(1f, dt / 1.5f);
+        BreakLoad += (MaxTension - BreakLoad) * MathF.Min(1f, dt / 0.04f);
+    }
 
     /// <summary>Per-node extra solver mass per newton of sustained tension (keeps taut segments from zigzagging).</summary>
     public float TensionMassCoef { get; private set; }

@@ -41,7 +41,10 @@ public sealed class Hands
 
         // The arm's range spans more than half a turn (flat behind to below horizontal), so no angle wrapping here:
         // the input side hands over a target already in [min, max].
-        float target = Math.Clamp(targetAngle, c.HandMinAngle, c.HandMaxAngle);
+        // With line out and the bail closed the rod stops just past upright (the fighting position): sweeping it
+        // back over your shoulder against a fish bends it backwards (high-sticking) and breaks rods.
+        float maxAngle = fishing ? MathF.Min(c.HandMaxAngle, c.HandFishingMaxAngle) : c.HandMaxAngle;
+        float target = Math.Clamp(targetAngle, c.HandMinAngle, maxAngle);
         float error = target - Angle;
         // Track the target with no overshoot: head for it at a speed proportional to the gap (HandStiffness = 1/time
         // constant), within the arm's top speed and acceleration. Predictable: the rod stops where the input stops.
@@ -54,7 +57,11 @@ public sealed class Hands
         Angle += AngularVelocity * dt;
 
         if (Angle < c.HandMinAngle) { Angle = c.HandMinAngle; AngularVelocity = MathF.Max(0f, AngularVelocity); }
-        if (Angle > c.HandMaxAngle) { Angle = c.HandMaxAngle; AngularVelocity = MathF.Min(0f, AngularVelocity); }
+        if (Angle > maxAngle)
+        {
+            // Closing the bail with the rod back: bring it up to the limit smoothly rather than snapping it.
+            if (Angle - AngularVelocity * dt <= maxAngle) { Angle = maxAngle; AngularVelocity = MathF.Min(0f, AngularVelocity); }
+        }
 
         // Reach eases toward its target; arms move in and out more slowly than they swing.
         float r = Math.Clamp(targetReach, 0f, 1f);

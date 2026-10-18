@@ -80,7 +80,7 @@ public sealed class AnglerState
         LastInput = input;
         PrevPosition = Position;
         // Fast casting arms only while the bail is open; otherwise calm, so reeling in never changes how the rod moves.
-        bool fishing = !Reel.BailOpen;
+        bool fishing = !Reel.BailOpen && Rig.Line.LineOut > c.RetieMaxLineOut;
         Hands.Step(c, dt, input.RodTargetAngle, input.RodReach, fishing);
 
         bool land = input.Has(InputButtons.Land);

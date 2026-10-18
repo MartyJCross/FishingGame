@@ -463,6 +463,7 @@ public partial class Main : Node2D
     {
         _router.ShoulderPx = SimSpace.ToPx(_driver.World.Anglers[0].Shoulder);
         _router.RodAngle = _driver.World.Anglers[0].Hands.Angle;
+        _router.ArmMax = _driver.Config.HandMaxAngle; // the backswing stops where the arms do
         bool panel = _menu.Visible || _shop.Visible || _travel.Visible || _story.Visible || _ledger.Visible || GameMenu.IsOpen;
         PanelOpen = _menu.Visible || _shop.Visible || _travel.Visible || _story.Visible;
         if (!_briefed && !_automated && !GameMenu.IsOpen) { _briefed = true; StoryBriefing(); } // after the title

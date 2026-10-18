@@ -189,6 +189,7 @@ public sealed class Rig
         Rod.EndTick();
         Line.EndTick();
         Line.TrackSustainedTension(dt);
+        Rod.TrackBreakLoad(dt);
         UpdateLure(c, dt, env);
     }
 

@@ -152,7 +152,10 @@ public sealed class SimConfig
     public float HandMinAngle = -1.2f;
 
     [Tunable("Hands", 0f, 3.2f, Help = "Highest rod angle the arms allow, rad (π/2 = vertical)")]
-    public float HandMaxAngle = 3.1f;
+    public float HandMaxAngle = 2.7f;
+
+    [Tunable("Hands", 1.2f, 3.2f, Help = "Highest rod angle with the bail closed and line out (fighting position; no high-sticking), rad")]
+    public float HandFishingMaxAngle = 1.75f;
 
     [Tunable("Hands", 1f, 30f, Help = "Fastest arm swing once the lure is out and the bail is closed (no line-snapping yanks), rad/s")]
     public float HandFishingMaxSpeed = 18f;
