@@ -31,6 +31,8 @@ public partial class Main : Node2D
     private StoryPanel _story = null!;
     private SpeciesGuide _guide = null!;
     private Label _card = null!;
+    private CatchCard _catchCard = null!;
+    private CanvasLayer _hud = null!;
     private LedgerPanel _ledger = null!;
     private TheLedger.Ui.TackleMenu _menu = null!;
     private TheLedger.Ui.ShopPanel _shop = null!;
@@ -49,6 +51,7 @@ public partial class Main : Node2D
         // Logs, overlays and files always use '.' decimals, whatever the PC's region setting.
         System.Globalization.CultureInfo.DefaultThreadCurrentCulture = System.Globalization.CultureInfo.InvariantCulture;
         System.Globalization.CultureInfo.CurrentCulture = System.Globalization.CultureInfo.InvariantCulture;
+        UiFonts.Install();
 
         _args = CommandLine.Parse(OS.GetCmdlineUserArgs());
         foreach (string e in _args.Errors) GD.PushWarning($"Command line: {e}");
@@ -148,7 +151,7 @@ public partial class Main : Node2D
 
     private void BuildHud()
     {
-        var hud = new CanvasLayer { Name = "Hud", Layer = 5 };
+        var hud = _hud = new CanvasLayer { Name = "Hud", Layer = 5 };
         AddChild(hud);
         var version = new Label { Text = $"The Ledger  v{Version}", Position = new Vector2(16, 12) };
         version.AddThemeFontSizeOverride("font_size", 24);
@@ -193,6 +196,9 @@ public partial class Main : Node2D
         _card.AddThemeConstantOverride("outline_size", 6);
         hud.AddChild(_card);
 
+        _catchCard = new CatchCard { Name = "CatchCard" };
+        hud.AddChild(_catchCard);
+
         _ledger = new LedgerPanel { Name = "Ledger" };
         hud.AddChild(_ledger);
         hud.AddChild(_menu);
@@ -210,6 +216,8 @@ public partial class Main : Node2D
         if (_args.Panel?.StartsWith("guide:") == true) _guide.CallDeferred(nameof(SpeciesGuide.OpenSpecies), _args.Panel[6..]);
         if (_args.Panel == "notes") _story.CallDeferred(nameof(StoryPanel.Open));
         if (_args.Panel == "fight") _driver.DebugHookBass();
+        if (_args.Panel == "catch" && _driver.Species.FirstOrDefault(sp => sp.Id == "florida_bass") is { } bass)
+            _catchCard.CallDeferred(nameof(CatchCard.ShowSample), bass.Id); // screenshot check of the catch card
     }
 
     private void Toast(string text, double seconds = 2.5)
@@ -260,8 +268,9 @@ public partial class Main : Node2D
                     3 => $"Must be released here.   Release: {rel}",
                     _ => $"Keep: {pad}     Release: {rel}",
                 };
-                _card.Text = (_driver.Legends.TryGetValue(c.FishId, out var named) ? $"*  {named.name}  *\n" : "") + CatchLine(c) + $"\n[ {choice} ]";
-                _cardTime = 1e9;
+                var prior = LedgerStore.Entries.Where(en => en.Species == c.Species.Id).ToList();
+                _catchCard.ShowCatch(c, _driver.Legends.TryGetValue(c.FishId, out var named) ? named.name : "", choice,
+                                     prior.Count == 0, prior.Count > 0 ? prior.Max(en => en.WeightKg) : 0f);
                 _toast.Text = "";
                 break;
             }
@@ -286,8 +295,7 @@ public partial class Main : Node2D
                 });
                 if (!_automated && Story.CurrentComplete) StoryMoment(Story.Advance());
                 int keptCount = w.Catches.Count(k => k.Kept);
-                _card.Text = CatchLine(c) + $"\n{(kept ? "Kept" : "Released")}.   This session: {w.Catches.Count(k => !k.Pending)} landed, {keptCount} kept.   Ledger: {LedgerStore.Entries.Count}";
-                _cardTime = 5;
+                _catchCard.Resolve(kept, $"This session: {w.Catches.Count(k => !k.Pending)} landed, {keptCount} kept.   Ledger: {LedgerStore.Entries.Count} fish");
                 if (_ledger.Visible) _ledger.Refresh();
                 break;
             }
@@ -433,6 +441,7 @@ public partial class Main : Node2D
             bool full = DisplayServer.WindowGetMode() is DisplayServer.WindowMode.Fullscreen or DisplayServer.WindowMode.ExclusiveFullscreen;
             DisplayServer.WindowSetMode(full ? DisplayServer.WindowMode.Windowed : DisplayServer.WindowMode.Fullscreen);
         }
+        if (e is InputEventKey { Pressed: true, Echo: false, PhysicalKeycode: Key.H }) ControlsHud.ToggleHints();
         if (e.IsActionPressed(InputActions.ToggleLedger)) _ledger.Toggle();
         if (e.IsActionPressed(InputActions.ToggleTuning)) _tuning.Toggle();
         if (e.IsActionPressed(InputActions.ToggleDebug)) _overlay.Toggle();
@@ -483,6 +492,7 @@ public partial class Main : Node2D
         bool panel = _menu.Visible || _shop.Visible || _travel.Visible || _story.Visible || _guide.Visible || _ledger.Visible || GameMenu.IsOpen;
         PanelOpen = _menu.Visible || _shop.Visible || _travel.Visible || _story.Visible || _guide.Visible;
         if (!_briefed && !_automated && !GameMenu.IsOpen) { _briefed = true; StoryBriefing(); } // after the title
+        _hud.Visible = !GameMenu.IsOpen; // the title and pause menus show the scene, not the HUD
         _radioTime -= delta;
         _radio.Visible = _radioTime > 0;
         _router.MouseRodEnabled = !_tuning.MouseOver && !panel;

@@ -37,10 +37,24 @@ public partial class ControlsHud : Control
         ("Tab", "tackle", () => Input.IsKeyPressed(Key.Tab)),
     };
 
+    /// <summary>Whether the key chips show (H toggles; saved in settings).</summary>
+    public static bool ShowHints = true;
+
+    public static void ToggleHints()
+    {
+        ShowHints = !ShowHints;
+        var cfg = new ConfigFile();
+        cfg.Load("user://settings.cfg");
+        cfg.SetValue("ui", "hints", ShowHints);
+        cfg.Save("user://settings.cfg");
+    }
+
     public override void _Ready()
     {
         SetAnchorsAndOffsetsPreset(LayoutPreset.FullRect);
         MouseFilter = MouseFilterEnum.Ignore;
+        var cfg = new ConfigFile();
+        if (cfg.Load("user://settings.cfg") == Error.Ok) ShowHints = (bool)cfg.GetValue("ui", "hints", true);
     }
 
     public override void _Process(double delta)
@@ -63,7 +77,7 @@ public partial class ControlsHud : Control
                                        (int)(f.HookHold * 40f), f.Airborne ? (int)(Time.GetTicksMsec() / 150) : f.HookTearing ? (int)(Time.GetTicksMsec() / 150) : 0);
         int key = HashCode.Combine((int)(line.TipTension * 4f), r.DragClick, (int)(line.LineOut * 10f), r.BailOpen, r.DragSlipping,
                                    HashCode.Combine(held, (int)(_dragPop * 20f), (int)(_bailPop * 20f), fishKey, (int)(r.Loose * 50f), r.BrakeClick,
-                                                    (int)GetViewportRect().Size.Y));
+                                                    (int)GetViewportRect().Size.Y, ShowHints));
         if (key != _drawnKey) { _drawnKey = key; QueueRedraw(); }
     }
 
@@ -83,7 +97,8 @@ public partial class ControlsHud : Control
         var line = a.Rig.Line;
         float vh = GetViewportRect().Size.Y;
 
-        const float w0 = 500f, h = 160f, pad = 14f;
+        const float w0 = 500f, pad = 14f;
+        float h = ShowHints ? 160f : 112f;
         const float w = w0;
         var box = new Rect2(16f, vh - 16f - h, w, h);
         DrawRect(box, Panel);
@@ -175,7 +190,12 @@ public partial class ControlsHud : Control
             DrawString(font, new Vector2(x, fy + 16f), state, HorizontalAlignment.Left, -1, 15, reach ? Lit : Dim);
         }
 
-        // Key chips, two rows; a chip lights while its key is held.
+        // Key chips, two rows; a chip lights while its key is held. H hides them.
+        if (!ShowHints)
+        {
+            DrawString(font, new Vector2(box.End.X - pad - 120f, box.End.Y - pad + 2f), "H  key hints", HorizontalAlignment.Right, 120f, 13, Dim with { A = 0.6f });
+            return;
+        }
         float cx = x, cy = y;
         foreach (var (key, label, held) in Chips)
         {

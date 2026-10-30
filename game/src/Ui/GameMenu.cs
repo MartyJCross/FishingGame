@@ -28,7 +28,8 @@ public partial class GameMenu : CanvasLayer
         _root = new Control { MouseFilter = Control.MouseFilterEnum.Stop };
         _root.SetAnchorsPreset(Control.LayoutPreset.FullRect);
         AddChild(_root);
-        var dim = new ColorRect { Color = new Color(0.02f, 0.04f, 0.06f, 0.55f), MouseFilter = Control.MouseFilterEnum.Ignore };
+        _root.Theme = MenuTheme();
+        var dim = new ColorRect { Color = new Color(0.02f, 0.04f, 0.06f, 0.38f), MouseFilter = Control.MouseFilterEnum.Ignore };
         dim.SetAnchorsPreset(Control.LayoutPreset.FullRect);
         _root.AddChild(dim);
         var center = new CenterContainer { MouseFilter = Control.MouseFilterEnum.Ignore };
@@ -64,9 +65,33 @@ public partial class GameMenu : CanvasLayer
         if (IsInsideTree()) GetTree().Paused = false;
     }
 
-    private Label Heading(string text, int size)
+    /// <summary>Menu look: translucent dark buttons that turn to field-guide paper when pointed at.</summary>
+    private static Theme MenuTheme()
+    {
+        var t = new Theme { DefaultFont = UiFonts.Bold, DefaultFontSize = 21 };
+        StyleBoxFlat Box(Color bg, Color border)
+        {
+            var b = new StyleBoxFlat { BgColor = bg, BorderColor = border, ContentMarginLeft = 18, ContentMarginRight = 18, ContentMarginTop = 8, ContentMarginBottom = 8 };
+            b.SetBorderWidthAll(1);
+            b.SetCornerRadiusAll(5);
+            return b;
+        }
+        var paper = new Color(0.95f, 0.92f, 0.84f, 0.96f);
+        var ink = new Color(0.13f, 0.15f, 0.16f);
+        t.SetStylebox("normal", "Button", Box(new Color(0.04f, 0.07f, 0.09f, 0.66f), new Color(1f, 1f, 1f, 0.14f)));
+        t.SetStylebox("hover", "Button", Box(paper, new Color(0.62f, 0.52f, 0.36f)));
+        t.SetStylebox("pressed", "Button", Box(paper.Darkened(0.12f), new Color(0.62f, 0.52f, 0.36f)));
+        t.SetStylebox("focus", "Button", new StyleBoxEmpty());
+        t.SetColor("font_color", "Button", new Color(0.93f, 0.95f, 0.95f));
+        t.SetColor("font_hover_color", "Button", ink);
+        t.SetColor("font_pressed_color", "Button", ink);
+        return t;
+    }
+
+    private Label Heading(string text, int size, Font? font = null)
     {
         var l = new Label { Text = text, HorizontalAlignment = HorizontalAlignment.Center };
+        if (font != null) l.AddThemeFontOverride("font", font);
         l.AddThemeFontSizeOverride("font_size", size);
         l.AddThemeColorOverride("font_outline_color", Colors.Black);
         l.AddThemeConstantOverride("outline_size", 6);
@@ -86,8 +111,8 @@ public partial class GameMenu : CanvasLayer
     private void Title()
     {
         Open();
-        Heading("The Ledger", 64);
-        Heading("Florida's Nature Coast", 22).Modulate = new Color(0.85f, 0.92f, 0.9f);
+        Heading("The Ledger", 104, UiFonts.Title).AddThemeConstantOverride("outline_size", 10);
+        Heading("A field guide to Florida's Nature Coast", 24, UiFonts.TitleLight).Modulate = new Color(0.9f, 0.94f, 0.92f);
         _box.AddChild(new Control { CustomMinimumSize = new Vector2(0, 18) });
         bool hasSave = Godot.FileAccess.FileExists("user://profile.json");
         Item(hasSave ? "Continue" : "Start fishing", Close);
@@ -100,7 +125,7 @@ public partial class GameMenu : CanvasLayer
     private void Pause()
     {
         Open();
-        Heading("Paused", 44);
+        Heading("Paused", 56, UiFonts.Title);
         Item("Resume", Close);
         Item("Settings", () => Settings(Pause));
         Item("Quit to desktop", Quit);
@@ -126,7 +151,7 @@ public partial class GameMenu : CanvasLayer
     private void Settings(Action back)
     {
         Open();
-        Heading("Settings", 40);
+        Heading("Settings", 48, UiFonts.Title);
         var cfg = new ConfigFile();
         cfg.Load(SettingsPath);
 

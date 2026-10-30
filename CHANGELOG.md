@@ -2,6 +2,15 @@
 
 Newest first. Each version handed to the owner gets an entry: what changed, what to try, known issues.
 
+## v0.14.0: The catch moment, type and menus (2026-10-30)
+
+- Landing a fish brings down a field-guide card: the fish's picture, its common and scientific names, length and
+  weight, what it's worth, and stamps for a NEW SPECIES, a PERSONAL BEST or a LEGEND. It says Kept or Released when
+  you decide, then slides away.
+- New type throughout: Fraunces (a soft serif) for titles and fish names, Fira Sans for the HUD and menus.
+- The title and pause menus show the scene without the HUD, with a big title and paper-style buttons.
+- H hides or shows the key hints under the tension bar (remembered).
+
 ## v0.13.0: A living world (2026-10-30)
 
 - Flocks of small birds cross the sky by day, and now and then a great egret flaps slowly past low over the water.
