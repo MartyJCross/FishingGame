@@ -34,7 +34,6 @@ public partial class WaterRenderer : Node2D
     private readonly Vector2[] _surface = new Vector2[MaxSamples];
     private readonly Color[] _surfaceColors = new Color[MaxSamples];
     private readonly Vector2[] _stripPoints = new Vector2[MaxSamples * 2];
-    private readonly Color[] _stripColors = new Color[MaxSamples * 2];
     private int[] _stripIndices = Array.Empty<int>();
     private readonly Vector2[] _bandPoints = new Vector2[MaxSamples * 2];
     private readonly Color[] _bandColors = new Color[MaxSamples * 2];
@@ -52,10 +51,89 @@ public partial class WaterRenderer : Node2D
     private int _ringCount;
     private long _lastImpact;
 
+    private DrawLayer _band = null!, _volume = null!;
+    private ShaderMaterial _bandMat = null!, _volumeMat = null!;
+    private int _n;
+    private readonly Vector2[] _bandUvs = new Vector2[MaxSamples * 2];
+    private readonly Color[] _white = new Color[MaxSamples * 2];
+
+    /// <summary>The bank, plants and cover below the surface use this (fog toward the water colour, caustics).</summary>
+    public ShaderMaterial Underwater { get; private set; } = null!;
+
+    /// <summary>How deep the volume is drawn, m (deeper than any spot; the bank is drawn in front).</summary>
+    private const float VolumeBottom = -16f;
+
+    public override void _EnterTree()
+    {
+        // Built before _Ready so Main can hand it to the bank and cover as they're created.
+        Underwater = new ShaderMaterial { Shader = GD.Load<Shader>("res://shaders/underwater.gdshader") };
+    }
+
+    public override void _Ready()
+    {
+        Array.Fill(_white, Colors.White);
+        _bandMat = new ShaderMaterial { Shader = GD.Load<Shader>("res://shaders/water_band.gdshader") };
+        _volumeMat = new ShaderMaterial { Shader = GD.Load<Shader>("res://shaders/water_volume.gdshader") };
+        _band = new DrawLayer { Name = "Band", ShowBehindParent = true, Material = _bandMat, Paint = PaintBand };
+        _volume = new DrawLayer { Name = "Volume", ShowBehindParent = true, Material = _volumeMat, Paint = PaintVolume };
+        AddChild(_band);
+        AddChild(_volume);
+
+        var spot = Driver.World.Spot;
+        var profile = new Vector2[16];
+        int count = Math.Min(spot.PointCount, 16);
+        for (int i = 0; i < count; i++) profile[i] = new Vector2(spot.Point(i).X, spot.Point(i).Y);
+        float vis = Driver.World.Stock.VisibilityM;
+        Underwater.SetShaderParameter("profile", profile);
+        Underwater.SetShaderParameter("profile_count", count);
+        Underwater.SetShaderParameter("visibility", vis);
+        Underwater.SetShaderParameter("water_col", Shallow.Lerp(Deep, 0.45f) with { A = 1f });
+        _volumeMat.SetShaderParameter("visibility", vis);
+        _volumeMat.SetShaderParameter("shallow", Shallow);
+        _volumeMat.SetShaderParameter("deep", Deep);
+        _volumeMat.SetShaderParameter("grad_depth", GradientDepth);
+    }
+
+    /// <summary>Undoes the scene's light tint (CanvasModulate) for colours that should read as the sky's own.</summary>
+    private static Color Unlit(Color c, Color ambient) =>
+        new(MathF.Min(c.R / MathF.Max(ambient.R, 0.12f), 1f), MathF.Min(c.G / MathF.Max(ambient.G, 0.12f), 1f), MathF.Min(c.B / MathF.Max(ambient.B, 0.12f), 1f), c.A);
+
     public override void _Process(double delta)
     {
         CollectRings();
+        Sample();
+        UpdateLight();
+        _band.QueueRedraw();
+        _volume.QueueRedraw();
         QueueRedraw();
+    }
+
+    private void UpdateLight()
+    {
+        var s = Atmosphere.Now;
+        var amb = s.Ambient;
+        bool moon = s.Elevation < -0.02f;
+        // Where the light sits on the water: under the sun, or the moon at night.
+        Vector2 uv = moon ? s.MoonUv : s.SunUv;
+        Rect2 view = GetViewportRect();
+        Transform2D inv = GetCanvasTransform().AffineInverse();
+        float lightX = (inv * new Vector2(view.Size.X * uv.X, 0f)).X / SimSpace.PixelsPerMetre;
+        float rough = Mathf.Clamp(Driver.Config.DebugWindSpeed / 10f, 0f, 1f);
+
+        _bandMat.SetShaderParameter("near_col", Unlit(BandNear.Lerp(s.SkyTop, 0.35f), amb));
+        _bandMat.SetShaderParameter("far_col", Unlit(s.SkyHorizon.Lerp(s.Haze, 0.3f), amb));
+        _bandMat.SetShaderParameter("shore_col", Unlit(new Color(0.2f, 0.3f, 0.22f) * amb, amb).Lerp(Unlit(s.Haze, amb), 0.35f));
+        _bandMat.SetShaderParameter("glint_col", moon ? new Color(0.75f, 0.82f, 1f) : Unlit(s.Sun, amb));
+        _bandMat.SetShaderParameter("glint", moon ? s.Moon * 0.45f : Mathf.Clamp(s.Elevation * 4f + 0.3f, 0f, 1f) * (1f - 0.5f * Mathf.SmoothStep(0.3f, 0.9f, s.Elevation)) * MathF.Pow(1f - s.Cloud, 1.5f));
+        _bandMat.SetShaderParameter("sun_x_m", lightX);
+        _bandMat.SetShaderParameter("rough", rough);
+
+        float slope = Mathf.Clamp(-(s.DayFrac - 0.5f) * 1.3f, -0.65f, 0.65f);
+        _volumeMat.SetShaderParameter("direct", s.Direct);
+        _volumeMat.SetShaderParameter("sun_tint", Unlit(s.Sun, amb));
+        _volumeMat.SetShaderParameter("sun_slope", slope);
+        Underwater.SetShaderParameter("direct", s.Direct);
+        Underwater.SetShaderParameter("sun_tint", Unlit(s.Sun, amb));
     }
 
     private void CollectRings()
@@ -88,12 +166,16 @@ public partial class WaterRenderer : Node2D
         _rings[i] = _rings[--_ringCount];
     }
 
-    public override void _Draw()
+    private float _x0, _x1;
+    private double _t;
+
+    /// <summary>Samples the surface across the visible range (before any layer draws this frame).</summary>
+    private void Sample()
     {
         var world = Driver.World;
         var water = world.Water;
         // Render time between the last two ticks.
-        double t = world.Time - (1.0 - Driver.Alpha) * Driver.Config.Dt;
+        double t = _t = world.Time - (1.0 - Driver.Alpha) * Driver.Config.Dt;
 
         // Visible x range from the camera.
         Rect2 view = GetViewportRect();
@@ -101,14 +183,14 @@ public partial class WaterRenderer : Node2D
         float left = (inv * view.Position).X / SimSpace.PixelsPerMetre;
         float right = (inv * view.End).X / SimSpace.PixelsPerMetre;
         // Start a few metres under the bank (drawn in front) so no sky shows between the bank slope and the far-water band.
-        float x0 = MathF.Max(WaterStartX - 4f, left - 0.5f);
-        float x1 = MathF.Min(WaterEndX, right + 0.5f);
+        float x0 = _x0 = MathF.Max(WaterStartX - 4f, left - 0.5f);
+        float x1 = _x1 = MathF.Min(WaterEndX, right + 0.5f);
+        _n = 0;
         if (x1 <= x0) return;
 
         float spacing = Driver.Config.PatchSpacing;
         int n = Math.Clamp((int)((x1 - x0) / spacing) + 1, 2, MaxSamples);
         float step = (x1 - x0) / (n - 1);
-        float bottomY = -GradientDepth;
 
         for (int i = 0; i < n; i++)
         {
@@ -117,32 +199,45 @@ public partial class WaterRenderer : Node2D
             float foam = water.FoamAt(x);
             float slope = water.Slope(x, t);
             _surface[i] = SimSpace.ToPx(x, h);
-            // Brighter where the surface tilts toward the (placeholder) sun on the upper left.
+            // Brighter where the surface tilts toward the light.
             float glint = Mathf.Clamp(0.55f + 2.5f * slope, 0.25f, 1f);
             _surfaceColors[i] = Highlight.Lerp(FoamColor, foam) * new Color(1, 1, 1, glint);
 
             _stripPoints[2 * i] = _surface[i];
-            _stripPoints[2 * i + 1] = SimSpace.ToPx(x, bottomY);
-            _stripColors[2 * i] = Shallow;
-            _stripColors[2 * i + 1] = Deep;
+            _stripPoints[2 * i + 1] = SimSpace.ToPx(x, VolumeBottom);
 
-            // Near band: from the waterline up, fading toward the "far" colour (sky reflection).
+            // Near band: from the waterline up to the band's back edge (the shader colours it; foam whitens it).
             _bandPoints[2 * i] = _surface[i];
             _bandPoints[2 * i + 1] = SimSpace.ToPx(x, h + BandHeight);
-            _bandColors[2 * i] = BandNear.Lerp(FoamColor, foam * 0.6f);
-            _bandColors[2 * i + 1] = BandFar;
+            _bandColors[2 * i] = Colors.White.Lerp(new Color(1.6f, 1.6f, 1.6f), foam * 0.6f);
+            _bandColors[2 * i + 1] = Colors.White;
+            _bandUvs[2 * i] = new Vector2(0f, 0f);
+            _bandUvs[2 * i + 1] = new Vector2(0f, 1f);
         }
-
         EnsureIndices(n);
-        int indexCount = (n - 1) * 6;
-        var indices = _stripIndices.AsSpan(0, indexCount).ToArray();
-        var rid = GetCanvasItem();
-        RenderingServer.CanvasItemAddTriangleArray(rid, indices, _bandPoints.AsSpan(0, 2 * n).ToArray(), _bandColors.AsSpan(0, 2 * n).ToArray());
-        DrawRings(t, x0, x1, water);
-        RenderingServer.CanvasItemAddTriangleArray(rid, indices, _stripPoints.AsSpan(0, 2 * n).ToArray(), _stripColors.AsSpan(0, 2 * n).ToArray());
-        DrawPolylineColors(_surface.AsSpan(0, n).ToArray(), _surfaceColors.AsSpan(0, n).ToArray(), 2.5f, true);
+        _n = n;
+    }
 
-        DrawDroplets(water);
+    private void PaintBand(DrawLayer layer)
+    {
+        if (_n < 2) return;
+        RenderingServer.CanvasItemAddTriangleArray(layer.GetCanvasItem(), _stripIndices.AsSpan(0, (_n - 1) * 6).ToArray(),
+            _bandPoints.AsSpan(0, 2 * _n).ToArray(), _bandColors.AsSpan(0, 2 * _n).ToArray(), _bandUvs.AsSpan(0, 2 * _n).ToArray());
+    }
+
+    private void PaintVolume(DrawLayer layer)
+    {
+        if (_n < 2) return;
+        RenderingServer.CanvasItemAddTriangleArray(layer.GetCanvasItem(), _stripIndices.AsSpan(0, (_n - 1) * 6).ToArray(),
+            _stripPoints.AsSpan(0, 2 * _n).ToArray(), _white.AsSpan(0, 2 * _n).ToArray());
+    }
+
+    public override void _Draw()
+    {
+        if (_n < 2) return;
+        DrawRings(_t, _x0, _x1, Driver.World.Water);
+        DrawPolylineColors(_surface.AsSpan(0, _n).ToArray(), _surfaceColors.AsSpan(0, _n).ToArray(), 2.5f, true);
+        DrawDroplets(Driver.World.Water);
     }
 
     private void EnsureIndices(int n)
@@ -223,4 +318,12 @@ public partial class WaterRenderer : Node2D
             DrawCircle(SimSpace.ToPx(xs[i], ys[i]), r, new Color(0.9f, 0.97f, 1f, 0.85f));
         }
     }
+}
+
+/// <summary>A child canvas item that draws through a callback, so one renderer can paint layers with their own materials.</summary>
+public partial class DrawLayer : Node2D
+{
+    public Action<DrawLayer>? Paint { get; set; }
+
+    public override void _Draw() => Paint?.Invoke(this);
 }

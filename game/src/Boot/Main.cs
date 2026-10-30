@@ -114,14 +114,15 @@ public partial class Main : Node2D
         _daylight = new CanvasModulate { Name = "Daylight" };
         AddChild(_daylight);
         AddChild(new AtmosphereDirector { Name = "Atmosphere", Driver = _driver, Daylight = _daylight });
-        _worldRoot.AddChild(new WaterRenderer
+        var waterView = new WaterRenderer
         {
             Name = "Water", Driver = _driver, WaterStartX = _driver.Info.Spot.WaterlineX, ZIndex = 0,
             Shallow = _driver.Info.WaterShallow with { A = 0.96f }, Deep = _driver.Info.WaterDeep,
-        });
+        };
+        _worldRoot.AddChild(waterView);
         _worldRoot.AddChild(new FishRenderer { Name = "Fish", Driver = _driver, ZIndex = 1 });
-        _worldRoot.AddChild(new PondBank { Name = "Bank", Driver = _driver, ZIndex = 10 });
-        _worldRoot.AddChild(new TestView { Name = "TestView", Driver = _driver, ZIndex = 10 });
+        _worldRoot.AddChild(new PondBank { Name = "Bank", Driver = _driver, ZIndex = 10, Material = waterView.Underwater });
+        _worldRoot.AddChild(new TestView { Name = "TestView", Driver = _driver, ZIndex = 10, Material = waterView.Underwater });
         var tackle = new TackleRenderer { Name = "Tackle", Driver = _driver, ZIndex = 11 };
         _worldRoot.AddChild(tackle);
         ApplyScene();

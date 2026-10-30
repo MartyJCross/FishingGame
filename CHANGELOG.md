@@ -2,6 +2,16 @@
 
 Newest first. Each version handed to the owner gets an entry: what changed, what to try, known issues.
 
+## v0.12.0: Water and light underwater (2026-10-30)
+
+- God rays fall through the water from the sun's side (slanting the other way in the evening), shimmering and fading
+  with depth; murky water swallows them sooner than the clear springs.
+- Caustics ripple across the lake bed in sunlit shallows. The bed, plants, logs and rocks fade into the water's
+  colour with depth, so the clear springs show far and the pond goes murky fast.
+- The top of the water reflects the sky (blue by day, orange at sunset, dark at night) with the far shore's dark
+  reflection along the back, a glitter path of twinkling sparkles under the sun or moon, and wind streaks.
+- Drifting specks in the water, a bright underside to the surface, and proper low-poly boulders at Kings Bay.
+
 ## v0.11.0: Sky and light (2026-10-30)
 
 - A real sky: the sun rises on the left and sets over the far shore, with warm sunrises, golden hours and sunsets,

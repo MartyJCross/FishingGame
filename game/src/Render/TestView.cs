@@ -56,6 +56,33 @@ internal static class Lp
         Poly(c, col, pts);
     }
 
+    /// <summary>
+    /// A low-poly boulder: a jittered, slightly flattened outline cut into facets from an off-centre point, each facet
+    /// shaded by how much it faces the light (upper left).
+    /// </summary>
+    public static void Boulder(CanvasItem c, Vector2 centre, float r, RandomNumberGenerator rng, Color col)
+    {
+        int n = rng.RandiRange(7, 10);
+        var pts = new Vector2[n];
+        float rot = rng.Randf() * Mathf.Tau;
+        for (int i = 0; i < n; i++)
+        {
+            float a = rot + i * Mathf.Tau / n + rng.RandfRange(-0.2f, 0.2f);
+            float rr = r * rng.RandfRange(0.78f, 1.12f);
+            pts[i] = centre + new Vector2(MathF.Cos(a) * rr * 1.15f, MathF.Sin(a) * rr * 0.8f);
+        }
+        var hub = centre + new Vector2(-0.18f * r, 0.22f * r);
+        var light = new Vector2(-0.55f, 0.83f);
+        for (int i = 0; i < n; i++)
+        {
+            var a = pts[i];
+            var b = pts[(i + 1) % n];
+            var mid = (a + b) * 0.5f - centre;
+            float shade = 0.72f + 0.38f * mid.Normalized().Dot(light);
+            Poly(c, new Color(col.R * shade, col.G * shade, col.B * shade, col.A), hub, a, b);
+        }
+    }
+
     /// <summary>Cabbage palm: a gently leaning trunk and a crown of drooping fronds.</summary>
     public static void Palm(CanvasItem c, Vector2 baseAt, float h, float lean, Color trunk, Color leaf, float sway)
     {
@@ -412,7 +439,7 @@ public partial class TestView : Node2D
                 {
                     float ground = w.Spot.GroundHeight(x);
                     float r = rng.RandfRange(0.25f, 0.6f);
-                    Lp.Ngon(this, rng.Randf() < 0.5f ? Rock : RockDark, new Vector2(x, ground + r * 0.4f), r, 6, rng.Randf());
+                    Lp.Boulder(this, new Vector2(x, ground + r * 0.35f), r, rng, rng.Randf() < 0.5f ? Rock : RockDark);
                 }
                 break;
             }

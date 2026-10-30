@@ -19,6 +19,8 @@ public struct SkyState
     /// <summary>Direct sunlight strength 0..1 (god rays, caustics, glints): low sun, cloud and night take it away.</summary>
     public float Direct;
     public float Stars, Moon, Cloud, Rain, Mist;
+    /// <summary>Where the sun and moon are on screen (0..1), set by the director.</summary>
+    public Vector2 SunUv, MoonUv;
 }
 
 public static class Atmosphere
@@ -178,10 +180,13 @@ public partial class AtmosphereDirector : Node
         _sky.SetShaderParameter("cloud_drift", _drift);
         // The sun crosses from the left (morning) to set over the far shore on the right; the moon follows at night.
         float top = 0.07f;
-        _sky.SetShaderParameter("sun_uv", new Vector2(Mathf.Lerp(0.1f, 0.9f, Mathf.Clamp(s.DayFrac, -0.1f, 1.1f)), horizonUv - MathF.Max(s.Elevation, -0.2f) * (horizonUv - top)));
+        s.SunUv = new Vector2(Mathf.Lerp(0.1f, 0.9f, Mathf.Clamp(s.DayFrac, -0.1f, 1.1f)), horizonUv - MathF.Max(s.Elevation, -0.2f) * (horizonUv - top));
+        _sky.SetShaderParameter("sun_uv", s.SunUv);
         _sky.SetShaderParameter("sun_visible", Mathf.Clamp((s.Elevation + 0.08f) / 0.08f, 0f, 1f) * MathF.Pow(1f - s.Cloud, 1.6f));
         float moonE = MathF.Sin(MathF.PI * Math.Clamp(s.NightFrac, 0f, 1f));
-        _sky.SetShaderParameter("moon_uv", new Vector2(Mathf.Lerp(0.15f, 0.85f, Math.Clamp(s.NightFrac, 0f, 1f)), horizonUv - moonE * 0.75f * (horizonUv - top)));
+        s.MoonUv = new Vector2(Mathf.Lerp(0.15f, 0.85f, Math.Clamp(s.NightFrac, 0f, 1f)), horizonUv - moonE * 0.75f * (horizonUv - top));
+        _sky.SetShaderParameter("moon_uv", s.MoonUv);
+        Atmosphere.Now = s;
         _sky.SetShaderParameter("moon_visible", s.Moon);
         _sky.SetShaderParameter("stars", s.Stars);
 
