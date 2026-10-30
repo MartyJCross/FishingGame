@@ -100,7 +100,10 @@ public static class Story
     }
 
     /// <summary>Spots open from the start; the rest come from story unlocks.</summary>
-    public static bool SpotOpen(string id) => id == "station_pond" || ProfileStore.Current.Unlocked.Contains(id);
+    public static bool SpotOpen(string id) =>
+        id == "station_pond" || ProfileStore.Current.Unlocked.Contains(id)
+        // Steps already finished unlock what they list now, even if the list grew after they were done (older saves).
+        || Steps.Take(Math.Clamp(ProfileStore.Current.StoryStep, 0, Steps.Count)).Any(s => s.Unlocks.Contains(id));
 }
 
 /// <summary>Field notes (Tab menu): the current task, its checklist, and Wren's pages found so far.</summary>

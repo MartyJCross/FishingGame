@@ -2,6 +2,20 @@
 
 Newest first. Each version handed to the owner gets an entry: what changed, what to try, known issues.
 
+## v0.15.0: Junie's board, the Suwannee, and proper fish shapes (2026-10-30)
+
+- **Junie's board** (top right): three requests from Junie at the bait stand each day: a size bet on one species,
+  a release count for the Trust at a given spot, and either a variety day or a catfish or eel after dark. They pay as
+  soon as they're done, and your money shows on the board. A new board every game day.
+- **New spot: the Suwannee, Old Town bend.** Tea-dark blackwater under cypress and limestone, with Florida gar,
+  bowfin, warmouth, bullheads, American eels, mullet, spotted sunfish, bass and catfish. A cypress deadfall and a
+  limestone shelf hold fish (and snag hooks). Its legend is Old Ironsides, a 90 cm Florida gar, in summer and
+  autumn. The spring run survey now opens it ($9 drive), and a new story step, "The old river", surveys it, with a
+  new page of Wren's.
+- Station Pond also holds warmouth, a bowfin and one big stocked grass carp (must be released).
+- Gar, bowfin, eels, needlefish, snook, sheepshead, mullet and grass carp now have their real body shapes (long
+  beaks, deep bodies, eel fins) instead of a generic outline.
+
 ## v0.14.0: The catch moment, type and menus (2026-10-30)
 
 - Landing a fish brings down a field-guide card: the fish's picture, its common and scientific names, length and

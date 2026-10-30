@@ -32,6 +32,7 @@ public partial class Main : Node2D
     private SpeciesGuide _guide = null!;
     private Label _card = null!;
     private CatchCard _catchCard = null!;
+    private RequestsHud _board = null!;
     private CanvasLayer _hud = null!;
     private LedgerPanel _ledger = null!;
     private TheLedger.Ui.TackleMenu _menu = null!;
@@ -196,6 +197,8 @@ public partial class Main : Node2D
         _card.AddThemeConstantOverride("outline_size", 6);
         hud.AddChild(_card);
 
+        _board = new RequestsHud { Name = "Board", Driver = _driver };
+        hud.AddChild(_board);
         _catchCard = new CatchCard { Name = "CatchCard" };
         hud.AddChild(_catchCard);
 
@@ -289,11 +292,17 @@ public partial class Main : Node2D
                 LedgerStore.Add(new LedgerEntry
                 {
                     Species = c.Species.Id, CommonName = c.Species.CommonName, LengthCm = c.LengthCm, WeightKg = c.WeightKg,
-                    Kept = kept, Lure = w.Anglers[0].Rig.Line.Terminal.Name, GameHour = c.Hour, Spot = _driver.Info.Id,
+                    Kept = kept, Lure = w.Anglers[0].Rig.Line.Terminal.Name, GameHour = c.Hour, Spot = _driver.Info.Id, Day = w.Day,
                     Legend = _driver.Legends.TryGetValue(c.FishId, out var lg) ? lg.name : "",
                     When = DateTime.Now.ToString("yyyy-MM-dd HH:mm"),
                 });
                 if (!_automated && Story.CurrentComplete) StoryMoment(Story.Advance());
+                if (!_automated)
+                    foreach (var r in Requests.CheckNewlyDone(_driver))
+                    {
+                        Toast($"Junie's board: {r.Text}  +${r.Reward:0}", 3.5);
+                        _board.Flash();
+                    }
                 int keptCount = w.Catches.Count(k => k.Kept);
                 _catchCard.Resolve(kept, $"This session: {w.Catches.Count(k => !k.Pending)} landed, {keptCount} kept.   Ledger: {LedgerStore.Entries.Count} fish");
                 if (_ledger.Visible) _ledger.Refresh();

@@ -120,7 +120,7 @@ public partial class WaterRenderer : Node2D
         float lightX = (inv * new Vector2(view.Size.X * uv.X, 0f)).X / SimSpace.PixelsPerMetre;
         float rough = Mathf.Clamp(Driver.Config.DebugWindSpeed / 10f, 0f, 1f);
 
-        _bandMat.SetShaderParameter("near_col", Unlit(BandNear.Lerp(s.SkyTop, 0.35f), amb));
+        _bandMat.SetShaderParameter("near_col", Unlit((Shallow with { A = 1f }).Lerp(BandNear, 0.35f).Lerp(s.SkyTop, 0.35f), amb));
         _bandMat.SetShaderParameter("far_col", Unlit(s.SkyHorizon.Lerp(s.Haze, 0.3f), amb));
         _bandMat.SetShaderParameter("shore_col", Unlit(new Color(0.2f, 0.3f, 0.22f) * amb, amb).Lerp(Unlit(s.Haze, amb), 0.35f));
         _bandMat.SetShaderParameter("glint_col", moon ? new Color(0.75f, 0.82f, 1f) : Unlit(s.Sun, amb));

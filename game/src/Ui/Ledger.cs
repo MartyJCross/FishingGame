@@ -16,6 +16,8 @@ public sealed class LedgerEntry
     /// <summary>The legendary fish's name, if this was one.</summary>
     public string Legend { get; set; } = "";
     public float GameHour { get; set; }
+    /// <summary>The game day it was caught (Junie's board counts today's fish).</summary>
+    public int Day { get; set; } = -1;
     public string When { get; set; } = "";
 }
 

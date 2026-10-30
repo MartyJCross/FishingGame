@@ -82,6 +82,18 @@
     {
       "species": "golden_shiner",
       "count": 8
+    },
+    {
+      "species": "warmouth",
+      "count": 3
+    },
+    {
+      "species": "bowfin",
+      "count": 1
+    },
+    {
+      "species": "grass_carp",
+      "count": 1
     }
   ],
   "structures": [

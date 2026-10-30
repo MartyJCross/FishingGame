@@ -29,6 +29,9 @@ public sealed class Profile
     /// <summary>Legendary fish landed (legend ids).</summary>
     public List<string> Legends { get; set; } = new();
     public float Hour { get; set; } = 7f;
+    /// <summary>Junie's board: the game day it was last checked, and which of that day's requests are paid.</summary>
+    public int BoardDay { get; set; } = -1;
+    public List<int> BoardDone { get; set; } = new();
 }
 
 /// <summary>Shop prices and the fish market (game/data/shop.json).</summary>

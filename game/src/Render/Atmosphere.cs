@@ -273,7 +273,7 @@ public partial class FarShore : Node2D
 
     public override void _Draw()
     {
-        var rng = new RandomNumberGenerator { Seed = (ulong)(17 + Band * 101 + (Scenery == "springs" ? 7 : 0)) };
+        var rng = new RandomNumberGenerator { Seed = (ulong)(17 + Band * 101 + (Scenery == "springs" ? 7 : Scenery == "river" ? 13 : 0)) };
         var col = Base[Band];
         switch (Band)
         {
@@ -307,6 +307,7 @@ public partial class FarShore : Node2D
     private void TreeLine(RandomNumberGenerator rng, Color col)
     {
         bool springs = Scenery == "springs";
+        bool river = Scenery == "river";
         // A canopy edge from overlapping round crowns (sampled coarsely: faceted, low-poly).
         var crowns = new List<(float cx, float r, float h)>();
         for (float x = X0; x < X1; x += rng.RandfRange(0.7f, 1.6f))
@@ -327,7 +328,7 @@ public partial class FarShore : Node2D
         for (float x = X0; x < X1; x += rng.RandfRange(1.5f, 4.5f))
         {
             float baseY = Canopy(x) - 0.4f;
-            if (springs && rng.Randf() < 0.45f) Lp.Cypress(this, new Vector2(x, baseY - 0.2f), rng.RandfRange(1.0f, 1.5f), col);
+            if ((springs && rng.Randf() < 0.45f) || (river && rng.Randf() < 0.75f)) Lp.Cypress(this, new Vector2(x, baseY - 0.2f), rng.RandfRange(1.0f, 1.5f), col);
             else Lp.Palm(this, new Vector2(x, baseY), rng.RandfRange(0.8f, 1.2f), rng.RandfRange(-0.15f, 0.15f), col, col, 0f);
         }
         if (springs)
