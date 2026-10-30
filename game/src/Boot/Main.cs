@@ -113,8 +113,7 @@ public partial class Main : Node2D
 
         _daylight = new CanvasModulate { Name = "Daylight" };
         AddChild(_daylight);
-        _worldRoot.AddChild(new TestSky { Name = "Sky", ZIndex = -10 });
-        _worldRoot.AddChild(new SkyClouds { Name = "Clouds", ZIndex = -9 });
+        AddChild(new AtmosphereDirector { Name = "Atmosphere", Driver = _driver, Daylight = _daylight });
         _worldRoot.AddChild(new WaterRenderer
         {
             Name = "Water", Driver = _driver, WaterStartX = _driver.Info.Spot.WaterlineX, ZIndex = 0,
@@ -331,21 +330,6 @@ public partial class Main : Node2D
         $"{c.Species.CommonName}  ({c.Species.ScientificName})\n{c.LengthCm:0.0} cm ({c.LengthCm / 2.54f:0.0} in)   " +
         $"{LedgerPanel.Weight(c.WeightKg)} ({c.WeightKg * 2.20462f:0.00} lb)";
 
-    /// <summary>Night falls through a canvas tint: deep blue at night, warm at dawn and dusk.</summary>
-    private void UpdateDaylight()
-    {
-        float h = _driver.World.Hour;
-        float day = h < 5.5f || h > 20.5f ? 0f : h < 7.5f ? (h - 5.5f) / 2f : h > 18.5f ? (20.5f - h) / 2f : 1f;
-        var night = new Color(0.22f, 0.26f, 0.42f);
-        var warm = new Color(1f, 0.78f, 0.62f);
-        var c = night.Lerp(Colors.White, day);
-        float golden = Mathf.Clamp(1f - Mathf.Abs(day - 0.5f) * 2f, 0f, 1f);
-        c = c.Lerp(c * warm, golden * 0.8f);
-        // Cloud cover dims and greys the light.
-        float cloud = _driver.Config.CloudCover;
-        _daylight.Color = c.Lerp(c * new Color(0.72f, 0.75f, 0.8f), cloud);
-    }
-
     private static string Bar(float frac)
     {
         int n = Math.Clamp((int)MathF.Round(frac * 10f), 0, 10);
@@ -470,11 +454,11 @@ public partial class Main : Node2D
         switch (weather)
         {
             case null: break;
-            case "calm": c.DebugWindSpeed = 0.5f; c.DebugRainRate = 0f; break;
-            case "breeze": c.DebugWindSpeed = 5f; c.DebugFetch = 60f; break;
-            case "windy": c.DebugWindSpeed = 9f; c.DebugFetch = 600f; break;
-            case "rain": c.DebugWindSpeed = 3f; c.DebugRainRate = 8f; break;
-            case "storm": c.DebugWindSpeed = 14f; c.DebugFetch = 2000f; c.DebugRainRate = 35f; break;
+            case "calm": c.DebugWindSpeed = 0.5f; c.DebugRainRate = 0f; c.CloudCover = 0.05f; break;
+            case "breeze": c.DebugWindSpeed = 5f; c.DebugFetch = 60f; c.CloudCover = 0.3f; break;
+            case "windy": c.DebugWindSpeed = 9f; c.DebugFetch = 600f; c.CloudCover = 0.45f; break;
+            case "rain": c.DebugWindSpeed = 3f; c.DebugRainRate = 8f; c.CloudCover = 0.9f; break;
+            case "storm": c.DebugWindSpeed = 14f; c.DebugFetch = 2000f; c.DebugRainRate = 35f; c.CloudCover = 1f; break;
             default: GD.PushWarning($"Unknown --weather '{weather}' (calm, breeze, windy, rain, storm)"); break;
         }
     }
@@ -506,7 +490,6 @@ public partial class Main : Node2D
         var mode = wantCapture ? Input.MouseModeEnum.Captured : Input.MouseModeEnum.Visible;
         if (Input.MouseMode != mode) Input.MouseMode = mode;
         UpdateReelHud();
-        UpdateDaylight();
         Rumble(delta);
         _toastTime -= delta;
         _cardTime -= delta;

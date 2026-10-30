@@ -2,6 +2,17 @@
 
 Newest first. Each version handed to the owner gets an entry: what changed, what to try, known issues.
 
+## v0.11.0: Sky and light (2026-10-30)
+
+- A real sky: the sun rises on the left and sets over the far shore, with warm sunrises, golden hours and sunsets,
+  a blue hour, then a blue-black night with a moon and twinkling stars. Sunrise and sunset times follow the season.
+- Clouds drift with the wind; their amount follows the weather (a few puffs on clear days, a heavy grey deck in a
+  thunderstorm), lit warm at sunset and dark underneath in storms.
+- The far shore is three layers of hills, hammock trees and scrub that fade into the haze with distance and slide
+  past at different speeds as the camera moves. Kings Bay gets cypress and waterfront houses. Mist lies on the water
+  at first light and in rain.
+- The light on the bank, angler and water follows the sky's colour, and the screen has a soft vignette.
+
 ## v0.2.0: M1 Water surface (2026-10-18)
 
 - The pond's water is simulated. Wind makes real-sized waves: a breeze on a small pond gives centimetre ripples, and a
