@@ -27,6 +27,11 @@ public static class Atmosphere
 {
     public static SkyState Now;
 
+    /// <summary>A lightning flash happened; the value is how far off the strike was (0 = close, 1 = distant).</summary>
+    public static event Action<float>? Lightning;
+
+    internal static void RaiseLightning(float distance) => Lightning?.Invoke(distance);
+
     private readonly struct Key
     {
         public readonly float E;
@@ -114,9 +119,12 @@ public partial class AtmosphereDirector : Node
     public SimDriver Driver { get; set; } = null!;
     public CanvasModulate Daylight { get; set; } = null!;
 
-    private ShaderMaterial _sky = null!;
+    private ShaderMaterial _sky = null!, _rain = null!;
+    private ColorRect _rainRect = null!;
     private readonly List<(FarShore node, ShaderMaterial mat)> _layers = new();
     private float _drift;
+    private readonly RandomNumberGenerator _rng = new() { Seed = 31337 };
+    private float _nextStrike = 8f, _flashT = 99f;
 
     public override void _Ready()
     {
@@ -142,6 +150,18 @@ public partial class AtmosphereDirector : Node
             _layers.Add((node, mat));
         }
 
+        // Fireflies glow on their own layer above the world (added light: the night tint mustn't dim them).
+        var glowLayer = new CanvasLayer { Name = "Glow", Layer = 1, FollowViewportEnabled = true };
+        AddChild(glowLayer);
+        glowLayer.AddChild(new Fireflies { Name = "Fireflies", Driver = Driver });
+
+        var rainLayer = new CanvasLayer { Name = "Rain", Layer = 3 };
+        AddChild(rainLayer);
+        _rain = new ShaderMaterial { Shader = GD.Load<Shader>("res://shaders/rain.gdshader") };
+        _rainRect = new ColorRect { Material = _rain, MouseFilter = Control.MouseFilterEnum.Ignore, Visible = false };
+        _rainRect.SetAnchorsPreset(Control.LayoutPreset.FullRect);
+        rainLayer.AddChild(_rainRect);
+
         var post = new CanvasLayer { Name = "Vignette", Layer = 4 };
         AddChild(post);
         var vig = new ColorRect { Material = new ShaderMaterial { Shader = GD.Load<Shader>("res://shaders/vignette.gdshader") }, MouseFilter = Control.MouseFilterEnum.Ignore };
@@ -157,7 +177,38 @@ public partial class AtmosphereDirector : Node
         var w = Driver.World;
         var c = Driver.Config;
         var s = Atmosphere.Now = Atmosphere.Compute(w.Hour, w.Season, c.CloudCover, c.DebugRainRate);
+
+        // Thunderstorms: every so often a flash (a bright pulse and a flicker), then the thunder (SoundEngine).
+        _flashT += (float)delta;
+        if (s.Rain > 0.55f)
+        {
+            _nextStrike -= (float)delta;
+            if (_nextStrike <= 0f)
+            {
+                _nextStrike = _rng.RandfRange(6f, 22f);
+                _flashT = 0f;
+                Atmosphere.RaiseLightning(_rng.Randf());
+            }
+        }
+        float flash = _flashT < 0.6f ? MathF.Exp(-_flashT * 16f) + (_flashT > 0.16f ? 0.75f * MathF.Exp(-(_flashT - 0.16f) * 12f) : 0f) : 0f;
+        if (flash > 0.001f)
+        {
+            var white = new Color(0.92f, 0.94f, 1f);
+            s.Ambient = s.Ambient.Lerp(white, Mathf.Clamp(flash * 0.65f, 0f, 1f));
+            s.SkyTop = s.SkyTop.Lerp(white * 0.8f, Mathf.Clamp(flash * 0.5f, 0f, 1f));
+            s.SkyHorizon = s.SkyHorizon.Lerp(white, Mathf.Clamp(flash * 0.5f, 0f, 1f));
+            s.CloudShade = s.CloudShade.Lerp(white * 0.85f, Mathf.Clamp(flash * 0.6f, 0f, 1f));
+            s.Haze = s.Haze.Lerp(white * 0.9f, Mathf.Clamp(flash * 0.4f, 0f, 1f));
+        }
         Daylight.Color = s.Ambient;
+
+        _rainRect.Visible = s.Rain > 0.01f;
+        if (_rainRect.Visible)
+        {
+            _rain.SetShaderParameter("amount", Mathf.Clamp(c.DebugRainRate / 20f, 0.1f, 1f));
+            _rain.SetShaderParameter("slant", Mathf.Clamp(c.DebugWindSpeed * 0.025f, 0.02f, 0.4f));
+            _rain.SetShaderParameter("aspect", GetViewport().GetVisibleRect().Size.Aspect());
+        }
 
         var vp = GetViewport();
         var size = vp.GetVisibleRect().Size;

@@ -121,6 +121,7 @@ public partial class Main : Node2D
         };
         _worldRoot.AddChild(waterView);
         _worldRoot.AddChild(new FishRenderer { Name = "Fish", Driver = _driver, ZIndex = 1 });
+        _worldRoot.AddChild(new Wildlife { Name = "Wildlife", Driver = _driver, ZIndex = 2 });
         _worldRoot.AddChild(new PondBank { Name = "Bank", Driver = _driver, ZIndex = 10, Material = waterView.Underwater });
         _worldRoot.AddChild(new TestView { Name = "TestView", Driver = _driver, ZIndex = 10, Material = waterView.Underwater });
         var tackle = new TackleRenderer { Name = "Tackle", Driver = _driver, ZIndex = 11 };

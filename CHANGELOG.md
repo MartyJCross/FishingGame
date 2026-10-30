@@ -2,6 +2,14 @@
 
 Newest first. Each version handed to the owner gets an entry: what changed, what to try, known issues.
 
+## v0.13.0: A living world (2026-10-30)
+
+- Flocks of small birds cross the sky by day, and now and then a great egret flaps slowly past low over the water.
+- Dragonflies dart and hover over the shallows on warm, bright days.
+- Fireflies blink over the bank on warm nights.
+- Rain falls as streaks that slant with the wind, with a soft hiss on the water. Thunderstorms flash with lightning,
+  and the thunder follows: a crack for close strikes, a long rumble for distant ones.
+
 ## v0.12.0: Water and light underwater (2026-10-30)
 
 - God rays fall through the water from the sun's side (slanting the other way in the evening), shimmering and fading

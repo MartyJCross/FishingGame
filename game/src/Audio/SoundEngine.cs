@@ -37,7 +37,7 @@ public partial class SoundEngine : Node
 
     // Continuous state.
     private float _ambLp, _ambLp2, _hissHp, _hissPrev, _swishLp, _swishBp, _dragPhase, _dragLp;
-    private float _lapPhase, _whinePhase;
+    private float _lapPhase, _whinePhase, _rainPrev, _rainLp;
     private double _time;
     private bool _lastBail;
     private float _crankClickCarry;
@@ -47,6 +47,7 @@ public partial class SoundEngine : Node
     public override void _Ready()
     {
         TheLedger.Render.TestView.Barked += OnBark;
+        TheLedger.Render.Atmosphere.Lightning += OnLightning;
         var gen = new AudioStreamGenerator { MixRate = Rate, BufferLength = 0.12f };
         _player = new AudioStreamPlayer { Stream = gen, VolumeDb = -2f };
         AddChild(_player);
@@ -60,6 +61,24 @@ public partial class SoundEngine : Node
     {
         Driver.EventRaised -= OnEvent;
         TheLedger.Render.TestView.Barked -= OnBark;
+        TheLedger.Render.Atmosphere.Lightning -= OnLightning;
+    }
+
+    private float _thunderIn = -1f, _thunderDist;
+
+    /// <summary>Thunder follows the flash after the sound's travel time: a crack for close strikes, then the rumble.</summary>
+    private void OnLightning(float distance)
+    {
+        _thunderDist = distance;
+        _thunderIn = 0.15f + distance * 3.5f;
+    }
+
+    private void Thunder()
+    {
+        float d = _thunderDist;
+        if (d < 0.3f) Add(Kind.Noise, 0.35f, 0.7f, 0f, 0f, Noise() * 0.4f, 0.45f);
+        Add(Kind.Noise, 2.6f + 1.5f * d, 1.1f - 0.5f * d, 0f, 0f, Noise() * 0.5f, 0.012f + 0.01f * (1f - d));
+        Add(Kind.Noise, 1.6f + d, 0.6f - 0.3f * d, 0f, 0f, Noise() * 0.5f, 0.03f);
     }
 
     private void OnBark() => Add(Kind.Bark, 0.14f, 0.35f, 520f, 300f, -0.35f, 0.4f);
@@ -169,6 +188,12 @@ public partial class SoundEngine : Node
             else if (wl.BreakLoad > 0.75f * lim) { Add(Kind.Croak, 0.12f, 0.25f, 70f, 55f, 0.1f, 0.2f); _warnT = 0.3f; }
         }
 
+        if (_thunderIn >= 0f)
+        {
+            _thunderIn -= (float)delta;
+            if (_thunderIn < 0f) Thunder();
+        }
+
         // Critters: birds by day, crickets and frogs at night.
         float hour = w.Hour;
         float day = hour < 5.5f || hour > 20.5f ? 0f : hour < 7.5f ? (hour - 5.5f) / 2f : hour > 18.5f ? (20.5f - hour) / 2f : 1f;
@@ -201,6 +226,8 @@ public partial class SoundEngine : Node
         float omega = MathF.Abs(a.Hands.AngularVelocity);
         float swishAmp = omega > 4f ? MathF.Min(0.25f, (omega - 4f) * 0.02f) : 0f;
         float ambAmp = 0.035f + 0.006f * wind;
+        // Rain on the water: a soft hiss that thickens with the rain rate.
+        float rainAmp = MathF.Min(0.12f, Driver.Config.DebugRainRate * 0.005f);
         // A baitcaster spool singing in free spool: pitch from its speed.
         float whineAmp = reel.Spec.IsBaitcaster && reel.BailOpen && reel.SpoolOmega > 30f ? MathF.Min(0.08f, reel.SpoolOmega * 0.00015f) : 0f;
         float whineHz = 120f + reel.SpoolOmega * 1.6f;
@@ -218,6 +245,13 @@ public partial class SoundEngine : Node
             float lap = ambAmp * (0.6f + 0.4f * MathF.Sin(_lapPhase * MathF.Tau)) * _ambLp2 * 6f;
             l += lap; r += lap;
 
+            if (rainAmp > 0f)
+            {
+                float hp = nz - _rainPrev; _rainPrev = nz;
+                _rainLp += (hp - _rainLp) * 0.35f;
+                float rl = _rainLp * rainAmp * (0.8f + 0.4f * Rnd());
+                l += rl; r += _rainLp * rainAmp;
+            }
             if (hissAmp > 0f)
             {
                 float hp = nz - _hissPrev; _hissPrev = nz;
