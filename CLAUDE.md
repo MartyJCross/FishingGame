@@ -189,7 +189,9 @@ dotnet build game/TheLedger.csproj -warnaserror
 **In-game command-line args** (after `--`; parsed in `game/src/Boot/CommandLine.cs`): `--light` (mute, cap 30 FPS),
 `--screenshot PATH` (save PNG after `--frames N` sim-locked frames, then quit), `--seed N`, `--replay FILE` (drive
 input from a `.rec` recording), `--record FILE` (save this session's input on exit), `--smoke SECONDS`,
-`--debug-overlay`, `--anglers N`. Parsed but not used yet (wire them up as their systems arrive): `--scene NAME`,
+`--debug-overlay`, `--anglers N`, `--panel catch` (sample catch card), `--leak-check N [--leak-every S]` (reload the
+scene N times, printing objects / nodes / orphans / resources / static and managed memory each round: flat numbers =
+no leak; v0.15.1 baseline 2381 objects, 361 nodes, 0 orphans, ~3.3 MB managed). Parsed but not used yet (wire them up as their systems arrive): `--scene NAME`,
 `--time HOURS`, `--weather NAME`, `--season NAME`, `--bench SECONDS` (only when the owner asks).
 
 **Verifying by kind of change:**
@@ -341,6 +343,22 @@ input from a `.rec` recording), `--record FILE` (save this session's input on ex
     Nature Coast fish), validated by `python tools/species_check.py` (0 errors). The agent worktree is removed.
   - **Owner (2026-10-18): save cost until the first demo (M6): less testing.** Key tests only, one test + build run
     per commit, one screenshot per visual change, CI checked once per milestone.
+
+- **v0.11-0.15 (2026-10-30, owner: "make the game MUCH better", credits no object):** the art pass and a daily loop.
+  - `Render/Atmosphere.cs`: `Atmosphere.Now` palette from sun elevation (seasonal sunrise/sunset), cloud and rain;
+    `AtmosphereDirector` drives `shaders/sky.gdshader` (sun, moon, stars, fbm clouds), three parallax `FarShore` bands
+    (`far_land.gdshader`: light, haze, dawn mist; scenery pond / springs / river), the `CanvasModulate` light,
+    lightning (`Atmosphere.Lightning` → thunder in SoundEngine), the rain overlay and a vignette. Sky and far land are
+    on CanvasLayers below the world (not tinted by the CanvasModulate); colours meant to read as sky on the main canvas
+    are divided by the ambient (`WaterRenderer.Unlit`).
+  - Water: `water_volume.gdshader` (depth colour, god rays, specks), `water_band.gdshader` (sky reflection, glitter
+    path), `underwater.gdshader` on PondBank and TestView (depth fog toward the water colour using the spot profile,
+    caustics on the bed). Note: in Godot 4 canvas shaders `COLOR` already includes the texture; don't sample it again.
+  - `Render/Wildlife.cs`: birds, egret, dragonflies, fireflies (additive layer). `Ui/CatchCard.cs` (field-guide card),
+    `Ui/UiFonts.cs` (Fraunces + Fira Sans, OFL), `Ui/Requests.cs` (Junie's board: 3 seeded requests per game day,
+    progress from Ledger entries' `Day`, paid once via `Profile.BoardDay/BoardDone`), H toggles key hints.
+  - Spots: station_pond, kings_bay, suwannee (blackwater, legend Old Ironsides). Story: survey1, teal, spring_survey
+    (unlocks kings_bay was teal; spring_survey unlocks suwannee), old_river, end. All 17 species have shape files.
 
 (Replace this list with a short, accurate description of what exists as the game grows: systems, controls, data
 counts, known issues.)

@@ -57,7 +57,7 @@ public partial class Main : Node2D
         _args = CommandLine.Parse(OS.GetCmdlineUserArgs());
         foreach (string e in _args.Errors) GD.PushWarning($"Command line: {e}");
 
-        bool automated = _automated = _args.Background || _args.ScreenshotPath != null || _args.SmokeSeconds != null || _args.BenchSeconds != null;
+        bool automated = _automated = _args.Background || _args.ScreenshotPath != null || _args.SmokeSeconds != null || _args.BenchSeconds != null || _args.LeakCheck != null;
         if (!automated) DisplayServer.WindowSetMode(DisplayServer.WindowMode.Fullscreen); // F11 toggles
         if (_args.Background)
         {
@@ -414,7 +414,8 @@ public partial class Main : Node2D
     {
         Radio(done.Giver, done.Done + (done.Page != null ? "   [New page of Wren's in your Field notes: Tab]" : ""), 12);
         Toast($"{done.Title}: complete", 3);
-        GetTree().CreateTimer(13.0).Timeout += () => { var n = Story.Current; if (n.Id != done.Id) Radio(n.Giver, n.Intro, 12); };
+        // The timer outlives this scene if the angler sleeps or travels within 13 s: only speak if we're still here.
+        GetTree().CreateTimer(13.0).Timeout += () => { if (!IsInstanceValid(this)) return; var n = Story.Current; if (n.Id != done.Id) Radio(n.Giver, n.Intro, 12); };
     }
 
     /// <summary>Keeps the calendar going between sessions: the date and time are saved on quit (and on travel).</summary>
@@ -518,6 +519,8 @@ public partial class Main : Node2D
         if (_cardTime <= 0) _card.Text = "";
         FollowCamera(delta);
 
+        if (_args.LeakCheck is int reloads) LeakCheck(delta, reloads);
+
         if (_args.SmokeSeconds is float smoke)
         {
             RunSmoke(smoke);
@@ -547,6 +550,31 @@ public partial class Main : Node2D
             _capturing = true;
             CaptureAndQuit(_args.ScreenshotPath);
         }
+    }
+
+    private static int _leakRound;
+    private double _leakTime;
+
+    /// <summary>
+    /// Leak check: after each interval, force a full GC and print what's alive (Godot objects, nodes, orphan nodes,
+    /// resources, static memory, managed heap), then reload the scene (the travel / sleep path) until done.
+    /// </summary>
+    private void LeakCheck(double delta, int reloads)
+    {
+        _leakTime += delta;
+        if (_leakTime < _args.LeakEvery) return;
+        _leakTime = double.MinValue;
+        GC.Collect();
+        GC.WaitForPendingFinalizers();
+        GC.Collect();
+        long managed = GC.GetTotalMemory(true);
+        GD.Print($"LEAK round {_leakRound}: objects {Performance.GetMonitor(Performance.Monitor.ObjectCount):0}, " +
+                 $"nodes {Performance.GetMonitor(Performance.Monitor.ObjectNodeCount):0}, orphans {Performance.GetMonitor(Performance.Monitor.ObjectOrphanNodeCount):0}, " +
+                 $"resources {Performance.GetMonitor(Performance.Monitor.ObjectResourceCount):0}, static {Performance.GetMonitor(Performance.Monitor.MemoryStatic) / 1048576.0:0.0} MB, " +
+                 $"managed {managed / 1048576.0:0.0} MB");
+        if (_leakRound >= reloads) { GetTree().Quit(0); return; }
+        _leakRound++;
+        GetTree().ReloadCurrentScene();
     }
 
     /// <summary>Simulates the requested seconds as fast as possible (a few hundred ticks per frame), then exits.</summary>

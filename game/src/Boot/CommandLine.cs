@@ -45,6 +45,10 @@ public sealed class CommandLine
     public bool Background;
     /// <summary>Debug camera: centre x, y (m) and zoom, e.g. --look 6,-1,4 (screenshots of small things).</summary>
     public float[]? Look;
+    /// <summary>--leak-check N: reload the scene N times (every --leak-every S seconds, default 4), printing object,
+    /// node and managed-memory counts each time; any steady growth is a leak.</summary>
+    public int? LeakCheck;
+    public float LeakEvery = 4f;
 
     public List<string> Errors { get; } = new();
 
@@ -103,6 +107,8 @@ public sealed class CommandLine
                     else c.Errors.Add("--look needs x,y,zoom");
                     break;
                 }
+                case "--leak-check": c.LeakCheck = (int)(NextFloat() ?? 5); break;
+                case "--leak-every": c.LeakEvery = NextFloat() ?? 4f; break;
                 case "--max-fps": c.MaxFps = Math.Max(0, (int)(NextFloat() ?? 0)); break;
                 case "--anglers": c.Anglers = Math.Clamp((int)(NextFloat() ?? 1), 1, 4); break;
                 default: c.Errors.Add($"Unknown argument '{a}'"); break;

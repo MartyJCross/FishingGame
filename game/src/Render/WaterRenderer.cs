@@ -218,25 +218,37 @@ public partial class WaterRenderer : Node2D
         _n = n;
     }
 
+    // Exact-length copies for Godot's array APIs, reused while the sample count stays the same (no per-frame garbage).
+    private int[] _xIdx = Array.Empty<int>();
+    private Vector2[] _xBandPts = Array.Empty<Vector2>(), _xBandUvs = Array.Empty<Vector2>(), _xStrip = Array.Empty<Vector2>(), _xSurf = Array.Empty<Vector2>();
+    private Color[] _xBandCols = Array.Empty<Color>(), _xWhite = Array.Empty<Color>(), _xSurfCols = Array.Empty<Color>();
+
+    private static T[] Exact<T>(ref T[] cache, T[] src, int count)
+    {
+        if (cache.Length != count) cache = new T[count];
+        Array.Copy(src, cache, count);
+        return cache;
+    }
+
     private void PaintBand(DrawLayer layer)
     {
         if (_n < 2) return;
-        RenderingServer.CanvasItemAddTriangleArray(layer.GetCanvasItem(), _stripIndices.AsSpan(0, (_n - 1) * 6).ToArray(),
-            _bandPoints.AsSpan(0, 2 * _n).ToArray(), _bandColors.AsSpan(0, 2 * _n).ToArray(), _bandUvs.AsSpan(0, 2 * _n).ToArray());
+        RenderingServer.CanvasItemAddTriangleArray(layer.GetCanvasItem(), Exact(ref _xIdx, _stripIndices, (_n - 1) * 6),
+            Exact(ref _xBandPts, _bandPoints, 2 * _n), Exact(ref _xBandCols, _bandColors, 2 * _n), Exact(ref _xBandUvs, _bandUvs, 2 * _n));
     }
 
     private void PaintVolume(DrawLayer layer)
     {
         if (_n < 2) return;
-        RenderingServer.CanvasItemAddTriangleArray(layer.GetCanvasItem(), _stripIndices.AsSpan(0, (_n - 1) * 6).ToArray(),
-            _stripPoints.AsSpan(0, 2 * _n).ToArray(), _white.AsSpan(0, 2 * _n).ToArray());
+        RenderingServer.CanvasItemAddTriangleArray(layer.GetCanvasItem(), Exact(ref _xIdx, _stripIndices, (_n - 1) * 6),
+            Exact(ref _xStrip, _stripPoints, 2 * _n), Exact(ref _xWhite, _white, 2 * _n));
     }
 
     public override void _Draw()
     {
         if (_n < 2) return;
         DrawRings(_t, _x0, _x1, Driver.World.Water);
-        DrawPolylineColors(_surface.AsSpan(0, _n).ToArray(), _surfaceColors.AsSpan(0, _n).ToArray(), 2.5f, true);
+        DrawPolylineColors(Exact(ref _xSurf, _surface, _n), Exact(ref _xSurfCols, _surfaceColors, _n), 2.5f, true);
         DrawDroplets(Driver.World.Water);
     }
 

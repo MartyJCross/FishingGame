@@ -2,6 +2,15 @@
 
 Newest first. Each version handed to the owner gets an entry: what changed, what to try, known issues.
 
+## v0.15.1: Memory check (2026-10-30)
+
+- Checked for memory leaks: 12 scene reloads (the travel and sleep path) and a two-minute session both hold steady
+  at the same object, node and memory counts, with no orphaned nodes. `--leak-check N` repeats the check.
+- The water renderer reuses its buffers instead of making new ones every frame (less garbage to collect, fewer
+  hitches).
+- A story radio message can no longer fire into a scene that was already left (sleeping or travelling right after
+  finishing a step).
+
 ## v0.15.0: Junie's board, the Suwannee, and proper fish shapes (2026-10-30)
 
 - **Junie's board** (top right): three requests from Junie at the bait stand each day: a size bet on one species,
