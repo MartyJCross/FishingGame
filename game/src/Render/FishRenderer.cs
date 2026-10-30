@@ -23,7 +23,7 @@ public partial class FishRenderer : Node2D
     private readonly List<Vector2> _pts = new();
     private readonly List<Color> _cols = new();
     private readonly List<int> _idx = new();
-    private readonly Vector2[] _spine = new Vector2[24];
+    private readonly Vector2[] _spine = new Vector2[40];
     private readonly Vector2[] _top = new Vector2[Stations], _mid = new Vector2[Stations], _bot = new Vector2[Stations];
     private readonly Vector2[] _tan = new Vector2[Stations];
     private readonly Dictionary<SpeciesSpec, (Color d, Color f, Color b, Color eye, bool bars, bool stripe, bool ear, bool spots)> _palette = new();

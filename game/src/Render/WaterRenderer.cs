@@ -30,7 +30,7 @@ public partial class WaterRenderer : Node2D
     public Color Highlight { get; set; } = new(0.92f, 0.98f, 1f, 0.9f);
     public Color FoamColor { get; set; } = new(1f, 1f, 1f, 1f);
 
-    private const int MaxSamples = 1400;
+    private const int MaxSamples = 2600;
     private readonly Vector2[] _surface = new Vector2[MaxSamples];
     private readonly Color[] _surfaceColors = new Color[MaxSamples];
     private readonly Vector2[] _stripPoints = new Vector2[MaxSamples * 2];

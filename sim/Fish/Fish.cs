@@ -88,8 +88,12 @@ public sealed class Fish
         LengthM = lengthM;
         MassKg = MathF.Max(0.002f, species.WeightKg(lengthM * 100f));
         Rng = new SimRng(seed, (ulong)(1000 + id));
-        int n = Math.Clamp(species.Body.SpineNodes, 4, 20);
+        int n = Math.Clamp((int)MathF.Round(species.Body.SpineNodes * SpineResolution), 4, 40);
         Count = n;
+        // Turn flips and teleports are spotted by how far the head jumps in a tick, judged on the data's spine spacing
+        // (so a finer spine doesn't change which moves count as a jump).
+        float dataSeg = lengthM / (Math.Clamp(species.Body.SpineNodes, 4, 20) - 1);
+        _jumpSq = 4f * dataSeg * dataSeg;
         X = new float[n]; Y = new float[n]; PX = new float[n]; PY = new float[n];
         _bx = new float[n]; _by = new float[n];
         Seg = lengthM / (n - 1);
@@ -115,6 +119,11 @@ public sealed class Fish
     public float MassKg { get; }
     public SimRng Rng;
     public int Count { get; }
+
+    /// <summary>Spine points per point in the species data (the body is drawn through them: more = smoother bends).</summary>
+    public const float SpineResolution = 2f;
+
+    private readonly float _jumpSq;
     public float Seg { get; }
 
     /// <summary>Spine nodes in world space, snout first; P* = last tick (render interpolation).</summary>
@@ -826,7 +835,7 @@ public sealed class Fish
         _lastHeadX = HeadX; _lastHeadY = HeadY;
         if (!_bodyInit) { _bodyInit = true; dxBody = dyBody = 0f; }
         // Big jumps (teleports, turn flips) don't drag the body.
-        if (dxBody * dxBody + dyBody * dyBody > Seg * Seg * 4f) { dxBody = 0f; dyBody = 0f; }
+        if (dxBody * dxBody + dyBody * dyBody > _jumpSq) { dxBody = 0f; dyBody = 0f; }
         for (int i = 1; i < Count; i++) { _bx[i] -= dxBody; _by[i] -= dyBody; }
         float stiff = Math.Clamp(Species.Body.Stiffness, 0.05f, 0.95f) * 0.35f;
         for (int i = 1; i < Count; i++)

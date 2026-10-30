@@ -172,13 +172,13 @@ public sealed class SimConfig
     public float RippleDamping = 0.6f;
 
     [Tunable("Water", 0.02f, 0.2f, Help = "Patch column spacing, m (applies to new worlds)")]
-    public float PatchSpacing = 0.05f;
+    public float PatchSpacing = 0.025f;
 
-    [Tunable("Water", 64, 2048, Help = "Columns per simulated patch (applies to new worlds)")]
-    public int PatchColumns = 1024;
+    [Tunable("Water", 64, 4096, Help = "Columns per simulated patch (applies to new worlds)")]
+    public int PatchColumns = 2048;
 
     [Tunable("Water", 4, 300, Help = "Absorbing columns at each patch edge")]
-    public int SpongeColumns = 48;
+    public int SpongeColumns = 96;
 
     [Tunable("Water", 0f, 40f, Help = "How fast steep or fast water turns to foam")]
     public float FoamGain = 4f;
