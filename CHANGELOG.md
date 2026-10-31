@@ -2,6 +2,15 @@
 
 Newest first. Each version handed to the owner gets an entry: what changed, what to try, known issues.
 
+## v0.16.0: A finer simulation (2026-10-31)
+
+- Fish bodies bend on twice as many spine points, so turns and swimming curves are smooth instead of jointed.
+- The water surface is simulated in 2.5 cm cells instead of 5 cm: crisper ripples, splashes and wakes.
+- The physics runs at 240 steps a second instead of 120. The reel, spool, hooks, fish and water update twice as
+  often; casts, drag, hooksets and fights measure the same as before (your mouse cast still flies ~20 m).
+- Tried and left out: cutting the fishing line finer (7 cm pieces) made spinning casts ~20% shorter; the line stays
+  at 10 cm (owner's choice).
+
 ## v0.15.1: Memory check (2026-10-30)
 
 - Checked for memory leaks: 12 scene reloads (the travel and sleep path) and a two-minute session both hold steady

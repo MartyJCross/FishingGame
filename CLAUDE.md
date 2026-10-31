@@ -360,6 +360,15 @@ no leak; v0.15.1 baseline 2381 objects, 361 nodes, 0 orphans, ~3.3 MB managed). 
   - Spots: station_pond, kings_bay, suwannee (blackwater, legend Old Ironsides). Story: survey1, teal, spring_survey
     (unlocks kings_bay was teal; spring_survey unlocks suwannee), old_river, end. All 17 species have shape files.
 
+- **v0.16.0 finer sim (2026-10-31):** `TickHz` 240 with `TackleSubsteps` 4 (substep stays 1/960 s), fish spines
+  `Fish.SpineResolution` 2x, water `PatchSpacing` 2.5 cm / 2048 columns. Per-tick constants are now per second at
+  their 120 Hz values (line internal damping per substep at 960/s, fish body stiffness, wake push, wake rings).
+  Tests count time with `TestUtil.Hz`; never hardcode 120. Lessons: 240 Hz x 8 substeps (1/1920 s) broke the
+  baitcaster (backlash at every brake) and cut casts ~30%: the tackle tuning is tied to a 1/960 s substep. Line
+  segments 7 cm: stable only with the tension-mass term scaled 1/segment (without it a taut line kinks to 44 deg,
+  `KINK` lines in LandingTests), and with it mouse casts drop 20 -> 16 m; owner chose to keep 10 cm. Scripted step
+  casts release on the first tick past the angle, so their distance jumps with the tick rate (probe both).
+
 (Replace this list with a short, accurate description of what exists as the game grows: systems, controls, data
 counts, known issues.)
 

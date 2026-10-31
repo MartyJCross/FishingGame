@@ -62,6 +62,8 @@ public class LandingTests
         int fails = 0, jumps = 0;
         float closest = 99f, closestDepth = 0f, staminaThen = 0f;
         string lostHow = "", reasons = "";
+        float worstKink = 0f, kinkSum = 0f;
+        int kinkTicks = 0;
         int t;
         for (t = 0; t < TestUtil.Hz * 240 && !landed && !lost; t++)
         {
@@ -75,6 +77,21 @@ public class LandingTests
                 Buttons = (dist < c.LandReach || (fish.Mouth - a.Rig.Rod.TipPos).Length < 1.6f) && depth < 0.6f && t % (TestUtil.Hz / 2) == 0 ? InputButtons.Land : InputButtons.None,
             };
             world.Step(frames);
+            // How straight a taut line stays: the sharpest bend between neighbouring segments (a zigzag shows here).
+            var ln = a.Rig.Line;
+            if (ln.TipTension > 5f && ln.Count > 3)
+            {
+                float k = 0f;
+                for (int i = 1; i < ln.Count - 1; i++)
+                {
+                    float ax = ln.X[i] - ln.X[i - 1], ay = ln.Y[i] - ln.Y[i - 1], bx = ln.X[i + 1] - ln.X[i], by = ln.Y[i + 1] - ln.Y[i];
+                    float cos = (ax * bx + ay * by) / MathF.Max(MathF.Sqrt((ax * ax + ay * ay) * (bx * bx + by * by)), 1e-9f);
+                    k = MathF.Max(k, MathF.Acos(Math.Clamp(cos, -1f, 1f)) * 57.2958f);
+                }
+                worstKink = MathF.Max(worstKink, k);
+                kinkSum += k;
+                kinkTicks++;
+            }
             while (world.Events.TryPop(out var e))
             {
                 if (e.Type == SimEventType.FishLanded) landed = true;
@@ -86,7 +103,10 @@ public class LandingTests
         _out.WriteLine($"{speciesId} {fish.MassKg:0.00} kg: landed {landed} after {t / (float)TestUtil.Hz:0} s, lost {lostHow}, F refused {fails}x ({reasons}), {jumps} jumps; " +
                        $"closest {closest:0.00} m from the angler at depth {closestDepth:0.00} m, stamina then {staminaThen:0.00}; " +
                        $"now at x {fish.HeadX:0.00}, depth {world.Water.Height(fish.HeadX, world.Time) - fish.HeadY:0.00}, line out {a.Rig.Line.LineOut:0.0} m");
+        _out.WriteLine($"KINK {speciesId} {fish.MassKg:0.0} kg: taut line sharpest bend per tick mean {kinkSum / MathF.Max(kinkTicks, 1):0.00} deg, worst {worstKink:0.00} deg ({ln0(a)} nodes)");
         Assert.True(landed, $"lost it: {lostHow}");
         Assert.True(fails <= 2, "F should work once the fish is at the bank");
     }
+
+    private static int ln0(TheLedger.Sim.Angler.AnglerState a) => a.Rig.Line.Count;
 }

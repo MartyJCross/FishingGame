@@ -137,7 +137,10 @@ public sealed class Rig
         // vibration (stiffness ~ 2T/segment) stays slower than the substep, or the chain zigzags under load.
         float hSub = dt / Math.Max(1, c.TackleSubsteps);
         float tensionCoef = c.LineTensionMassFactor * hSub * hSub / MathF.Max(c.LineSegmentLength, 0.02f);
-        Line.SetSolverMassFloor(MathF.Max(c.LineNodeMinMassKg, Line.Terminal.MassKg / MathF.Max(c.LineMassRatioLimit, 1f)), tensionCoef);
+        // The absolute floors were tuned on 10 cm segments: scaled by segment length so the line's total phantom mass
+        // (which reads as weight and inertia) stays the same however finely it's cut.
+        float perLength = MathF.Max(c.LineSegmentLength, 0.01f) / 0.1f;
+        Line.SetSolverMassFloor(MathF.Max(c.LineNodeMinMassKg, Line.Terminal.MassKg / MathF.Max(c.LineMassRatioLimit, 1f)) * perLength, tensionCoef);
         if (payOutDelta != 0f)
         {
             float before = Line.LineOut;
