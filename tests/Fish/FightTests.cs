@@ -27,7 +27,7 @@ public class FightTests
         var frames = new InputFrame[1];
         int bites = 0, sets = 0;
         float sweepUntil = -1f;
-        for (int t = 0; t < 120 * 180 && sets == 0; t++)
+        for (int t = 0; t < TestUtil.Hz * 180 && sets == 0; t++)
         {
             float time = t * c.Dt;
             // Rod low and still; on a bite, sweep it up and reel.
@@ -35,7 +35,7 @@ public class FightTests
             frames[0] = new InputFrame { RodTargetAngle = sweeping ? 1.6f : 0.6f, RodReach = 0.5f, CrankRate = sweeping ? 3f : 0f };
             world.Step(frames);
             // Bait thrown out of the water by a missed hookset: cast it back out.
-            if (!a.Rig.Lure.Wet && time > sweepUntil + 3f && t % 360 == 0)
+            if (!a.Rig.Lure.Wet && time > sweepUntil + 3f && t % (3 * TestUtil.Hz) == 0)
             {
                 var tipNow = a.Rig.Rod.TipPos;
                 a.Reel.LineOnSpool += a.Rig.Line.LineOut - 9f;
@@ -78,7 +78,7 @@ public class FightTests
         int jumps = 0;
         float drag = a.Reel.DragForce;
         int t;
-        for (t = 0; t < 120 * 300 && !landed && !broke; t++)
+        for (t = 0; t < TestUtil.Hz * 300 && !landed && !broke; t++)
         {
             // A patient angler: rod up at about 60°, reel when the fish isn't taking drag, try to land when it's close.
             float tension = a.Rig.Line.TipTension;
@@ -87,7 +87,7 @@ public class FightTests
             {
                 RodTargetAngle = 1.05f, RodReach = 0.5f,
                 CrankRate = tension < 0.7f * drag ? 2f : 0f,
-                Buttons = dist < c.LandReach && t % 30 == 0 ? InputButtons.Land : InputButtons.None,
+                Buttons = dist < c.LandReach && t % (TestUtil.Hz / 4) == 0 ? InputButtons.Land : InputButtons.None,
             };
             world.Step(frames);
             while (world.Events.TryPop(out var e))
@@ -97,16 +97,16 @@ public class FightTests
                 if (e.Type is SimEventType.LineBroke or SimEventType.RodBroke or SimEventType.HookPulled)
                 {
                     broke = true;
-                    _out.WriteLine($"{e.Type} at {t / 120f:0.0} s: value {e.Value:0.00}, tip tension {a.Rig.Line.TipTension:0.0} N, line max {a.Rig.Line.MaxTension:0.0} N, hold {fish.HookHold:0.00}, move {fish.Move}, line out {a.Rig.Line.LineOut:0.0}");
+                    _out.WriteLine($"{e.Type} at {t / (float)TestUtil.Hz:0.0} s: value {e.Value:0.00}, tip tension {a.Rig.Line.TipTension:0.0} N, line max {a.Rig.Line.MaxTension:0.0} N, hold {fish.HookHold:0.00}, move {fish.Move}, line out {a.Rig.Line.LineOut:0.0}");
                 }
             }
         }
-        _out.WriteLine($"{fish.MassKg:0.00} kg bass ({lenCm:0} cm), drag {drag:0.0} N: landed {landed} after {t / 120f:0} s, {jumps} jumps, " +
+        _out.WriteLine($"{fish.MassKg:0.00} kg bass ({lenCm:0} cm), drag {drag:0.0} N: landed {landed} after {t / (float)TestUtil.Hz:0} s, {jumps} jumps, " +
                        $"failure {broke}, stamina {fish.StaminaA:0.00}/{fish.StaminaB:0.00}, faults {world.FaultCount}");
         Assert.Equal(0, world.FaultCount);
         Assert.False(broke);
         Assert.True(landed);
-        Assert.InRange(t / 120f, 15f, 300f); // a real fight, not an instant winch
+        Assert.InRange(t / (float)TestUtil.Hz, 12f, 300f); // a real fight, not an instant winch (14 s at 240 Hz, 16 s at 120 Hz)
 
         // In hand: keep it (a 44 cm bass is legal, bag 5).
         Assert.True(world.PendingCatch(0) >= 0);

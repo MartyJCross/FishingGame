@@ -198,9 +198,9 @@ public class WorldWaterTests
         for (long t = 0; t < 120L * 600; t++)
         {
             frames[0] = TestUtil.ScriptedInput(ref rng, t, 0);
-            if (t % 30 == 0) world.Splash(rng.Range(2f, 20f), rng.Range(1f, 8f), rng.Range(0.005f, 0.5f), 0.06f);
+            if (t % (TestUtil.Hz / 4) == 0) world.Splash(rng.Range(2f, 20f), rng.Range(1f, 8f), rng.Range(0.005f, 0.5f), 0.06f);
             world.Step(frames);
-            if (t % 120 == 0)
+            if (t % TestUtil.Hz == 0)
                 foreach (float h in world.Water.Patch(0)!.Heights) maxPatch = MathF.Max(maxPatch, MathF.Abs(h));
         }
         _out.WriteLine($"10 min storm (18 m/s wind, 60 mm/h rain, splash every 0.25 s): faults {world.FaultCount}, " +

@@ -126,7 +126,8 @@ public sealed class WaterSurface
         var p = PatchAt(x);
         if (p == null) return;
         float size = MathF.Min(3f, MathF.Max(radius, 0.005f) / 0.015f);
-        float push = c.WakeGain * near * MathF.Sqrt(size) * (0.8f * MathF.Abs(vx) + MathF.Max(0f, -vy) - 0.4f * MathF.Max(0f, vy));
+        // WakeGain is per tick at 120 Hz: scaled so the push per second is the same at any tick rate.
+        float push = c.WakeGain * c.Dt * 120f * near * MathF.Sqrt(size) * (0.8f * MathF.Abs(vx) + MathF.Max(0f, -vy) - 0.4f * MathF.Max(0f, vy));
         if (MathF.Abs(push) < 1e-5f) return;
         float r = MathF.Max(radius * 1.5f, 0.03f);
         p.AddImpulse(x, push, r);

@@ -1,6 +1,6 @@
 {
   "Gravity": 9.81,
-  "TackleSubsteps": 8,
+  "TackleSubsteps": 4,
   "MaxLineNodes": 200,
   "TackleIterations": 2,
   "RodStretchCompliance": 1e-08,

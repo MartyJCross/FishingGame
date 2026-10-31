@@ -33,7 +33,7 @@ public class LureTests
     {
         var (rig, water, spot, c, grip) = DeepWater(lure, lineOut);
         float deepest = 0f;
-        for (int t = 0; t < (int)(seconds * 120); t++)
+        for (int t = 0; t < (int)(seconds * TestUtil.Hz); t++)
         {
             double time = t * (double)c.Dt;
             water.Step(c, c.Dt, time);
@@ -62,14 +62,14 @@ public class LureTests
         var jig = LoadLure("02_jig_quarter_oz");
         var (rig, water, spot, c, grip) = DeepWater(jig, 15f);
         float worst = 0f;
-        for (int t = 0; t < 120 * 8; t++)
+        for (int t = 0; t < TestUtil.Hz * 8; t++)
         {
             double time = t * (double)c.Dt;
             water.Step(c, c.Dt, time);
             rig.Step(c, c.Dt, new TackleEnvironment(water, spot, Vec2.Zero, time), grip, 0.3f, -0.8f * c.Dt);
             var l = rig.Line;
             int k = l.TerminalIndex;
-            if (t < 120 * 3 || l.Tension[k] < 0.05f) continue;
+            if (t < TestUtil.Hz * 3 || l.Tension[k] < 0.05f) continue;
             float toLine = MathF.Atan2(l.Y[k - 1] - l.Y[k], l.X[k - 1] - l.X[k]);
             worst = MathF.Max(worst, MathF.Abs(Angles.Wrap(rig.Lure.Heading - toLine)));
         }
@@ -82,7 +82,7 @@ public class LureTests
     {
         var bait = LoadLure("01_bait_worm_bobber");
         var (rig, water, spot, c, grip) = DeepWater(bait, 6f);
-        for (int t = 0; t < 120 * 8; t++)
+        for (int t = 0; t < TestUtil.Hz * 8; t++)
         {
             double time = t * (double)c.Dt;
             water.Step(c, c.Dt, time);

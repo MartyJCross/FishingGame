@@ -50,10 +50,10 @@ public class FishTests
         var start = world.Fish.Select(f => new Vec2(f.HeadX, f.HeadY)).ToArray();
         var frames = new InputFrame[1];
         float worstOut = 0f;
-        for (int t = 0; t < 120 * 60; t++)
+        for (int t = 0; t < TestUtil.Hz * 60; t++)
         {
             world.Step(frames);
-            if (t % 60 != 0) continue;
+            if (t % (TestUtil.Hz / 2) != 0) continue;
             foreach (var f in world.Fish)
             {
                 float surface = world.Water.Height(f.HeadX, world.Time), ground = world.Spot.GroundHeight(f.HeadX);
@@ -79,7 +79,7 @@ public class FishTests
         float worst = 0f;
         int turns = 0;
         var facing = world.Fish.Select(f => f.FacingSign).ToArray();
-        for (int t = 0; t < 120 * 60; t++)
+        for (int t = 0; t < TestUtil.Hz * 60; t++)
         {
             world.Step(frames);
             for (int i = 0; i < world.Fish.Count; i++)
@@ -117,7 +117,7 @@ public class FishTests
         frames[0] = new InputFrame { RodTargetAngle = 0.6f, RodReach = 0.5f };
         int strikes = 0, bites = 0, spits = 0;
         double firstBite = -1;
-        for (int t = 0; t < 120 * 120; t++)
+        for (int t = 0; t < TestUtil.Hz * 120; t++)
         {
             world.Step(frames);
             while (world.Events.TryPop(out var e))

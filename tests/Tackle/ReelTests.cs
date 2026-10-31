@@ -29,7 +29,7 @@ public class ReelTests
         var frames = new InputFrame[1];
         lineBefore = world.Anglers[0].Reel.LineOnSpool + world.Anglers[0].Rig.Line.LineOut;
         bool released = false;
-        for (int t = 0; t < 120 * 7; t++)
+        for (int t = 0; t < TestUtil.Hz * 7; t++)
         {
             float time = t * c.Dt;
             frame.Buttons = t == 2 ? InputButtons.Bail : InputButtons.None;
@@ -69,8 +69,9 @@ public class ReelTests
     [Fact]
     public void OverheadCastFliesAndConservesLine()
     {
-        var rec = new InputRecording { Seed = 1, AnglerCount = 1, TickHz = 120, Setup = "scene=test" };
-        var world = Cast(1.1f, out float lineBefore, rec);
+        var rec = new InputRecording { Seed = 1, AnglerCount = 1, TickHz = TestUtil.Hz, Setup = "scene=test" };
+        // Released at 1.05 rad: the scripted step input's best release at 240 Hz (13.5 m; 1.10 falls past the cliff).
+        var world = Cast(1.05f, out float lineBefore, rec);
         // Kept in the repo so the game can replay it: --replay res://data/replays/cast_overhead.rec
         rec.Save(Path.Combine(TestUtil.RepoRoot, "game", "data", "replays", "cast_overhead.rec"));
         var a = world.Anglers[0];
@@ -97,12 +98,12 @@ public class ReelTests
         var input = new InputFrame { CrankRate = 2f };
         float tensionSum = 0f;
         int n = 0;
-        for (int t = 0; t < 240; t++)
+        for (int t = 0; t < 2 * TestUtil.Hz; t++)
         {
             reel.BeginTick(c, c.Dt, input, rig.Line.Spec, rig.Line.TipTension);
             rig.Step(c, c.Dt, env, new Vec2(0f, 2f), 0f, reel.Retrieve, reel.SlipForce);
             reel.EndTick(c.Dt, rig.SlippedThisTick, rig.TakenThisTick, rig.Line.Spec);
-            if (t > 120) { tensionSum += rig.Line.TipTension; n++; }
+            if (t > TestUtil.Hz) { tensionSum += rig.Line.TipTension; n++; }
         }
         float mean = tensionSum / n;
         _out.WriteLine($"Drag {reel.DragForce:0.0} N: mean tip tension while slipping {mean:0.0} N, line out {rig.Line.LineOut:0.00} m, slipping {reel.DragSlipping}");

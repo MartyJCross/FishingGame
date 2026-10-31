@@ -24,7 +24,7 @@ public class BottomRigTests
         a.Rig.Line.Reset(tip, (spot - tip).Normalized(), (spot - tip).Length);
         var frames = new InputFrame[1];
         int strikes = 0, bites = 0;
-        for (int t = 0; t < 120 * 180; t++)
+        for (int t = 0; t < TestUtil.Hz * 180; t++)
         {
             frames[0] = new InputFrame { RodTargetAngle = 0.8f, RodReach = 0.5f };
             world.Step(frames);

@@ -837,7 +837,8 @@ public sealed class Fish
         // Big jumps (teleports, turn flips) don't drag the body.
         if (dxBody * dxBody + dyBody * dyBody > _jumpSq) { dxBody = 0f; dyBody = 0f; }
         for (int i = 1; i < Count; i++) { _bx[i] -= dxBody; _by[i] -= dyBody; }
-        float stiff = Math.Clamp(Species.Body.Stiffness, 0.05f, 0.95f) * 0.35f;
+        // A fraction per tick at 120 Hz, kept per second at any tick rate.
+        float stiff = 1f - MathF.Pow(1f - Math.Clamp(Species.Body.Stiffness, 0.05f, 0.95f) * 0.35f, dt * 120f);
         for (int i = 1; i < Count; i++)
         {
             float px = _bx[i - 1], py = _by[i - 1];

@@ -36,7 +36,7 @@ public class HooksetTests
         float peakLine = 0f, peakRod = 0f, target = 0.4f;
         int lineBreaks = 0, rodBreaks = 0;
         float firstBreak = -1f, slipped = 0f;
-        for (int t = 0; t < 120 * 3 && lineBreaks + rodBreaks == 0; t++)
+        for (int t = 0; t < TestUtil.Hz * 3 && lineBreaks + rodBreaks == 0; t++)
         {
             float time = t * c.Dt;
             if (time > 1f) target = MathF.Min(sweepTo, a.Hands.Angle + lead);

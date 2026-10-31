@@ -32,7 +32,7 @@ public class LineTests
         var rig = new Rig(Broomstick(), line, new TerminalSpec { MassKg = load / c.Gravity, VolumeM3 = 0f }, 64);
         rig.Reset(Vec2.Zero, 0f, 2.0f);
         var env = TackleTestUtil.DryEnv();
-        for (int t = 0; t < 120 * 6; t++) rig.Step(c, c.Dt, env, Vec2.Zero, 0f, 0f);
+        for (int t = 0; t < TestUtil.Hz * 6; t++) rig.Step(c, c.Dt, env, Vec2.Zero, 0f, 0f);
 
         float measured = rig.Line.CurrentLength(rig.Rod.TipPos) / rig.Line.LineOut - 1f;
         float expected = 0.5f * line.StretchAtBreak;
@@ -60,7 +60,7 @@ public class LineTests
         int term = rig.Line.TerminalIndex;
         rig.Line.X[term] = 2.2f; rig.Line.Y[term] = 0f;
         float startX = rig.Line.X[term];
-        for (int t = 0; t < 120 * 5; t++) rig.Step(c, c.Dt, env, grip, 0f, 0f);
+        for (int t = 0; t < TestUtil.Hz * 5; t++) rig.Step(c, c.Dt, env, grip, 0f, 0f);
 
         float lowest = 0f;
         for (int k = 0; k < rig.Line.Count - 1; k++) lowest = MathF.Min(lowest, rig.Line.Y[k]);
@@ -80,10 +80,10 @@ public class LineTests
         var env = TackleTestUtil.DryEnv();
         int startNodes = rig.Line.Count;
         // Pay out 6 m over 6 s, then retrieve 5.5 m over 5.5 s.
-        for (int t = 0; t < 720; t++) rig.Step(c, c.Dt, env, Vec2.Zero, 0.5f, 1f * c.Dt);
+        for (int t = 0; t < 6 * TestUtil.Hz; t++) rig.Step(c, c.Dt, env, Vec2.Zero, 0.5f, 1f * c.Dt);
         float outAfterPay = rig.Line.LineOut;
         int nodesAfterPay = rig.Line.Count;
-        for (int t = 0; t < 660; t++) rig.Step(c, c.Dt, env, Vec2.Zero, 0.5f, -1f * c.Dt);
+        for (int t = 0; t < TestUtil.Hz * 11 / 2; t++) rig.Step(c, c.Dt, env, Vec2.Zero, 0.5f, -1f * c.Dt);
         float outAfterRetrieve = rig.Line.LineOut;
         _out.WriteLine($"Line out 1.0 → {outAfterPay:0.000} m ({startNodes} → {nodesAfterPay} nodes) → {outAfterRetrieve:0.000} m ({rig.Line.Count} nodes)");
         Assert.InRange(outAfterPay, 6.99f, 7.01f);
@@ -99,7 +99,7 @@ public class LineTests
         var rig = new Rig(RodSpec.MediumSpinning(), LoadLine("line_mono_10lb"), TerminalSpec.HalfOunceSinker(), c.MaxLineNodes);
         rig.Reset(Vec2.Zero, 0.5f, 1.0f);
         var env = TackleTestUtil.DryEnv();
-        for (int t = 0; t < 240; t++) rig.Step(c, c.Dt, env, Vec2.Zero, 0.5f, -1f * c.Dt);
+        for (int t = 0; t < 2 * TestUtil.Hz; t++) rig.Step(c, c.Dt, env, Vec2.Zero, 0.5f, -1f * c.Dt);
         Assert.InRange(rig.Line.LineOut, c.MinLineOut - 0.001f, c.MinLineOut + 0.001f);
     }
 
@@ -118,7 +118,7 @@ public class LineTests
             var grip = new Vec2(-1.8f, 0.05f);
             rig.Reset(grip, 0f, 3f);
             rig.Line.Reset(rig.Rod.TipPos + new Vec2(0f, -0.05f), new Vec2(1f, 0f), 3f);
-            for (int t = 0; t < 120 * 8; t++)
+            for (int t = 0; t < TestUtil.Hz * 8; t++)
             {
                 water.Step(c, c.Dt, t * (double)c.Dt);
                 rig.Step(c, c.Dt, new TackleEnvironment(water, spot, Vec2.Zero, t * (double)c.Dt), grip, 0f, 0f);

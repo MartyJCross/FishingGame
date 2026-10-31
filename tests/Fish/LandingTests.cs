@@ -63,7 +63,7 @@ public class LandingTests
         float closest = 99f, closestDepth = 0f, staminaThen = 0f;
         string lostHow = "", reasons = "";
         int t;
-        for (t = 0; t < 120 * 240 && !landed && !lost; t++)
+        for (t = 0; t < TestUtil.Hz * 240 && !landed && !lost; t++)
         {
             float dist = MathF.Abs(fish.HeadX - a.Position.X);
             float depth = world.Water.Height(fish.HeadX, world.Time) - fish.HeadY;
@@ -72,7 +72,7 @@ public class LandingTests
             {
                 RodTargetAngle = RodAngle, RodReach = 0.5f, CrankRate = 1.5f, // RMB held: steady reel
                 // Press F when the HUD says "in reach" (as the player would).
-                Buttons = (dist < c.LandReach || (fish.Mouth - a.Rig.Rod.TipPos).Length < 1.6f) && depth < 0.6f && t % 60 == 0 ? InputButtons.Land : InputButtons.None,
+                Buttons = (dist < c.LandReach || (fish.Mouth - a.Rig.Rod.TipPos).Length < 1.6f) && depth < 0.6f && t % (TestUtil.Hz / 2) == 0 ? InputButtons.Land : InputButtons.None,
             };
             world.Step(frames);
             while (world.Events.TryPop(out var e))
@@ -83,7 +83,7 @@ public class LandingTests
                 if (e.Type is SimEventType.LineBroke or SimEventType.RodBroke or SimEventType.HookPulled) { lost = true; lostHow = e.Type.ToString(); }
             }
         }
-        _out.WriteLine($"{speciesId} {fish.MassKg:0.00} kg: landed {landed} after {t / 120f:0} s, lost {lostHow}, F refused {fails}x ({reasons}), {jumps} jumps; " +
+        _out.WriteLine($"{speciesId} {fish.MassKg:0.00} kg: landed {landed} after {t / (float)TestUtil.Hz:0} s, lost {lostHow}, F refused {fails}x ({reasons}), {jumps} jumps; " +
                        $"closest {closest:0.00} m from the angler at depth {closestDepth:0.00} m, stamina then {staminaThen:0.00}; " +
                        $"now at x {fish.HeadX:0.00}, depth {world.Water.Height(fish.HeadX, world.Time) - fish.HeadY:0.00}, line out {a.Rig.Line.LineOut:0.0} m");
         Assert.True(landed, $"lost it: {lostHow}");

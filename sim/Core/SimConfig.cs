@@ -33,7 +33,7 @@ public sealed class TunableAttribute : Attribute
 public sealed class SimConfig
 {
     /// <summary>Fixed sim tick rate. Not live-tunable: changing it changes every replay.</summary>
-    public int TickHz = 120;
+    public int TickHz = 240;
 
     public float Dt => 1f / TickHz;
 
@@ -41,7 +41,7 @@ public sealed class SimConfig
     public float Gravity = 9.81f;
 
     [Tunable("Solver", 1, 32, Help = "XPBD substeps per tick for rod, line and tackle")]
-    public int TackleSubsteps = 8;
+    public int TackleSubsteps = 4;
 
     [Tunable("Solver", 16, 400, Help = "Most nodes a line may use")]
     public int MaxLineNodes = 200;

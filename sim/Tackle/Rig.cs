@@ -485,7 +485,8 @@ public sealed class Rig
         }
         // Internal damping: nudge each node's velocity toward its neighbours' average (the line's own friction).
         // It removes the node-to-node sawtooth a stiff chain picks up under high tension, but leaves smooth motion alone.
-        float beta = c.LineInternalDamping;
+        // Tuned as a fraction per substep at 120 Hz x 8 substeps (960/s): kept per second at any tick or substep rate.
+        float beta = 1f - MathF.Pow(1f - Math.Clamp(c.LineInternalDamping, 0f, 0.999f), h * 960f);
         if (beta > 0f && l.Count > 2)
         {
             float pvx = l.VX[0], pvy = l.VY[0];

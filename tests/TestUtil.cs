@@ -6,6 +6,9 @@ namespace TheLedger.Sim.Tests;
 
 public static class TestUtil
 {
+    /// <summary>The sim's tick rate (tests count time in ticks of this).</summary>
+    public static readonly int Hz = new SimConfig().TickHz;
+
     /// <summary>The repo root (the folder holding CLAUDE.md), found by walking up from the test binary.</summary>
     public static string RepoRoot
     {
@@ -20,7 +23,7 @@ public static class TestUtil
     /// <summary>Scripted but varied input: sweeps, flicks, holds and cranks, deterministic from a seed.</summary>
     public static InputFrame ScriptedInput(ref SimRng rng, long tick, int angler)
     {
-        float t = tick / 120f;
+        float t = tick / (float)TestUtil.Hz;
         float sweep = 0.6f + 0.9f * MathF.Sin(t * (0.7f + 0.3f * angler));
         // Occasional flicks: jump the target to a random angle.
         if (rng.Chance(0.01f)) sweep = rng.Range(-1f, 2.4f);

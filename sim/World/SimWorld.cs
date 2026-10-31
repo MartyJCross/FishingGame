@@ -297,7 +297,7 @@ public sealed class SimWorld
     /// <summary>Lures, floats and fish near the surface push the water as they move (docs/04 §7.1).</summary>
     private void Wakes()
     {
-        bool ringTick = Tick % 10 == 0;
+        bool ringTick = Tick % Math.Max(1, Config.TickHz / 12) == 0; // a wake ring every 1/12 s
         for (int i = 0; i < _anglers.Length; i++)
         {
             var l = _anglers[i].Rig.Line;

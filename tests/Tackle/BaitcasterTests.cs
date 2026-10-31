@@ -40,7 +40,7 @@ public class BaitcasterTests
         bool released = false, landed = false;
         float releaseTime = 0f, landX = 0f;
         int backlashes = 0;
-        for (int t = 0; t < 120 * 7; t++)
+        for (int t = 0; t < TestUtil.Hz * 7; t++)
         {
             float time = t * c.Dt;
             f.Buttons = t == 2 ? InputButtons.Bail : InputButtons.None;

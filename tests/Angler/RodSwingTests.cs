@@ -22,7 +22,7 @@ public class RodSwingTests
         var frames = new InputFrame[1];
         int breaks = 0;
         float peak = 0f;
-        for (int t = 0; t < 120 * 4; t++)
+        for (int t = 0; t < TestUtil.Hz * 4; t++)
         {
             float time = t * c.Dt;
             // Rest, then rip it back, then rip it forward, then back again.

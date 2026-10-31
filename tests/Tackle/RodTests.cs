@@ -106,7 +106,7 @@ public class RodTests
         rig.Reset(Vec2.Zero, 0f, 0.3f);
         var env = TackleTestUtil.DryEnv();
         var settle = new SimConfig { TackleSettleDamping = 6f };
-        for (int t = 0; t < 600; t++) rig.Step(settle, c.Dt, env, Vec2.Zero, 0f, 0f);
+        for (int t = 0; t < 5 * TestUtil.Hz; t++) rig.Step(settle, c.Dt, env, Vec2.Zero, 0f, 0f);
 
         // "Cut" the line: a fresh rig with a feather on the end, starting from the bent rod's shape.
         var free = new Rig(rod, TackleTestUtil.StiffTestLine(), new TerminalSpec { MassKg = 0.001f, VolumeM3 = 0f }, 64);
@@ -119,14 +119,14 @@ public class RodTests
         int crossings = 0;
         float prev = startY, restY = 0f;
         float lastBig = 0f;
-        for (int t = 0; t < 120 * 4; t++)
+        for (int t = 0; t < TestUtil.Hz * 4; t++)
         {
             free.Step(c, c.Dt, env, Vec2.Zero, 0f, 0f);
             float y = free.Rod.Y[free.Rod.Tip];
-            if (t < 120 && (prev - restY) * (y - restY) < 0f) crossings++;
+            if (t < TestUtil.Hz && (prev - restY) * (y - restY) < 0f) crossings++;
             prev = y;
-            if (t >= 120 * 3) lastBig = MathF.Max(lastBig, MathF.Abs(y - restY));
-            if (t == 120 * 3 - 1) restY = y;
+            if (t >= TestUtil.Hz * 3) lastBig = MathF.Max(lastBig, MathF.Abs(y - restY));
+            if (t == TestUtil.Hz * 3 - 1) restY = y;
         }
         _out.WriteLine($"Released from {startY:0.000} m: {crossings} rest crossings in the first second (~{crossings / 2f:0.0} Hz), amplitude after 3 s {lastBig * 1000:0.0} mm");
         Assert.InRange(crossings / 2f, 1.5f, 15f);

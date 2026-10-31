@@ -72,6 +72,7 @@ public partial class SimDriver : Node
         {
             _replay = InputRecording.Load(ProjectSettings.GlobalizePath(args.ReplayPath));
             anglers = _replay.AnglerCount;
+            config.TickHz = _replay.TickHz; // a recording plays back at the rate it was made
             GD.Print($"Replaying {args.ReplayPath}: {_replay.TickCount} ticks, {anglers} angler(s), seed {_replay.Seed}");
         }
         ulong seed = _replay?.Seed ?? args.Seed;
@@ -106,6 +107,9 @@ public partial class SimDriver : Node
         _frames = new InputFrame[anglers];
         _lockstep = args.Lockstep;
         _ticksPerFrame = Math.Max(1, config.TickHz / 60);
+        // One sim tick per Godot physics tick (the renderer interpolates between them).
+        Engine.PhysicsTicksPerSecond = config.TickHz;
+        Engine.MaxPhysicsStepsPerFrame = Math.Max(8, config.TickHz / 15);
         if (args.RecordPath != null)
         {
             _recordPath = args.RecordPath;
