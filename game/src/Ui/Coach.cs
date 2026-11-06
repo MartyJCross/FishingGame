@@ -215,7 +215,7 @@ public partial class Coach : PanelContainer
 
     /// <summary>"{action}" becomes the key bound to it now (lessons follow the player's rebinding).</summary>
     private static string Keys(string text) =>
-        System.Text.RegularExpressions.Regex.Replace(text, "\\{([a-z_]+)\\}", m => TheLedger.Controls.InputActions.Label(m.Groups[1].Value));
+        System.Text.RegularExpressions.Regex.Replace(text, @"\{([a-z_]+)\}", m => TheLedger.Controls.InputActions.Label(m.Groups[1].Value));
 
     private string GoalLine(Profile p)
     {
