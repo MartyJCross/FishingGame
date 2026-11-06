@@ -2,6 +2,18 @@
 
 Newest first. Each version handed to the owner gets an entry: what changed, what to try, known issues.
 
+## v0.17.1: The angler, more of Act 1, rebinding (2026-11-06)
+
+- **The angler moves:** leans into the cast and back against a fish, the reel hand turns the handle as you reel, the
+  head follows the lure, plus a fishing vest and sunglasses.
+- **Four new story steps:** Junie's Saturday weigh-in (a 42 cm bass from anywhere, $40), the night shift (a channel
+  catfish and an American eel after dark, $50), the annual report (12 species in your Ledger, $60) and the Lantern
+  (a snook at Kings Bay after dark, $80), each with a new page of Wren's. Your save keeps its place in the story.
+- **Key rebinding:** Settings, Controls. Click a binding and press the new key or mouse button; reset to defaults.
+  The key hints and Odile's lessons show your keys.
+- **Credits** on the title menu.
+- Not playtested this round (owner's call): built only.
+
 ## v0.17.0: Earn your gear, and a guide for the first hour (2026-11-06)
 
 - **Gear costs real money now.** You start with $15, the medium spinning outfit, a sinker and a worm under a bobber.
