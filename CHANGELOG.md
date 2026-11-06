@@ -2,6 +2,20 @@
 
 Newest first. Each version handed to the owner gets an entry: what changed, what to try, known issues.
 
+## v0.18.0: Real sound (2026-11-06)
+
+- **Field recordings** replace the synthesised ambience: Florida pond days (Mount Dora, St. Marks), the dawn chorus
+  (St. Augustine), night frogs and insects (Clearwater, Gainesville), water lapping at the bank, wind in the trees,
+  light and heavy rain, and a flowing river at the Suwannee. They crossfade with the hour, the weather and the spot.
+- **Recorded one-shots:** lure plops and splashes sized by the impact, fish jumping, thunder after lightning, herons,
+  egrets, a kingfisher, sandhill cranes and an eagle by day, barred owls and a pig frog at night, Skiff's bark.
+- **Music:** five CC0 tracks (guitar, folk, ambient), one at a time with a minute or two of quiet between, fading out
+  while a fish is on. The reel, drag, line and rod sounds stay synthesised from the physics.
+- **The icon:** a fish leaping at sunset, on the exe and the window (v0.17.2).
+- Every recording is CC0 or public domain, checked on its own page (game/assets/audio/SOURCES.md); all are credited
+  on the Credits page, with Godot's licence.
+- Not playtested (owner's call): the levels are a first guess, tell me what's too loud or quiet.
+
 ## v0.17.1: The angler, more of Act 1, rebinding (2026-11-06)
 
 - **The angler moves:** leans into the cast and back against a fish, the reel hand turns the handle as you reel, the

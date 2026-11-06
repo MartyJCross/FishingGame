@@ -15,3 +15,7 @@ SIL Open Font License 1.1 (free for commercial use; the licence text ships besid
 |---|---|---|
 | `fonts/Fraunces.ttf` (variable) | [Fraunces](https://github.com/undercasetype/Fraunces) by The Fraunces Project Authors, via Google Fonts | OFL 1.1 (`fonts/Fraunces-OFL.txt`) |
 | `fonts/FiraSans-Regular.ttf`, `fonts/FiraSans-SemiBold.ttf` | [Fira Sans](https://github.com/mozilla/Fira) by The Mozilla Foundation and Telefonica S.A., via Google Fonts | OFL 1.1 (`fonts/FiraSans-OFL.txt`) |
+
+# Sound and music
+
+All CC0 1.0 or public domain, each checked on its own page. One line per file (title, author, source page, length, notes): `audio/SOURCES.md`. Long ambience recordings are cut to 80 s (they crossfade into themselves in game).

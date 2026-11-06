@@ -153,7 +153,16 @@ public partial class Ambience : Node
         _thunderIn = 0.15f + distance * 3.5f;
     }
 
-    private void OnBark() => Shot("bark", 0.45f, 0.95f + 0.1f * Rnd());
+    private double _lastBark = -10;
+
+    /// <summary>Skiff barks in bursts; each recording already holds a few barks, so one per burst.</summary>
+    private void OnBark()
+    {
+        double now = Time.GetTicksMsec() / 1000.0;
+        if (now - _lastBark < 3.0) return;
+        _lastBark = now;
+        Shot("bark", 0.4f, 0.95f + 0.1f * Rnd());
+    }
 
     public override void _Process(double delta)
     {
@@ -182,14 +191,14 @@ public partial class Ambience : Node
         if (_nextCall <= 0f)
         {
             if (day > 0.5f && wet < 0.5f) Shot("bird", 0.25f + 0.2f * Rnd(), 0.95f + 0.1f * Rnd());
-            else if (day < 0.3f) Shot("owl", 0.2f + 0.15f * Rnd());
+            else if (day < 0.3f && Rnd() < 0.5f) Shot("owl", 0.15f + 0.1f * Rnd());
             _nextCall = 25f + 50f * Rnd();
         }
         _nextFrog -= dt;
         if (_nextFrog <= 0f)
         {
             if (day < 0.4f && scenery != "springs") Shot("bullfrog", 0.15f + 0.2f * Rnd(), 0.9f + 0.2f * Rnd());
-            _nextFrog = 5f + 14f * Rnd();
+            _nextFrog = 25f + 40f * Rnd(); // one recorded croak: rare, so it doesn't repeat
         }
         if (_thunderIn >= 0f)
         {

@@ -1,0 +1,95 @@
+{
+  "sections": [
+    {
+      "title": "The Ledger",
+      "lines": [
+        "A fishing game with real fish in real places.",
+        "Built with the Godot Engine."
+      ]
+    },
+    {
+      "title": "Music (CC0)",
+      "lines": [
+        "Apple Cider, by Zane Little Music (OpenGameArt, CC0)",
+        "Contemplation, by Joth (OpenGameArt, CC0)",
+        "Country (Country1), by Pro Sensory (Alex McCulloch) (OpenGameArt, CC0)",
+        "Gone Fishin', by memoraphile / You're Perfect Studio (OpenGameArt, CC0 (page offers CC0, CC-BY 4.0 or OGA-BY 3.0; we use the CC0 option - file name ends _CC0))",
+        "LaDaDa Guitar, by Pro Sensory (Alex McCulloch) (OpenGameArt, CC0)"
+      ]
+    },
+    {
+      "title": "Sound recordings (CC0 / public domain)",
+      "lines": [
+        "2 distant thunder claps, by mattoad (Freesound, CC0 1.0)",
+        "Barred Owl, Yellowstone National Park, by National Park Service (Wikimedia Commons, Public domain (US federal work, National Park Service))",
+        "Big Splash, by Bird_man (Freesound, CC0 1.0)",
+        "Big Water Splash, by qubodup (Freesound, CC0 1.0)",
+        "Birds -songbirds-morning dove - woodpecker- St Augustine, by Bansemer (Freesound, CC0 1.0)",
+        "Distant Thunder Clap_Gentle, by mikala_oidua (Freesound, CC0 1.0)",
+        "Elizabeth Evans Park - Mount Dora - June, by Ollie_Patterson (Freesound, CC0 1.0)",
+        "Fish Jumping Splash 1, by paulprit (Freesound, CC0 1.0)",
+        "Fish Jumping Splash 2, by paulprit (Freesound, CC0 1.0)",
+        "Fish Splashing Release 2, by paulprit (Freesound, CC0 1.0)",
+        "Flordia Pond Creatures, by sweet_niche (Freesound, CC0 1.0)",
+        "Frogs in Alliagtor Creek at 4am, by Bansemer (Freesound, CC0 1.0)",
+        "Gallant.Alabama.BarredOwl, by JPBILLINGSLEYJR (Freesound, CC0 1.0)",
+        "Gentle waves on a lake, by TheFlyFishingFilmmaker (Freesound, CC0 1.0)",
+        "Great Blue Heron, by Unknown author Unknown author (Wikimedia Commons, Public domain (US federal work, National Park Service))",
+        "Great Blue Heron1, by G. McGrane (Wikimedia Commons, Public domain (per Commons file page))",
+        "Great egret, by joericortens (Freesound, CC0 1.0)",
+        "Jungle Rainfall, by nonzeroenfilade (Freesound, CC0 1.0)",
+        "LBS_FX DOG Small Alert Bark001, by LittleBigSounds (Freesound, CC0 1.0)",
+        "Lake at night 1.aif, by i_luv_soundz (Freesound, CC0 1.0)",
+        "LakeWavesOct25th2015, by kvgarlic (Freesound, CC0 1.0)",
+        "LightRaininPinesMarch302013, by kvgarlic (Freesound, CC0 1.0)",
+        "Lilipads and frogs at night, by Danjocross (Freesound, CC0 1.0)",
+        "Megaceryle alcyon, by Unknown author Unknown author (Wikimedia Commons, Public domain (US federal work, National Park Service))",
+        "Night Crickets Back Porch, by hdfreema (Freesound, CC0 1.0)",
+        "PigFrog EvergladesNP, by NPS Natural Sounds & Night Skies Division (Wikimedia Commons, Public domain (US federal work, National Park Service))",
+        "Rain on pond, by Mjeno (Freesound, CC0 1.0)",
+        "Rock In Water Splash-Plop 1.aif, by jc144940 (Freesound, CC0 1.0)",
+        "Rock In Water Splash-Plop 2.aif, by jc144940 (Freesound, CC0 1.0)",
+        "Rock In Water Splash-Plop 3.aif, by jc144940 (Freesound, CC0 1.0)",
+        "Small dog, by ScouseMouseJB (Freesound, CC0 1.0)",
+        "Stream Running Into Pond, by mhtaylor67 (Freesound, CC0 1.0)",
+        "Tiny Splash, by dslrguide (Freesound, CC0 1.0)",
+        "Tropical Rain - light in a forest with drop hitting the leaves, by nyoz (Freesound, CC0 1.0)",
+        "Water_Lapping_River, by ceich93 (Freesound, CC0 1.0)",
+        "Yellowstone sound library - Bald Eagle - 003, by NPS & MSU Acoustic Atlas/Jennifer Jerrett (Wikimedia Commons, Public domain (US federal work, National Park Service))",
+        "Yellowstone sound library - Red-Winged Blackbird - 001, by NPS & MSU Acoustic Atlas / Jennifer Jerrett (Wikimedia Commons, Public domain (US federal work, National Park Service))",
+        "Yellowstone sound library - Sandhill Crane - 001, by NPS & MSU Acoustic Atlas / Jennifer Jerrett (Wikimedia Commons, Public domain (US federal work, National Park Service))",
+        "assorted birds, by Paresh (Freesound, CC0 1.0)",
+        "breeze, by keweldog (Freesound, CC0 1.0)",
+        "distant storm 1, by Soojay (Freesound, CC0 1.0)",
+        "gentle river flow, by Garuda1982 (Freesound, CC0 1.0)",
+        "thunder growling, by bastipictures (Freesound, CC0 1.0)",
+        "water splash- small, by morganveilleux (Freesound, CC0 1.0)",
+        "wind in the trees, by deleted_user_229898 (Freesound, CC0 1.0)"
+      ]
+    },
+    {
+      "title": "Art (CC0)",
+      "lines": [
+        "Ground textures by Lennart Demes (ambientCG)",
+        "Foliage Sprites by Kenney (kenney.nl)"
+      ]
+    },
+    {
+      "title": "Fonts (SIL Open Font License 1.1)",
+      "lines": [
+        "Fraunces by The Fraunces Project Authors",
+        "Fira Sans by The Mozilla Foundation and Telefonica S.A."
+      ]
+    },
+    {
+      "title": "Godot Engine",
+      "lines": [
+        "This game uses Godot Engine, available under the following license:",
+        "Copyright (c) 2014-present Godot Engine contributors. Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur.",
+        "Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the \"Software\"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:",
+        "The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.",
+        "THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE."
+      ]
+    }
+  ]
+}
