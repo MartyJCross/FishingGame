@@ -24,6 +24,8 @@ public sealed class Profile
     public float Day { get; set; } = 8f;
     /// <summary>Story progress: current step, spots it has opened, and Wren's pages found (step ids).</summary>
     public int StoryStep { get; set; }
+    /// <summary>The current step's id (kept alongside the index so new steps don't shift old saves).</summary>
+    public string StoryId { get; set; } = "";
     public List<string> Unlocked { get; set; } = new();
     public List<string> Pages { get; set; } = new();
     /// <summary>Legendary fish landed (legend ids).</summary>
@@ -73,7 +75,16 @@ public static class ProfileStore
     public static ShopData Shop => _shop ??=
         JsonSerializer.Deserialize<ShopData>(Godot.FileAccess.GetFileAsString("res://data/shop.json"), Json) ?? new ShopData();
 
-    public static Profile Current => _p ??= Load();
+    public static Profile Current
+    {
+        get
+        {
+            if (_p != null) return _p;
+            _p = Load();
+            Story.SyncSave();
+            return _p;
+        }
+    }
 
     private static Profile Load()
     {

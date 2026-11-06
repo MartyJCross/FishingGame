@@ -96,7 +96,7 @@ public static class Requests
         return n > 1 && (s.EndsWith("shiner") || s.EndsWith("eel") || s.EndsWith("bullhead") || s.EndsWith("crappie")) ? s + "s" : s;
     }
 
-    private static bool IsNight(float hour) => hour < 5.5f || hour > 20.5f;
+    private static bool IsNight(float hour) => Story.IsNight(hour);
 
     /// <summary>How far along a request is today: (have, need).</summary>
     public static (int have, int need) Progress(Request r, int day)

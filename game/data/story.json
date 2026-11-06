@@ -1,5 +1,5 @@
 {
-  "_note": "Act 1 opening (docs/01_VISION_AND_WORLD.md section 6). Steps run in order; goal types: releaseSpecies (distinct species released at a spot), catchSpecies (each listed species landed at a spot), pay (a button in Field notes), none (end of what exists so far).",
+  "_note": "Act 1 opening (docs/01_VISION_AND_WORLD.md section 6). Steps run in order; goal types: releaseSpecies (distinct species released at a spot), catchSpecies (each listed species landed at a spot; spot \"\" = anywhere; optional minCm, night), ledgerSpecies (count distinct species in the Ledger), pay (a button in Field notes), none (end of what exists so far).",
   "steps": [
     {
       "id": "survey1",
@@ -62,6 +62,26 @@
       "reward": 50
     },
     {
+      "id": "junies_bet",
+      "title": "The Saturday weigh-in",
+      "giver": "Junie",
+      "intro": "You're the Trust kid, right? Junie Alcott, bait and tackle. Every Saturday I weigh the biggest bass anybody brings in, and Dale Pruitt's 41 centimetre fish has sat on top of my board since March. He reminds me. Daily. Bring me a Florida bass of 42 or better, from anywhere, and you knock him off.",
+      "goal": {
+        "type": "catchSpecies",
+        "spot": "",
+        "species": [
+          "florida_bass"
+        ],
+        "minCm": 42
+      },
+      "done": "Look at the shoulders on that. Dale's going to sulk for a month. Your name's on the board, and the prize is forty dollars. Spend it here.",
+      "reward": 40,
+      "page": {
+        "title": "Wren's page: Junie's board, 1998",
+        "text": "Junie bet me a dozen shiners I couldn't beat her husband's bass. I did, on a plastic worm I'd chewed half off. She paid up and has never once let me forget I chewed it. Big bass want it slow. Slower than that."
+      }
+    },
+    {
       "id": "old_river",
       "title": "The old river",
       "giver": "Odile",
@@ -77,6 +97,63 @@
         "text": "The river is the colour of strong tea and older than anything that swims in it. Gar hang under the surface like sticks until you look twice. Bowfin gulp air and fear nothing. A sturgeon jumped by the bluff at dusk, all two metres of it, and came down like a dropped piano. Released everything. The river keeps its own ledger."
       },
       "reward": 60
+    },
+    {
+      "id": "night_shift",
+      "title": "The night shift",
+      "giver": "Odile",
+      "intro": "Half of what lives in these waters only moves after dark, and the Trust has no night data at all. A channel catfish and an American eel, both caught after dark. Anywhere. A sinker on the bottom, a lantern, and patience. Release the eel, it's endangered.",
+      "goal": {
+        "type": "catchSpecies",
+        "spot": "",
+        "species": [
+          "channel_catfish",
+          "american_eel"
+        ],
+        "night": true
+      },
+      "done": "Night records. The board at the Trust will think I made them up. You can sleep now. Probably.",
+      "reward": 50,
+      "page": {
+        "title": "Wren's page: After dark",
+        "text": "Catfish taste the water the way we see it: the whole river is a map of smells to them. An eel came up my line once and over my wrist like a cold rope. I sat on the bank until the frogs started again."
+      }
+    },
+    {
+      "id": "annual_report",
+      "title": "The annual report",
+      "giver": "Odile",
+      "intro": "The Trust's annual report is due and our species list is embarrassing. Twelve species in your Ledger and I can show the board this coast is still worth paying for. Anything, anywhere: it's the variety that counts.",
+      "goal": {
+        "type": "ledgerSpecies",
+        "count": 12
+      },
+      "reward": 60,
+      "done": "Twelve. The board renewed us for another year, and asked who you were. I told them you were Wren's replacement. Nobody argued.",
+      "page": {
+        "title": "Wren's page: Why a Ledger",
+        "text": "Every fish I catch goes in the book: where, when, how long, what it took. My father thought it was madness. But a river doesn't tell you it's dying. It just gets quieter, one name at a time, and only a ledger notices."
+      }
+    },
+    {
+      "id": "the_lantern",
+      "title": "The Lantern",
+      "giver": "Odile",
+      "intro": "Mze called from the boat ramp. He says the Lantern rose over the spring caves at Kings Bay again last night, and the snook came up to meet it, the way Wren wrote. I don't believe in it. Go anyway. A snook from Kings Bay, after dark. Bring heavy line.",
+      "goal": {
+        "type": "catchSpecies",
+        "spot": "kings_bay",
+        "species": [
+          "common_snook"
+        ],
+        "night": true
+      },
+      "reward": 80,
+      "done": "You saw it too, didn't you. Don't tell the board. There's one more of her pages. It was in the Teal's bilge the whole time, sealed in a bag.",
+      "page": {
+        "title": "Wren's page: The Lantern",
+        "text": "Not a boat, not a star. It rises from the vents under Kings Bay on the darkest nights, and every big fish in the spring lifts toward it like a congregation. I have followed its light up this whole coast. It goes north in summer. I am going with it."
+      }
     },
     {
       "id": "end",

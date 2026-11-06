@@ -11,6 +11,13 @@ public sealed class StoryGoal
     public List<string> Species { get; set; } = new();
     public float Amount { get; set; }
     public string Button { get; set; } = "";
+    /// <summary>catchSpecies: only fish at least this long count; only fish caught after dark when Night.</summary>
+    public float MinCm { get; set; }
+    public bool Night { get; set; }
+
+    /// <summary>Whether a Ledger entry counts for this goal (catchSpecies; an empty Spot means anywhere).</summary>
+    public bool Counts(LedgerEntry e) =>
+        (Spot == "" || e.Spot == Spot) && e.LengthCm >= MinCm && (!Night || Story.IsNight(e.GameHour));
 }
 
 public sealed class StoryPage
@@ -47,6 +54,24 @@ public static class Story
 
     public static StoryStep Current => Steps[Math.Clamp(ProfileStore.Current.StoryStep, 0, Steps.Count - 1)];
 
+    public static bool IsNight(float hour) => hour < 5.5f || hour > 20.5f;
+
+    // The step order before v0.17 (saves from then only stored the index).
+    private static readonly string[] OldOrder = { "survey1", "teal", "spring_survey", "old_river", "end" };
+
+    /// <summary>
+    /// Saves keep the current step's id as well as its index, so steps added to story.json later don't shift anyone's
+    /// progress. Older saves are mapped from the order they were written with.
+    /// </summary>
+    public static void SyncSave()
+    {
+        var p = ProfileStore.Current;
+        string id = p.StoryId != "" ? p.StoryId : OldOrder[Math.Clamp(p.StoryStep, 0, OldOrder.Length - 1)];
+        int i = Steps.FindIndex(s => s.Id == id);
+        if (i >= 0) p.StoryStep = i;
+        p.StoryId = Steps[Math.Clamp(p.StoryStep, 0, Steps.Count - 1)].Id;
+    }
+
     /// <summary>Progress on the current goal: (done so far, needed, lines for the checklist).</summary>
     public static (int have, int need, List<(string text, bool done)> items) Progress()
     {
@@ -66,12 +91,17 @@ public static class Story
                 int have = 0;
                 foreach (var s in g.Species)
                 {
-                    var hit = ledger.FirstOrDefault(e => e.Species == s && e.Spot == g.Spot);
+                    var hit = ledger.FirstOrDefault(e => e.Species == s && g.Counts(e));
                     string name = hit?.CommonName ?? s.Replace('_', ' ');
                     items.Add((name, hit != null));
                     if (hit != null) have++;
                 }
                 return (have, g.Species.Count, items);
+            }
+            case "ledgerSpecies":
+            {
+                int n = ledger.Select(e => e.Species).Distinct().Count();
+                return (Math.Min(n, g.Count), g.Count, items);
             }
             case "pay":
                 return (0, 1, items);
@@ -85,7 +115,7 @@ public static class Story
         get
         {
             var (have, need, _) = Progress();
-            return Current.Goal.Type is "releaseSpecies" or "catchSpecies" && have >= need;
+            return Current.Goal.Type is "releaseSpecies" or "catchSpecies" or "ledgerSpecies" && have >= need;
         }
     }
 
@@ -97,6 +127,7 @@ public static class Story
         foreach (var u in step.Unlocks) if (!p.Unlocked.Contains(u)) p.Unlocked.Add(u);
         if (step.Page != null && !p.Pages.Contains(step.Id)) p.Pages.Add(step.Id);
         if (p.StoryStep < Steps.Count - 1) { p.StoryStep++; p.Money += step.Reward; }
+        p.StoryId = Steps[p.StoryStep].Id;
         ProfileStore.Save();
         return step;
     }
@@ -208,7 +239,7 @@ public partial class StoryPanel : PanelContainer
         {
             var sp = Driver.Species.FirstOrDefault(s => s.Id == id);
             if (sp == null) continue;
-            bool done = LedgerStore.Entries.Any(e => e.Species == id && e.Spot == g.Spot && (g.Type == "catchSpecies" || !e.Kept));
+            bool done = LedgerStore.Entries.Any(e => e.Species == id && (g.Type == "catchSpecies" ? g.Counts(e) : e.Spot == g.Spot && !e.Kept));
             var row = new HBoxContainer();
             row.AddThemeConstantOverride("separation", 8);
             row.AddChild(new FishPortrait { Species = sp, Faded = !done, CustomMinimumSize = new Vector2(130, 56) });
@@ -224,6 +255,9 @@ public partial class StoryPanel : PanelContainer
             row.AddChild(col);
             grid.AddChild(row);
         }
+        if (g.Type == "catchSpecies" && (g.MinCm > 0f || g.Night || g.Spot == ""))
+            Text((g.MinCm > 0f ? $"At least {g.MinCm:0} cm. " : "") + (g.Night ? "After dark (after 8:30 pm or before 5:30 am). " : "")
+                 + (g.Spot == "" ? "Any spot." : $"At {TheLedger.SimGlue.SpotInfo.Load(g.Spot).Name}."), 15);
         if (g.Type == "releaseSpecies") Text($"Any {g.Count} of these, measured and released at {TheLedger.SimGlue.SpotInfo.Load(g.Spot).Name}. The species guide (Tab) says how to catch each.", 15);
     }
 
