@@ -118,8 +118,43 @@ public partial class GameMenu : CanvasLayer
         Item(hasSave ? "Continue" : "Start fishing", Close);
         if (hasSave) Item("New game", ConfirmNew);
         Item("Settings", () => Settings(Title));
+        Item("Credits", Credits);
         Item("Quit", Quit);
         Heading($"v{Version}", 14).Modulate = new Color(1f, 1f, 1f, 0.6f);
+    }
+
+    /// <summary>Who made what: game/data/credits.json (sections of lines), in a scrolling page.</summary>
+    private void Credits()
+    {
+        Open();
+        Heading("Credits", 48, UiFonts.Title);
+        var scroll = new ScrollContainer { CustomMinimumSize = new Vector2(640, 440), HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled };
+        _box.AddChild(scroll);
+        var list = new VBoxContainer { SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
+        list.AddThemeConstantOverride("separation", 4);
+        scroll.AddChild(list);
+        try
+        {
+            var root = System.Text.Json.JsonDocument.Parse(Godot.FileAccess.GetFileAsString("res://data/credits.json")).RootElement;
+            foreach (var sec in root.GetProperty("sections").EnumerateArray())
+            {
+                var h = new Label { Text = sec.GetProperty("title").GetString() };
+                h.AddThemeFontOverride("font", UiFonts.Bold);
+                h.AddThemeFontSizeOverride("font_size", 19);
+                h.AddThemeColorOverride("font_color", new Color(1f, 0.84f, 0.45f));
+                list.AddChild(h);
+                foreach (var line in sec.GetProperty("lines").EnumerateArray())
+                {
+                    var l = new Label { Text = line.GetString(), AutowrapMode = TextServer.AutowrapMode.WordSmart, CustomMinimumSize = new Vector2(620, 0) };
+                    l.AddThemeFontOverride("font", UiFonts.Body);
+                    l.AddThemeFontSizeOverride("font_size", 15);
+                    list.AddChild(l);
+                }
+                list.AddChild(new Control { CustomMinimumSize = new Vector2(0, 10) });
+            }
+        }
+        catch (Exception ex) { list.AddChild(new Label { Text = $"Couldn't read the credits ({ex.Message})" }); }
+        Item("Back", Title);
     }
 
     private void Pause()
