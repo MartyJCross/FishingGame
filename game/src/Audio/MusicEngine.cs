@@ -63,15 +63,53 @@ public partial class MusicEngine : Node
     private readonly Dictionary<int, Vector2[]> _bufs = new();
     private readonly List<(float at, int midi)> _pending = new(8);
 
+    // Recorded tracks (game/assets/audio/music, CC0): when there are any they replace the synthesised score. They
+    // play one at a time with a minute or two of silence between, so the water and the birds get the stage too.
+    private List<AudioStream> _day = new(), _nightTracks = new();
+    private AudioStreamPlayer? _track;
+    private double _silence = 25;
+    private AudioStream? _last;
+
     public override void _Ready()
     {
         LoadVolume();
+        _nightTracks = Ambience.Load("music", "night");
+        _day = Ambience.Load("music", "").Except(_nightTracks).ToList();
+        if (_day.Count + _nightTracks.Count > 0)
+        {
+            _track = new AudioStreamPlayer { VolumeDb = -80f };
+            AddChild(_track);
+            return;
+        }
         for (int i = 0; i < _plucks.Length; i++) _plucks[i].Buf = new float[Rate / 60];
         var gen = new AudioStreamGenerator { MixRate = Rate, BufferLength = 0.15f };
         _player = new AudioStreamPlayer { Stream = gen, VolumeDb = -6f };
         AddChild(_player);
         _player.Play();
         _pb = (AudioStreamGeneratorPlayback)_player.GetStreamPlayback();
+    }
+
+    private void Tracks(double delta, bool night)
+    {
+        var t = _track!;
+        _gain += (_gainTarget * Volume - _gain) * MathF.Min(1f, (float)delta / 2.5f);
+        if (!t.Playing)
+        {
+            _silence -= delta;
+            if (_silence <= 0 && _gainTarget > 0.5f)
+            {
+                var pool = night && _nightTracks.Count > 0 ? _nightTracks : _day.Count > 0 ? _day : _nightTracks;
+                var pick = pool[_rng.Next(pool.Count)];
+                if (pick == _last && pool.Count > 1) pick = pool[(pool.IndexOf(pick) + 1) % pool.Count];
+                _last = pick;
+                if (pick is AudioStreamMP3 m) m.Loop = false;
+                if (pick is AudioStreamOggVorbis o) o.Loop = false;
+                t.Stream = pick;
+                t.Play();
+                _silence = 60 + 100 * _rng.NextDouble();
+            }
+        }
+        t.VolumeDb = Mathf.LinearToDb(MathF.Max(1e-4f, _gain * 0.7f));
     }
 
     private static float Hz(int midi) => 440f * MathF.Pow(2f, (midi - 69) / 12f);
@@ -85,6 +123,7 @@ public partial class MusicEngine : Node
         foreach (var f in w.Fish) if (f.State == FishState.Hooked) { fishOn = true; break; }
         float storm = Math.Clamp(Driver.Config.DebugRainRate / 25f, 0f, 1f);
         _gainTarget = fishOn ? 0f : 1f - 0.7f * storm;
+        if (_track != null) { Tracks(delta, night); return; }
 
         int frames = _pb.GetFramesAvailable();
         if (frames <= 0) return;

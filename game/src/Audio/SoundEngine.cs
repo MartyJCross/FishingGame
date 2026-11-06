@@ -11,7 +11,8 @@ namespace TheLedger.Audio;
 /// the wind and the time of day (birds by day; crickets and frogs at night), reel clicks per handle turn, the bail,
 /// the drag's ratchet buzz rising with slip speed, line hiss off the spool, rod swish, splashes and plops sized by the
 /// impact, popper pops and a line snap. Everything is driven by sim state and events; nothing feeds back into the sim.
-/// One AudioStreamGenerator, filled each frame.
+/// One AudioStreamGenerator, filled each frame. Since pass 2 the ambience, splashes, thunder and the bark come from
+/// recordings (<see cref="Ambience"/>) when they're present; the synthesised versions are the fallback.
 /// </summary>
 public partial class SoundEngine : Node
 {
@@ -81,7 +82,7 @@ public partial class SoundEngine : Node
         Add(Kind.Noise, 1.6f + d, 0.6f - 0.3f * d, 0f, 0f, Noise() * 0.5f, 0.03f);
     }
 
-    private void OnBark() => Add(Kind.Bark, 0.14f, 0.35f, 520f, 300f, -0.35f, 0.4f);
+    private void OnBark() { if (!Ambience.HasBark) Add(Kind.Bark, 0.14f, 0.35f, 520f, 300f, -0.35f, 0.4f); }
 
     private float Rnd() => (float)_rng.NextDouble();
     private float Noise() => Rnd() * 2f - 1f;
@@ -116,7 +117,7 @@ public partial class SoundEngine : Node
                 }
                 else if (e.Id == 1) // skip: a slap
                     Add(Kind.Noise, 0.07f, (0.25f + 0.4f * size) * g, 0f, 0f, pan, 0.5f);
-                else
+                else if (!Ambience.HasSplash)
                 {
                     // Small entries plop (a bubble's ring-down); bigger ones add a crash of spray.
                     Add(Kind.Plop, 0.12f + 0.1f * size, (0.25f + 0.35f * size) * g, 900f - 500f * size, 300f - 150f * size, pan);
@@ -138,6 +139,7 @@ public partial class SoundEngine : Node
                 break;
             case SimEventType.FishLanded:
             {
+                if (Ambience.HasSplash) break;
                 var (g, pan) = Place(e.Position);
                 Add(Kind.Noise, 0.35f, 0.45f * g, 0f, 0f, pan, 0.3f);
                 break;
@@ -191,13 +193,14 @@ public partial class SoundEngine : Node
         if (_thunderIn >= 0f)
         {
             _thunderIn -= (float)delta;
-            if (_thunderIn < 0f) Thunder();
+            if (_thunderIn < 0f && !Ambience.HasThunder) Thunder();
         }
 
         // Critters: birds by day, crickets and frogs at night.
         float hour = w.Hour;
         float day = hour < 5.5f || hour > 20.5f ? 0f : hour < 7.5f ? (hour - 5.5f) / 2f : hour > 18.5f ? (20.5f - hour) / 2f : 1f;
         _nextCritter -= (float)delta;
+        if (_nextCritter <= 0f && Ambience.HasCritters) _nextCritter = 1f; // the recordings carry the critters
         if (_nextCritter <= 0f)
         {
             float pan = Noise() * 0.8f;
@@ -225,9 +228,9 @@ public partial class SoundEngine : Node
         float dragRate = MathF.Min(900f, MathF.Max(40f, lineSpeed / 0.004f)); // detent clicks per second
         float omega = MathF.Abs(a.Hands.AngularVelocity);
         float swishAmp = omega > 4f ? MathF.Min(0.25f, (omega - 4f) * 0.02f) : 0f;
-        float ambAmp = 0.035f + 0.006f * wind;
+        float ambAmp = Ambience.HasBeds ? 0f : 0.035f + 0.006f * wind;
         // Rain on the water: a soft hiss that thickens with the rain rate.
-        float rainAmp = MathF.Min(0.12f, Driver.Config.DebugRainRate * 0.005f);
+        float rainAmp = Ambience.HasRain ? 0f : MathF.Min(0.12f, Driver.Config.DebugRainRate * 0.005f);
         // A baitcaster spool singing in free spool: pitch from its speed.
         float whineAmp = reel.Spec.IsBaitcaster && reel.BailOpen && reel.SpoolOmega > 30f ? MathF.Min(0.08f, reel.SpoolOmega * 0.00015f) : 0f;
         float whineHz = 120f + reel.SpoolOmega * 1.6f;
@@ -242,7 +245,7 @@ public partial class SoundEngine : Node
             _ambLp += (nz - _ambLp) * 0.04f;
             _ambLp2 += (_ambLp - _ambLp2) * 0.08f;
             _lapPhase += dt * 0.23f;
-            float lap = ambAmp * (0.6f + 0.4f * MathF.Sin(_lapPhase * MathF.Tau)) * _ambLp2 * 6f;
+            float lap = ambAmp == 0f ? 0f : ambAmp * (0.6f + 0.4f * MathF.Sin(_lapPhase * MathF.Tau)) * _ambLp2 * 6f;
             l += lap; r += lap;
 
             if (rainAmp > 0f)

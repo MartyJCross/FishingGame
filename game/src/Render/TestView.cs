@@ -460,29 +460,88 @@ public partial class TestView : Node2D
         Lp.Ngon(this, Nose, head + new Vector2(0.24f, -0.045f), 0.025f, 5);
     }
 
+    // Per-angler pose state, eased from frame to frame (index = angler).
+    private readonly float[] _lean = new float[4], _look = new float[4], _crankBlend = new float[4], _crankPhase = new float[4];
+    private float _poseT = -1f;
+
+    /// <summary>
+    /// The angler, posed from the sim: the front hand on the rod's grip, the other hand turning the reel handle while
+    /// they reel (at the real handle speed), the body leaning into the cast and back against a fish's pull, the head
+    /// following the lure, and slow breathing when nothing's happening.
+    /// </summary>
     private void DrawAngler(TheLedger.Sim.Angler.AnglerState a, Vector2 feet)
     {
-        var shoulder = feet + new Vector2(0f, a.ShoulderHeight);
-        var hip = feet + new Vector2(-0.02f, 0.92f);
-        var head = shoulder + new Vector2(0.02f, 0.27f);
+        int i = 0;
+        while (i < 3 && i < Driver.World.Anglers.Count && Driver.World.Anglers[i] != a) i++;
+        float t = (float)Time.GetTicksMsec() * 0.001f;
+        float dt = _poseT < 0f ? 0f : Math.Clamp(t - _poseT, 0f, 0.1f);
+        if (i == 0) _poseT = t;
+        float ease(float rate) => 1f - MathF.Exp(-dt * rate);
+
         var g = a.Rig.Rod.Node(1);
+        var bt = a.Rig.Rod.Node(0);
         var grip = new Vector2(g.X, g.Y);
+        var butt = new Vector2(bt.X, bt.Y);
+        var hip = feet + new Vector2(-0.02f, 0.92f);
+        var shoulder0 = feet + new Vector2(0f, a.ShoulderHeight);
+
+        // Lean: forward as the hands go out over the water, back against a fish's pull (the tip tension).
+        var line = a.Rig.Line;
+        float pull = Math.Clamp(line.TipTension / 25f, 0f, 1f);
+        float reach = Math.Clamp((grip.X - shoulder0.X - 0.35f) * 0.5f, -0.12f, 0.16f);
+        float leanTarget = reach - 0.22f * pull;
+        _lean[i] += (leanTarget - _lean[i]) * ease(6f);
+        float breathe = 0.007f * MathF.Sin(t * 1.5f + i);
+        Vector2 Body(Vector2 p) => hip + (p - hip).Rotated(-_lean[i]);
+        var shoulder = Body(shoulder0) + new Vector2(0f, breathe);
+        var head0 = shoulder + new Vector2(0.02f, 0.27f).Rotated(-_lean[i]);
+
+        // The head follows the lure (or the fish on it), within what a neck allows.
+        int last = line.Count - 1;
+        var lure = new Vector2(line.X[last], line.Y[last]);
+        var toLure = lure - head0;
+        float lookTarget = toLure.LengthSquared() > 1f ? Math.Clamp(MathF.Atan2(toLure.Y, MathF.Max(toLure.X, 0.3f)) * 0.45f, -0.35f, 0.18f) : -0.2f;
+        _look[i] += (lookTarget - _look[i]) * ease(4f);
+        float look = _look[i];
+        Vector2 H(float x, float y) => head0 + new Vector2(x, y).Rotated(look);
+
+        // The reel: under the seat on a spinning rod, on top of a casting rod. Its handle turns as the angler cranks.
+        var hdir = (grip - butt).LengthSquared() > 1e-6f ? (grip - butt).Normalized() : Vector2.Right;
+        var below = new Vector2(hdir.Y, -hdir.X); // under the rod in y-up space
+        bool casting = a.Rig.Rod.Spec.Type == "casting";
+        var seat = grip.Lerp(butt, 0.18f);
+        var reelC = casting ? seat - below * 0.03f : seat + below * 0.07f;
+        float crank = a.LastInput.CrankRate;
+        bool cranking = crank > 0.05f && !a.Reel.BailOpen;
+        _crankBlend[i] += ((cranking ? 1f : 0f) - _crankBlend[i]) * ease(cranking ? 10f : 2f);
+        _crankPhase[i] += crank * MathF.Tau * dt;
+        float ph = _crankPhase[i];
+        var handle = reelC + (hdir * MathF.Cos(ph) + below * MathF.Sin(ph)) * 0.055f;
+        var rest = grip + new Vector2(-0.08f, -0.03f);
+        var backHand = rest.Lerp(handle, _crankBlend[i]);
 
         // Back arm (darker), legs, boots, torso, head, cap, front arm.
-        DrawArm(shoulder + new Vector2(-0.05f, -0.02f), grip + new Vector2(-0.08f, -0.03f), ShirtShade, true);
+        DrawArm(shoulder + new Vector2(-0.05f, -0.02f), backHand, ShirtShade, true);
         Lp.Limb(this, JeansShade, hip + new Vector2(-0.06f, 0f), feet + new Vector2(-0.14f, 0.08f), 0.17f, 0.13f);
         Lp.Limb(this, Jeans, hip + new Vector2(0.06f, 0f), feet + new Vector2(0.14f, 0.08f), 0.17f, 0.13f);
         Lp.Poly(this, Boot, feet + new Vector2(-0.24f, 0f), feet + new Vector2(-0.07f, 0f), feet + new Vector2(-0.08f, 0.1f), feet + new Vector2(-0.2f, 0.1f));
         Lp.Poly(this, Boot, feet + new Vector2(0.07f, 0f), feet + new Vector2(0.27f, 0f), feet + new Vector2(0.2f, 0.1f), feet + new Vector2(0.08f, 0.1f));
-        Lp.Poly(this, Shirt, hip + new Vector2(-0.17f, -0.04f), hip + new Vector2(0.17f, -0.04f), shoulder + new Vector2(0.18f, -0.04f),
-                shoulder + new Vector2(0.1f, 0.05f), shoulder + new Vector2(-0.12f, 0.05f), shoulder + new Vector2(-0.2f, -0.06f));
-        Lp.Limb(this, Skin, shoulder + new Vector2(0f, 0.03f), head + new Vector2(0f, -0.08f), 0.09f, 0.09f);
-        Lp.Ngon(this, Skin, head, 0.13f, 7, 0.3f);
-        Lp.Poly(this, Hair, head + new Vector2(-0.13f, -0.02f), head + new Vector2(-0.06f, 0.03f), head + new Vector2(-0.08f, -0.1f));
-        Lp.Poly(this, Cap, head + new Vector2(-0.14f, 0.03f), head + new Vector2(0.12f, 0.03f), head + new Vector2(0.27f, 0.0f),
-                head + new Vector2(0.27f, 0.04f), head + new Vector2(0.11f, 0.13f), head + new Vector2(-0.03f, 0.16f), head + new Vector2(-0.12f, 0.11f));
+        Lp.Poly(this, Shirt, Body(hip + new Vector2(-0.17f, -0.04f)), Body(hip + new Vector2(0.17f, -0.04f)), shoulder + new Vector2(0.18f, -0.04f).Rotated(-_lean[i]),
+                shoulder + new Vector2(0.1f, 0.05f).Rotated(-_lean[i]), shoulder + new Vector2(-0.12f, 0.05f).Rotated(-_lean[i]), shoulder + new Vector2(-0.2f, -0.06f).Rotated(-_lean[i]));
+        // A fishing vest over the shirt: pockets and a darker panel.
+        Lp.Poly(this, Vest, Body(hip + new Vector2(-0.15f, 0.05f)), Body(hip + new Vector2(0.15f, 0.05f)), shoulder + new Vector2(0.12f, -0.06f).Rotated(-_lean[i]), shoulder + new Vector2(-0.14f, -0.06f).Rotated(-_lean[i]));
+        Lp.Poly(this, VestPocket, Body(hip + new Vector2(0.02f, 0.12f)), Body(hip + new Vector2(0.13f, 0.12f)), Body(hip + new Vector2(0.13f, 0.24f)), Body(hip + new Vector2(0.02f, 0.24f)));
+        Lp.Limb(this, Skin, shoulder + new Vector2(0f, 0.03f), head0 + new Vector2(0f, -0.08f), 0.09f, 0.09f);
+        Lp.Ngon(this, Skin, head0, 0.13f, 7, 0.3f + look);
+        Lp.Poly(this, Hair, H(-0.13f, -0.02f), H(-0.06f, 0.03f), H(-0.08f, -0.1f));
+        Lp.Poly(this, Shades, H(0.05f, 0.02f), H(0.135f, 0.02f), H(0.13f, -0.015f), H(0.06f, -0.01f)); // sunglasses
+        Lp.Poly(this, Cap, H(-0.14f, 0.03f), H(0.12f, 0.03f), H(0.27f, 0.0f), H(0.27f, 0.04f), H(0.11f, 0.13f), H(-0.03f, 0.16f), H(-0.12f, 0.11f));
         DrawArm(shoulder, grip, Shirt, false);
     }
+
+    private static readonly Color Vest = new(0.36f, 0.38f, 0.27f);
+    private static readonly Color VestPocket = new(0.30f, 0.32f, 0.22f);
+    private static readonly Color Shades = new(0.08f, 0.09f, 0.1f);
 
     /// <summary>Two-bone arm from shoulder to hand, elbow bent downward, short sleeve then skin.</summary>
     private void DrawArm(Vector2 shoulder, Vector2 hand, Color sleeve, bool back)

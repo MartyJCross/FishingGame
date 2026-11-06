@@ -113,6 +113,7 @@ public partial class Main : Node2D
         _driver.MouseWorldPx = () => _worldRoot.GetGlobalMousePosition();
         _driver.EventRaised += OnSimEvent;
         AddChild(new TheLedger.Audio.SoundEngine { Name = "Sound", Driver = _driver, Router = _router });
+        AddChild(new TheLedger.Audio.Ambience { Name = "Ambience", Driver = _driver });
         if (!_automated) AddChild(new TheLedger.Audio.MusicEngine { Name = "Music", Driver = _driver });
         AddChild(_driver);
 
