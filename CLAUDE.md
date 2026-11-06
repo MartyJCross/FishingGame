@@ -369,6 +369,13 @@ no leak; v0.15.1 baseline 2381 objects, 361 nodes, 0 orphans, ~3.3 MB managed). 
   `KINK` lines in LandingTests), and with it mouse casts drop 20 -> 16 m; owner chose to keep 10 cm. Scripted step
   casts release on the first tick past the angle, so their distance jumps with the tick rate (probe both).
 
+- **v0.17.0 progression + coach (2026-11-06, owner: gear was "so damn cheap that 2-4 fish buys all of it"; "add
+  more guides, at least in the beginning"):** `shop.json` has `unlock` (item -> story step id that must be done;
+  `ShopData.Stocked`, `Story.StepDone`) and `notes`; prices up, start money 15, market ~0.6x, board ~0.5x;
+  `StoryStep.Reward` pays on `Story.Advance`. `Main.LoseTerminal` removes a bought lure on `LineBroke` (start lures
+  never). `Ui/Coach.cs`: goal line + 9 lessons (`Profile.CoachStep`, finished by sim state/events, skipped on old
+  saves) + one-off tips (`Profile.TipsSeen`). Owner asked for no test runs this round: built only, not played.
+
 (Replace this list with a short, accurate description of what exists as the game grows: systems, controls, data
 counts, known issues.)
 

@@ -58,7 +58,7 @@ public static class Requests
         list.Add(new Request
         {
             Kind = "size", Species = bs.Id, Name = bs.CommonName, MinCm = minCm,
-            Reward = MathF.Round(3f + minCm * 0.25f), Text = $"A {bs.CommonName.ToLowerInvariant()} of {minCm:0} cm or more",
+            Reward = MathF.Round(2f + minCm * 0.12f), Text = $"A {bs.CommonName.ToLowerInvariant()} of {minCm:0} cm or more",
         });
 
         // 2. The Trust's tag count: release a few of one species at a given spot.
@@ -67,7 +67,7 @@ public static class Requests
         list.Add(new Request
         {
             Kind = "release", Species = rs.Id, Name = rs.CommonName, Spot = rspot, SpotName = rname, Count = n,
-            Reward = 2f + 3f * n, Text = $"Release {n} {Plural(rs.CommonName, n)} at {rname}",
+            Reward = 1f + 1.5f * n, Text = $"Release {n} {Plural(rs.CommonName, n)} at {rname}",
         });
 
         // 3. Either a variety day or, if there are whiskered fish about, a night fish.
@@ -77,14 +77,14 @@ public static class Requests
             var (ns, nspot, nname) = night[rng.RandiRange(0, night.Count - 1)];
             list.Add(new Request
             {
-                Kind = "night", Species = ns.Id, Name = ns.CommonName, Spot = nspot, SpotName = nname, Reward = 12f,
+                Kind = "night", Species = ns.Id, Name = ns.CommonName, Spot = nspot, SpotName = nname, Reward = 8f,
                 Text = $"A {ns.CommonName.ToLowerInvariant()} after dark at {nname}",
             });
         }
         else
         {
             int k = rng.RandiRange(3, 4);
-            list.Add(new Request { Kind = "variety", Count = k, Reward = 4f * k, Text = $"{k} different species today" });
+            list.Add(new Request { Kind = "variety", Count = k, Reward = 1.5f * k, Text = $"{k} different species today" });
         }
         return list;
     }

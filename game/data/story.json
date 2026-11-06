@@ -11,11 +11,12 @@
         "spot": "station_pond",
         "count": 5
       },
-      "done": "Five species. Huh. Wren used to say a pond tells you everything if you ask it properly. Come by the boathouse, Teodor's been eyeing that old rowboat of hers.",
+      "done": "Five species. Huh. Wren used to say a pond tells you everything if you ask it properly. Come by the boathouse, Teodor's been eyeing that old rowboat of hers. The Trust pays $30 for the survey.",
       "page": {
         "title": "Wren's page: The Station Pond, April",
         "text": "Bluegill bed in the shallows when the water climbs past 21 degrees. The big bass sit in the shade of the lily pads and wait for them to get careless. So do I. The pond is small but it is honest: whatever you learn here, the sea will test."
-      }
+      },
+      "reward": 30
     },
     {
       "id": "teal",
@@ -50,14 +51,15 @@
           "redear_sunfish"
         ]
       },
-      "done": "Good numbers. Better than good. I found something in the boathouse while you were out: another of Wren's pages, tucked in the Teal's seat locker.",
+      "done": "Good numbers. Better than good. I found something in the boathouse while you were out: another of Wren's pages, tucked in the Teal's seat locker. The Trust pays $50 for the survey.",
       "page": {
         "title": "Wren's page: Kings Bay, a January cold front",
         "text": "Snook stacked in the spring boils like cordwood, waiting out the cold. Manatees above them. Everything alive on this coast knows where the warm water is. The Lantern rose again over the caves last night, Mze says. It moves with the dark. Something old follows it up."
       },
       "unlocks": [
         "suwannee"
-      ]
+      ],
+      "reward": 50
     },
     {
       "id": "old_river",
@@ -69,11 +71,12 @@
         "spot": "suwannee",
         "count": 4
       },
-      "done": "Four from the old river. You're starting to fish like her, you know. There was a page folded into the logbook under 'Suwannee'. I think she meant you to find it.",
+      "done": "Four from the old river. You're starting to fish like her, you know. There was a page folded into the logbook under 'Suwannee'. I think she meant you to find it. The Trust pays $60 for the survey.",
       "page": {
         "title": "Wren's page: The Suwannee, August",
         "text": "The river is the colour of strong tea and older than anything that swims in it. Gar hang under the surface like sticks until you look twice. Bowfin gulp air and fear nothing. A sturgeon jumped by the bluff at dusk, all two metres of it, and came down like a dropped piano. Released everything. The river keeps its own ledger."
-      }
+      },
+      "reward": 60
     },
     {
       "id": "end",

@@ -32,6 +32,9 @@ public sealed class Profile
     /// <summary>Junie's board: the game day it was last checked, and which of that day's requests are paid.</summary>
     public int BoardDay { get; set; } = -1;
     public List<int> BoardDone { get; set; } = new();
+    /// <summary>The first-hour coach: how far through its lessons the angler is, and one-off tips already shown.</summary>
+    public int CoachStep { get; set; }
+    public List<string> TipsSeen { get; set; } = new();
 }
 
 /// <summary>Shop prices and the fish market (game/data/shop.json).</summary>
@@ -43,6 +46,17 @@ public sealed class ShopData
     public Dictionary<string, float> Lures { get; set; } = new();
     public Dictionary<string, float> Outfits { get; set; } = new();
     public Dictionary<string, JsonElement> Market { get; set; } = new();
+    /// <summary>Item id -> the story step that must be finished before Junie stocks it.</summary>
+    public Dictionary<string, string> Unlock { get; set; } = new();
+    /// <summary>Item id -> one line on what it's for (shown in the shop).</summary>
+    public Dictionary<string, string> Notes { get; set; } = new();
+
+    /// <summary>Whether Junie has it in stock yet; when not, the step that brings it in.</summary>
+    public (bool open, string after) Stocked(string id)
+    {
+        if (!Unlock.TryGetValue(id, out var step) || Story.StepDone(step)) return (true, "");
+        return (false, Story.Steps.FirstOrDefault(s => s.Id == step)?.Title ?? step);
+    }
 
     /// <summary>US$ per kg, 0 when the species can't be sold.</summary>
     public float PricePerKg(string species) =>

@@ -2,6 +2,26 @@
 
 Newest first. Each version handed to the owner gets an entry: what changed, what to try, known issues.
 
+## v0.17.0: Earn your gear, and a guide for the first hour (2026-11-06)
+
+- **Gear costs real money now.** You start with $15, the medium spinning outfit, a sinker and a worm under a bobber.
+  Lures run $5-16, outfits $90-240, and Junie's board pays less. The Trust now pays for each survey you finish
+  ($30, $50, $60), so the story is your main income, with the board and the cooler on top.
+- **Gear comes in tiers.** Junie stocks more as the story moves on. The jig, popper and ultralight come after the
+  first survey; the crankbait and a 10 lb fluoro outfit after the Teal; a 20 lb braid outfit and the baitcaster after
+  the spring run survey. Locked gear shows in the shop with what brings it in, and every item says what it's for.
+- **Two new outfits:** the 7' spinning rod with 10 lb fluorocarbon, and with 20 lb braid.
+- **A broken line loses the lure.** Bought lures are gone when the line snaps (snags too); buy another at Junie's.
+  The sinker and the worm rig are always in the box.
+- **Odile's first lessons** (top left): open the bail, cast, close the bail, watch the bobber, fish on, land it, keep
+  or release, the field notes, the survey. Each one finishes when you do it. Losing a fish sends you back to the
+  cast with a word of encouragement. Anglers with an existing save skip them.
+- **A goal line, always on screen** (top left): the current field-notes goal and progress, where to travel, or how
+  much to save and how.
+- **One-off tips** the first time things come up: the cooler and selling fish, Junie's board, new stock in the shop,
+  a new spot on the map, night fishing, snags, a bird's nest, having enough money to pay for the Teal. H hides the
+  lessons and tips (the goal line stays).
+
 ## v0.16.0: A finer simulation (2026-10-31)
 
 - Fish bodies bend on twice as many spine points, so turns and swimming curves are smooth instead of jointed.

@@ -20,7 +20,7 @@ public partial class ShopPanel : PanelContainer
         sb.SetCornerRadiusAll(10);
         sb.SetContentMarginAll(18);
         AddThemeStyleboxOverride("panel", sb);
-        var box = new VBoxContainer { CustomMinimumSize = new Vector2(520, 0) };
+        var box = new VBoxContainer { CustomMinimumSize = new Vector2(560, 0) };
         box.AddThemeConstantOverride("separation", 8);
         AddChild(box);
         var title = new Label { Text = "Bait & Tackle", HorizontalAlignment = HorizontalAlignment.Center };
@@ -81,6 +81,8 @@ public partial class ShopPanel : PanelContainer
         {
             if (!shop.Lures.TryGetValue(l.Id, out float price)) continue;
             bool owned = p.Lures.Contains(l.Id);
+            var (open, after) = shop.Stocked(l.Id);
+            if (!open && !owned) { Locked(l.Name, after); continue; }
             Row(l.Name, owned ? "Owned" : $"Buy  ${price:0.00}", !owned && p.Money >= price, () =>
             {
                 p.Money -= price;
@@ -88,7 +90,7 @@ public partial class ShopPanel : PanelContainer
                 ProfileStore.Save();
                 foreach (var a in Driver.World.Anglers) a.TackleBox.Add(l);
                 Rebuild();
-            });
+            }, shop.Notes.GetValueOrDefault(l.Id, ""));
         }
 
         Header("Rods and reels");
@@ -96,6 +98,8 @@ public partial class ShopPanel : PanelContainer
         {
             if (!shop.Outfits.TryGetValue(o.Id, out float price)) continue;
             bool owned = p.Outfits.Contains(o.Id);
+            var (open, after) = shop.Stocked(o.Id);
+            if (!open && !owned) { Locked(o.Name, after); continue; }
             Row(o.Name, owned ? "Owned" : $"Buy  ${price:0.00}", !owned && p.Money >= price, () =>
             {
                 p.Money -= price;
@@ -103,8 +107,11 @@ public partial class ShopPanel : PanelContainer
                 ProfileStore.Save();
                 foreach (var a in Driver.World.Anglers) a.Rack.Add(o);
                 Rebuild();
-            });
+            }, shop.Notes.GetValueOrDefault(o.Id, ""));
         }
+        var lost = new Label { Text = "Lures lost to a broken line are gone; the sinker and worm rig you always have spares of.", Modulate = new Color(0.6f, 0.66f, 0.68f), AutowrapMode = TextServer.AutowrapMode.WordSmart, CustomMinimumSize = new Vector2(520, 0) };
+        lost.AddThemeFontSizeOverride("font_size", 13);
+        _list.AddChild(lost);
     }
 
     private void Header(string text)
@@ -114,12 +121,34 @@ public partial class ShopPanel : PanelContainer
         _list.AddChild(h);
     }
 
-    private void Row(string name, string action, bool enabled, Action onPress)
+    /// <summary>Gear Junie doesn't stock yet: greyed out, with the story step that brings it in.</summary>
+    private void Locked(string name, string after)
     {
-        var row = new HBoxContainer();
+        var row = new HBoxContainer { Modulate = new Color(1f, 1f, 1f, 0.45f) };
         var label = new Label { Text = name, SizeFlagsHorizontal = SizeFlags.ExpandFill };
         label.AddThemeFontSizeOverride("font_size", 17);
         row.AddChild(label);
+        var when = new Label { Text = $"In stock after \"{after}\"", CustomMinimumSize = new Vector2(150, 0), HorizontalAlignment = HorizontalAlignment.Right };
+        when.AddThemeFontSizeOverride("font_size", 14);
+        row.AddChild(when);
+        _list.AddChild(row);
+    }
+
+    private void Row(string name, string action, bool enabled, Action onPress, string note = "")
+    {
+        var row = new HBoxContainer();
+        var text = new VBoxContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill };
+        text.AddThemeConstantOverride("separation", 0);
+        var label = new Label { Text = name };
+        label.AddThemeFontSizeOverride("font_size", 17);
+        text.AddChild(label);
+        if (note != "")
+        {
+            var n = new Label { Text = note, Modulate = new Color(0.62f, 0.7f, 0.72f) };
+            n.AddThemeFontSizeOverride("font_size", 13);
+            text.AddChild(n);
+        }
+        row.AddChild(text);
         if (action != "")
         {
             var b = new Button { Text = action, CustomMinimumSize = new Vector2(150, 32), Disabled = !enabled, FocusMode = FocusModeEnum.None };

@@ -1,5 +1,6 @@
 {
-  "startMoney": 40,
+  "_note": "Prices in US$. Income is about $20-30 per game day (one real hour) from Junie's board and the cooler, plus the Trust's pay for each survey; the full catalogue should take most of Act 1 to own. 'unlock' = the story step that must be finished before Junie stocks it. Lures other than the start lures are lost when the line breaks.",
+  "startMoney": 15,
   "startLures": [
     "sinker_half_oz",
     "bait_worm_bobber"
@@ -9,36 +10,60 @@
   ],
   "lures": {
     "sinker_half_oz": 1,
-    "bait_worm_bobber": 4,
-    "spinner_eighth_oz": 6,
-    "jig_quarter_oz": 7,
-    "texas_worm_7in": 6,
-    "popper_2in": 9,
-    "crankbait_square_2in": 11
+    "bait_worm_bobber": 2,
+    "texas_worm_7in": 5,
+    "spinner_eighth_oz": 8,
+    "jig_quarter_oz": 9,
+    "popper_2in": 13,
+    "crankbait_square_2in": 16
   },
   "outfits": {
     "spinning_medium": 60,
-    "ultralight": 55,
-    "baitcaster_mh": 140
+    "ultralight": 90,
+    "spinning_fluoro": 110,
+    "spinning_braid": 140,
+    "baitcaster_mh": 240
+  },
+  "unlock": {
+    "jig_quarter_oz": "survey1",
+    "popper_2in": "survey1",
+    "crankbait_square_2in": "teal",
+    "ultralight": "survey1",
+    "spinning_fluoro": "teal",
+    "spinning_braid": "spring_survey",
+    "baitcaster_mh": "spring_survey"
+  },
+  "notes": {
+    "sinker_half_oz": "Plain weight on the bottom. Catfish and bullheads",
+    "bait_worm_bobber": "A worm under a float. Every panfish in the pond",
+    "texas_worm_7in": "Weedless soft plastic. Crawl it for bass",
+    "spinner_eighth_oz": "Flash and thump. Just reel",
+    "jig_quarter_oz": "Hop it along the bottom. Skips under cover",
+    "popper_2in": "Topwater. Twitch it and wait at dawn and dusk",
+    "crankbait_square_2in": "Dives about a metre. Bounce it off wood",
+    "ultralight": "Light line, soft tip: small fish fight harder, light baits cast further",
+    "spinning_fluoro": "Fluoro sinks and stretches less: firmer hooksets at range",
+    "spinning_braid": "20 lb braid, no stretch: gar, bowfin and snags",
+    "baitcaster_mh": "Heavy cover and big fish. Thumb the spool or it bird's-nests"
   },
   "market": {
     "_note": "US$ per kg paid at the bait shop for kept fish (simplified, frozen regs: every species sells).",
-    "channel_catfish": 3.5,
-    "brown_bullhead": 2.5,
-    "striped_mullet": 4.0,
-    "sheepshead": 5.0,
-    "american_eel": 9.0,
-    "bowfin": 1.5,
-    "florida_gar": 1.0,
-    "golden_shiner": 6.0,
-    "atlantic_needlefish": 1.0,
-    "florida_bass": 6.0,
-    "black_crappie": 7.0,
-    "bluegill": 5.0,
-    "redear_sunfish": 5.0,
-    "spotted_sunfish": 5.0,
-    "warmouth": 4.0,
-    "common_snook": 9.0,
-    "grass_carp": 1.0
+    "channel_catfish": 2.5,
+    "brown_bullhead": 1.8,
+    "striped_mullet": 3.0,
+    "sheepshead": 3.5,
+    "american_eel": 6.0,
+    "bowfin": 1.0,
+    "florida_gar": 0.6,
+    "golden_shiner": 4.0,
+    "atlantic_needlefish": 0.6,
+    "florida_bass": 4.0,
+    "black_crappie": 4.5,
+    "bluegill": 3.5,
+    "redear_sunfish": 3.5,
+    "spotted_sunfish": 3.5,
+    "warmouth": 3.0,
+    "common_snook": 6.0,
+    "grass_carp": 0.5
   }
 }

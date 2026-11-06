@@ -33,6 +33,7 @@ public partial class Main : Node2D
     private Label _card = null!;
     private CatchCard _catchCard = null!;
     private RequestsHud _board = null!;
+    private Coach? _coach;
     private CanvasLayer _hud = null!;
     private LedgerPanel _ledger = null!;
     private TheLedger.Ui.TackleMenu _menu = null!;
@@ -199,6 +200,11 @@ public partial class Main : Node2D
 
         _board = new RequestsHud { Name = "Board", Driver = _driver };
         hud.AddChild(_board);
+        if (!_automated)
+        {
+            _coach = new Coach { Name = "Coach", Driver = _driver };
+            hud.AddChild(_coach);
+        }
         _catchCard = new CatchCard { Name = "CatchCard" };
         hud.AddChild(_catchCard);
 
@@ -237,7 +243,12 @@ public partial class Main : Node2D
         switch (e.Type)
         {
             case TheLedger.Sim.Core.SimEventType.HookSet: Toast("Fish on!"); break;
-            case TheLedger.Sim.Core.SimEventType.LineBroke: Toast($"The line broke ({e.Value:0.0} N)", 3.5); break;
+            case TheLedger.Sim.Core.SimEventType.LineBroke:
+            {
+                string? gone = _automated ? null : LoseTerminal();
+                Toast($"The line broke ({e.Value:0.0} N)" + (gone != null ? $": the {gone} is gone" : ""), 3.5);
+                break;
+            }
             case TheLedger.Sim.Core.SimEventType.RodBroke: Toast("The rod snapped! (high-sticking under load)", 4); break;
             case TheLedger.Sim.Core.SimEventType.HookPulled:
                 Toast("It threw the hook", 3);
@@ -327,6 +338,25 @@ public partial class Main : Node2D
     }
 
     private float _lastTension;
+
+    /// <summary>
+    /// A broken line takes the lure with it. Bought lures are lost (buy another at Junie's); the start rigs (sinker,
+    /// worm and bobber) are cheap and always in the box. Returns the lost lure's name, or null if nothing was lost.
+    /// </summary>
+    private string? LoseTerminal()
+    {
+        var a = _driver.World.Anglers[0];
+        var t = a.Rig.Line.Terminal;
+        var p = ProfileStore.Current;
+        if (ProfileStore.Shop.StartLures.Contains(t.Id) || !p.Lures.Contains(t.Id)) return null;
+        p.Lures.Remove(t.Id);
+        ProfileStore.Save();
+        a.TackleBox.RemoveAll(x => x.Id == t.Id);
+        if (a.TackleBox.Count == 0) a.TackleBox.Add(_driver.AllLures[0]);
+        a.TackleIndex = 0;
+        a.Rig.Line.SetTerminal(a.TackleBox[0]);
+        return t.Name.ToLowerInvariant();
+    }
 
     /// <summary>
     /// Controller rumble from the line: sudden tension changes (taps, a bite, a head shake) buzz the light motor,
@@ -502,6 +532,7 @@ public partial class Main : Node2D
         bool panel = _menu.Visible || _shop.Visible || _travel.Visible || _story.Visible || _guide.Visible || _ledger.Visible || GameMenu.IsOpen;
         PanelOpen = _menu.Visible || _shop.Visible || _travel.Visible || _story.Visible || _guide.Visible;
         if (!_briefed && !_automated && !GameMenu.IsOpen) { _briefed = true; StoryBriefing(); } // after the title
+        if (_story.Visible) _coach?.Saw("notes");
         _hud.Visible = !GameMenu.IsOpen; // the title and pause menus show the scene, not the HUD
         _radioTime -= delta;
         _radio.Visible = _radioTime > 0;

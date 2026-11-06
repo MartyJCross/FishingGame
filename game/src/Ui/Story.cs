@@ -29,6 +29,8 @@ public sealed class StoryStep
     public string Done { get; set; } = "";
     public List<string> Unlocks { get; set; } = new();
     public StoryPage? Page { get; set; }
+    /// <summary>What the Trust pays when the step is done, US$.</summary>
+    public float Reward { get; set; }
 }
 
 /// <summary>
@@ -94,9 +96,16 @@ public static class Story
         var step = Current;
         foreach (var u in step.Unlocks) if (!p.Unlocked.Contains(u)) p.Unlocked.Add(u);
         if (step.Page != null && !p.Pages.Contains(step.Id)) p.Pages.Add(step.Id);
-        if (p.StoryStep < Steps.Count - 1) p.StoryStep++;
+        if (p.StoryStep < Steps.Count - 1) { p.StoryStep++; p.Money += step.Reward; }
         ProfileStore.Save();
         return step;
+    }
+
+    /// <summary>Whether the step with this id is finished.</summary>
+    public static bool StepDone(string id)
+    {
+        int i = Steps.FindIndex(s => s.Id == id);
+        return i >= 0 && i < ProfileStore.Current.StoryStep;
     }
 
     /// <summary>Spots open from the start; the rest come from story unlocks.</summary>
