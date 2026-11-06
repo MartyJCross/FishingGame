@@ -24,13 +24,13 @@ public partial class Coach : PanelContainer
     // Lesson order is the CoachStep value. Done = past the last one.
     private static readonly Lesson[] Lessons =
     {
-        new("Open the bail", "Press Space to open the bail, so line can leave the reel."),
-        new("Cast", "Hold the left mouse button to pin the line with your finger. Swing the mouse back, then forward, and let go of the button as the rod comes over the top."),
-        new("Close the bail", "Turn the reel (right mouse button or the wheel) to flip the bail shut. The bobber is fishing now."),
+        new("Open the bail", "Press {bail} to open the bail, so line can leave the reel."),
+        new("Cast", "Hold {line_hold} to pin the line with your finger. Swing the mouse back, then forward, and let go of {line_hold} as the rod comes over the top."),
+        new("Close the bail", "Turn the reel ({crank} or the wheel) to flip the bail shut. The bobber is fishing now."),
         new("Watch the bobber", "When it dips or slides away, sweep the rod back hard (mouse back) to set the hook. Nothing for a while? Reel a few turns: a moving bait draws fish."),
-        new("Fish on!", "Keep the line tight. Reel while it comes; when it runs, let the drag slip (Q looser, E tighter). Keep the tension bar out of the red."),
-        new("Land it", "Bring it close to your feet, near the surface, then press F to land it. A big fish has to tire first."),
-        new("Keep or release", "Measure done. Odile wants survey fish released: press F to let it go. R keeps it in your cooler to sell at Junie's."),
+        new("Fish on!", "Keep the line tight. Reel while it comes; when it runs, let the drag slip ({drag_looser} looser, {drag_tighter} tighter). Keep the tension bar out of the red."),
+        new("Land it", "Bring it close to your feet, near the surface, then press {land} to land it. A big fish has to tire first."),
+        new("Keep or release", "Measure done. Odile wants survey fish released: press {land} to let it go. {keep} keeps it in your cooler to sell at Junie's."),
         new("Field notes", "Press Tab and open Field notes: Odile's survey, what's left to catch, and Wren's pages."),
         new("The survey", "Release five different species from the pond. The worm under a bobber takes panfish near the bank; the sinker on the bottom finds catfish. Change bait from the Tab menu (reel in first)."),
     };
@@ -213,6 +213,10 @@ public partial class Coach : PanelContainer
         return n;
     }
 
+    /// <summary>"{action}" becomes the key bound to it now (lessons follow the player's rebinding).</summary>
+    private static string Keys(string text) =>
+        System.Text.RegularExpressions.Regex.Replace(text, "\\{([a-z_]+)\\}", m => TheLedger.Controls.InputActions.Label(m.Groups[1].Value));
+
     private string GoalLine(Profile p)
     {
         var step = Story.Current;
@@ -232,7 +236,7 @@ public partial class Coach : PanelContainer
         bool lesson = p.CoachStep < Done && ControlsHud.ShowHints;
         bool tip = _tipTime > 0 && ControlsHud.ShowHints;
         string goal = GoalLine(p);
-        int key = HashCode.Combine(goal, lesson ? p.CoachStep : -1, tip ? _tip : "");
+        int key = HashCode.Combine(goal, lesson ? p.CoachStep : -1, tip ? _tip : "", TheLedger.Controls.InputActions.Version);
         if (key == _key) return;
         _key = key;
         _goal.Text = goal;
@@ -248,7 +252,7 @@ public partial class Coach : PanelContainer
             _head.Text = $"ODILE'S FIRST LESSONS  {p.CoachStep + 1}/{Done}";
             _title.Visible = true;
             _title.Text = Lessons[p.CoachStep].Title;
-            _text.Text = Lessons[p.CoachStep].Text;
+            _text.Text = Keys(Lessons[p.CoachStep].Text);
         }
         Size = new Vector2(Size.X, 0f); // shrink back to the text
     }

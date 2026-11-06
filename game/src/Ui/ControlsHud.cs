@@ -25,17 +25,21 @@ public partial class ControlsHud : Control
 
     private static readonly (string key, string label, Func<bool> held)[] Chips =
     {
-        ("Space", "bail", () => Input.IsActionPressed(InputActions.Bail)),
-        ("LMB", "hold line", () => Input.IsActionPressed(InputActions.LineHold)),
-        ("RMB / wheel", "reel", () => Input.IsActionPressed(InputActions.Crank)),
-        ("Q / E", "drag", () => Input.IsActionPressed(InputActions.DragLooser) || Input.IsActionPressed(InputActions.DragTighter)),
+        ("@bail", "bail", () => Input.IsActionPressed(InputActions.Bail)),
+        ("@line_hold", "hold line", () => Input.IsActionPressed(InputActions.LineHold)),
+        ("@crank| / wheel", "reel", () => Input.IsActionPressed(InputActions.Crank)),
+        ("@drag_looser| / @drag_tighter", "drag", () => Input.IsActionPressed(InputActions.DragLooser) || Input.IsActionPressed(InputActions.DragTighter)),
         ("Mouse ←→", "rod back / forward", () => false),
         ("Shift", "fine rod", () => Input.IsKeyPressed(Key.Shift)),
-        ("F", "land", () => Input.IsActionPressed(InputActions.Land)),
-        ("R", "keep", () => Input.IsActionPressed(InputActions.Keep)),
+        ("@land", "land", () => Input.IsActionPressed(InputActions.Land)),
+        ("@keep", "keep", () => Input.IsActionPressed(InputActions.Keep)),
         ("V", "lure cam", () => Input.IsKeyPressed(Key.V)),
         ("Tab", "tackle", () => Input.IsKeyPressed(Key.Tab)),
     };
+
+    /// <summary>"@action" parts become the key bound to that action now (rebinding updates the hints).</summary>
+    private static string KeyText(string spec) =>
+        spec.Contains('@') ? System.Text.RegularExpressions.Regex.Replace(spec, "@([a-z_]+)", m => InputActions.Label(m.Groups[1].Value)).Replace("|", "") : spec;
 
     /// <summary>Whether the key chips show (H toggles; saved in settings).</summary>
     public static bool ShowHints = true;
@@ -77,7 +81,7 @@ public partial class ControlsHud : Control
                                        (int)(f.HookHold * 40f), f.Airborne ? (int)(Time.GetTicksMsec() / 150) : f.HookTearing ? (int)(Time.GetTicksMsec() / 150) : 0);
         int key = HashCode.Combine((int)(line.TipTension * 4f), r.DragClick, (int)(line.LineOut * 10f), r.BailOpen, r.DragSlipping,
                                    HashCode.Combine(held, (int)(_dragPop * 20f), (int)(_bailPop * 20f), fishKey, (int)(r.Loose * 50f), r.BrakeClick,
-                                                    (int)GetViewportRect().Size.Y, ShowHints));
+                                                    (int)GetViewportRect().Size.Y, ShowHints ? 1 + InputActions.Version * 2 : 0));
         if (key != _drawnKey) { _drawnKey = key; QueueRedraw(); }
     }
 
@@ -197,8 +201,9 @@ public partial class ControlsHud : Control
             return;
         }
         float cx = x, cy = y;
-        foreach (var (key, label, held) in Chips)
+        foreach (var (keySpec, label, held) in Chips)
         {
+            string key = KeyText(keySpec);
             bool on = held();
             float kw = font.GetStringSize(key, HorizontalAlignment.Left, -1, 15).X + 10f;
             float lw = font.GetStringSize(label, HorizontalAlignment.Left, -1, 15).X;

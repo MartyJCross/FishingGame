@@ -171,7 +171,67 @@ public partial class GameMenu : CanvasLayer
         var dog = new CheckButton { Text = "Skiff comes along", ButtonPressed = TheLedger.Render.TestView.DogOn, FocusMode = Control.FocusModeEnum.None };
         dog.Toggled += on => { TheLedger.Render.TestView.DogOn = on; Save("game", "dog", on); };
         _box.AddChild(dog);
+        Item("Controls", () => Controls(back));
         Item("Back", back);
+    }
+
+    private string? _rebinding;
+    private Button? _rebindButton;
+
+    /// <summary>Keyboard and mouse bindings: click one, then press the new key or mouse button (Esc cancels).</summary>
+    private void Controls(Action back)
+    {
+        Open();
+        _rebinding = null;
+        Heading("Controls", 44, UiFonts.Title);
+        var hint = new Label { Text = "Click a binding, then press a key or mouse button. Esc cancels. The controller layout is fixed.", HorizontalAlignment = HorizontalAlignment.Center, AutowrapMode = TextServer.AutowrapMode.WordSmart, CustomMinimumSize = new Vector2(520, 0) };
+        hint.AddThemeFontSizeOverride("font_size", 15);
+        _box.AddChild(hint);
+        var grid = new GridContainer { Columns = 2 };
+        grid.AddThemeConstantOverride("h_separation", 16);
+        grid.AddThemeConstantOverride("v_separation", 4);
+        _box.AddChild(grid);
+        foreach (var (action, name) in InputActions.Rebindable)
+        {
+            var l = new Label { Text = name, SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
+            l.AddThemeFontSizeOverride("font_size", 17);
+            grid.AddChild(l);
+            var b = new Button { Text = InputActions.Label(action), CustomMinimumSize = new Vector2(150, 34), FocusMode = Control.FocusModeEnum.None };
+            b.AddThemeFontSizeOverride("font_size", 17);
+            string a = action;
+            b.Pressed += () =>
+            {
+                if (_rebindButton != null && _rebinding != null) _rebindButton.Text = InputActions.Label(_rebinding);
+                _rebinding = a;
+                _rebindButton = b;
+                b.Text = "press a key…";
+            };
+            grid.AddChild(b);
+        }
+        Item("Reset to defaults", () => { InputActions.ResetBindings(); Controls(back); });
+        Item("Back", () => { _rebinding = null; Settings(back); });
+    }
+
+    public override void _Input(InputEvent e)
+    {
+        if (_rebinding == null || !IsOpen) return;
+        bool done = false;
+        if (e is InputEventKey { Pressed: true, Echo: false } k)
+        {
+            if (k.PhysicalKeycode != Key.Escape) InputActions.Rebind(_rebinding, new InputEventKey { PhysicalKeycode = k.PhysicalKeycode });
+            done = true;
+        }
+        else if (e is InputEventMouseButton { Pressed: true } m && m.ButtonIndex is not (MouseButton.WheelUp or MouseButton.WheelDown or MouseButton.WheelLeft or MouseButton.WheelRight))
+        {
+            // Buttons fire on release, so the click that started rebinding is over: this press is the new binding.
+            InputActions.Rebind(_rebinding, new InputEventMouseButton { ButtonIndex = m.ButtonIndex });
+            done = true;
+        }
+        if (!done) return;
+        if (_rebindButton != null) _rebindButton.Text = InputActions.Label(_rebinding);
+        _rebinding = null;
+        _rebindButton = null;
+        GetViewport().SetInputAsHandled();
     }
 
     private void Slider(string name, double min, double max, double value, Action<double> set, Func<double, string> fmt)

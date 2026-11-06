@@ -5,7 +5,8 @@ namespace TheLedger.Controls;
 /// <summary>
 /// All input actions, registered in code so the bindings live in one reviewable place (docs/03_FISHING_MECHANICS.md
 /// §2). Defaults are mouse + keyboard and an Xbox-layout controller (the owner uses a GameSir in Xbox layout).
-/// Rebinding UI arrives in M7; it will edit these actions through InputMap.
+/// Keyboard and mouse bindings can be changed in Settings, Controls (<see cref="Rebind"/>, saved in settings.cfg
+/// [keys]); the controller layout stays as designed.
 /// </summary>
 public static class InputActions
 {
@@ -53,6 +54,100 @@ public static class InputActions
         Add(RodDown, 0.15f, Axis(JoyAxis.RightY, 1f));
         Add(ToggleTuning, 0.5f, KeyEv(Key.F1));
         Add(ToggleDebug, 0.5f, KeyEv(Key.F3));
+        LoadBindings();
+    }
+
+    /// <summary>The actions a player can rebind on keyboard and mouse, with the names the Controls page shows.</summary>
+    public static readonly (string action, string name)[] Rebindable =
+    {
+        (Bail, "Open / close the bail"), (LineHold, "Hold the line (finger / thumb)"), (Crank, "Reel"),
+        (Land, "Land / release a fish"), (Keep, "Keep a fish / clear a bird's nest"),
+        (DragTighter, "Drag tighter"), (DragLooser, "Drag looser"), (BrakeUp, "Baitcaster brake up"), (BrakeDown, "Baitcaster brake down"),
+        (MoveLeft, "Walk left"), (MoveRight, "Walk right"), (ToggleLedger, "The Ledger"),
+    };
+
+    /// <summary>Goes up on every rebind (the HUD redraws its key hints).</summary>
+    public static int Version { get; private set; }
+
+    private const string SettingsPath = "user://settings.cfg";
+    private static readonly Dictionary<string, InputEvent> Defaults = new();
+
+    private static bool IsPad(InputEvent e) => e is InputEventJoypadButton or InputEventJoypadMotion;
+
+    /// <summary>The keyboard or mouse event bound to an action (null when it has none).</summary>
+    public static InputEvent? KeyboardEvent(string action) =>
+        InputMap.HasAction(action) ? InputMap.ActionGetEvents(action).FirstOrDefault(e => !IsPad(e)) : null;
+
+    /// <summary>Short text for a binding: "Space", "LMB", "E".</summary>
+    public static string Label(InputEvent? e) => e switch
+    {
+        InputEventKey k => OS.GetKeycodeString(k.PhysicalKeycode != Key.None ? k.PhysicalKeycode : k.Keycode),
+        InputEventMouseButton { ButtonIndex: MouseButton.Left } => "LMB",
+        InputEventMouseButton { ButtonIndex: MouseButton.Right } => "RMB",
+        InputEventMouseButton { ButtonIndex: MouseButton.Middle } => "MMB",
+        InputEventMouseButton { ButtonIndex: MouseButton.Xbutton1 } => "Mouse 4",
+        InputEventMouseButton { ButtonIndex: MouseButton.Xbutton2 } => "Mouse 5",
+        InputEventMouseButton m => $"Mouse {(int)m.ButtonIndex}",
+        _ => "—",
+    };
+
+    public static string Label(string action) => Label(KeyboardEvent(action));
+
+    /// <summary>Puts a new key or mouse button on an action (replacing its old keyboard/mouse binding) and saves it.</summary>
+    public static void Rebind(string action, InputEvent e)
+    {
+        if (!Defaults.ContainsKey(action) && KeyboardEvent(action) is { } d) Defaults[action] = d;
+        Apply(action, e);
+        var cfg = new ConfigFile();
+        cfg.Load(SettingsPath);
+        cfg.SetValue("keys", action, Encode(e));
+        cfg.Save(SettingsPath);
+    }
+
+    /// <summary>Back to the keys the game shipped with.</summary>
+    public static void ResetBindings()
+    {
+        foreach (var (action, ev) in Defaults) Apply(action, ev);
+        var cfg = new ConfigFile();
+        cfg.Load(SettingsPath);
+        if (cfg.HasSection("keys")) cfg.EraseSection("keys");
+        cfg.Save(SettingsPath);
+    }
+
+    private static void Apply(string action, InputEvent e)
+    {
+        foreach (var old in InputMap.ActionGetEvents(action).Where(x => !IsPad(x)).ToList()) InputMap.ActionEraseEvent(action, old);
+        InputMap.ActionAddEvent(action, e);
+        Version++;
+    }
+
+    private static string Encode(InputEvent e) => e switch
+    {
+        InputEventKey k => $"key:{(long)(k.PhysicalKeycode != Key.None ? k.PhysicalKeycode : k.Keycode)}",
+        InputEventMouseButton m => $"mouse:{(long)m.ButtonIndex}",
+        _ => "",
+    };
+
+    private static InputEvent? Decode(string s)
+    {
+        var parts = s.Split(':');
+        if (parts.Length != 2 || !long.TryParse(parts[1], out long v)) return null;
+        return parts[0] switch
+        {
+            "key" => new InputEventKey { PhysicalKeycode = (Key)v },
+            "mouse" => new InputEventMouseButton { ButtonIndex = (MouseButton)v },
+            _ => null,
+        };
+    }
+
+    private static void LoadBindings()
+    {
+        foreach (var (action, _) in Rebindable)
+            if (!Defaults.ContainsKey(action) && KeyboardEvent(action) is { } d) Defaults[action] = d;
+        var cfg = new ConfigFile();
+        if (cfg.Load(SettingsPath) != Error.Ok || !cfg.HasSection("keys")) return;
+        foreach (var (action, _) in Rebindable)
+            if (cfg.HasSectionKey("keys", action) && Decode((string)cfg.GetValue("keys", action)) is { } e) Apply(action, e);
     }
 
     private static void Add(string action, float deadzone, params InputEvent[] events)
